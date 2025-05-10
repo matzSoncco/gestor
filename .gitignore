@@ -1,0 +1,181 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib60/ # lib64 in original, but lib60 is also common
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal # Para SQLite
+media/ # A menos que quieras versionar los archivos subidos por usuarios (generalmente no)
+staticfiles/ # Los archivos estáticos son recolectados aquí, no necesitan versionarse
+
+# Virtual Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# PyDev project settings
+.pydevproject
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+
+# VS Code
+.vscode/
+
+# SQLite
+*.sqlite3
+*.sqlite3-journal
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environments
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node.js / Vue.js
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules/
+dist/ # Para el build de Vue
+dist-ssr/ # Para el build SSR de Vue
+coverage/ # Reportes de cobertura de Jest/Vitest
+*.tgz
+
+# Editor directories and files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor specific
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Netbeans
+nbproject/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# dotenv environment variables file
+.env
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache files
+.cache/
+
+# Next.js build output
+.next/
+out/
+
+# Nuxt.js build output
+.nuxt/
+
+# VuePress
+.vuepress/dist
+
+# Optional SvelteKit files
+.svelte-kit/
+
+# Mac files
+.AppleDouble
+.LSOverride
+
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Rider
+.idea.rider*/
