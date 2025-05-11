@@ -3,8 +3,8 @@
     <h2>Iniciar Sesión</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
-        <label for="email">Correo Electrónico:</label>
-        <input type="email" id="email" v-model="email" required />
+        <label for="username">Nombre de usuario:</label>
+        <input type="text" id="username" v-model="username" required />
       </div>
       <div class="form-group">
         <label for="password">Contraseña:</label>
@@ -25,7 +25,7 @@
     import { useAuthStore } from '../store/auth'
 
     const authStore = useAuthStore()
-    const email = ref('') // Podrías usar 'username' si tu API lo espera así
+    const username = ref('')
     const password = ref('')
     const loading = ref(false)
 
@@ -34,10 +34,8 @@
     // Asegúrate que las credenciales coincidan con lo que espera tu backend
     // Para DRF Simple JWT por defecto es 'username' y 'password'.
     // Si usas email, tu User model y el serializer de login de Django deben estar configurados para ello.
-    // Aquí asumimos que tu backend espera 'email' como username. Si no, ajusta.
-    await authStore.login({ email: email.value, password: password.value });
-    // O si tu backend espera 'username':
-    // await authStore.login({ username: email.value, password: password.value });
+    
+    await authStore.login({ username: username.value, password: password.value });
     loading.value = false;
     }
 </script>
