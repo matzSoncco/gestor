@@ -25,7 +25,16 @@ SECRET_KEY = 'django-insecure-6+%!r(r_fy39!#cxi+tu^9px4ct#ggqoa*l$yy(1dq^j=!14a6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080", # Ejemplo para Vue CLI
+    "http://127.0.0.1:8080",
+    "http://localhost:5173", # Ejemplo para Vite
+    "http://127.0.0.1:5173",
+]
+# O, para desarrollo y menos restrictivo (no recomendado para producción):
+# CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -37,12 +46,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Terceros
+    'rest_framework',
+    'corsheaders',
+    # Mis aplicaciones
+    'core_app',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
