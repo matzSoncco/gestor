@@ -1,0 +1,12 @@
+Django>=4.0,<5.0 # O la versión que estés usando
+djangorestframework>=3.14,<3.16
+django-cors-headers>=3.13,<4.5
+pandas>=1.5,<2.3     # Para manipulación de CSV y datos en general
+openpyxl>=3.0,<3.2   # Para generar archivos .xlsx
+XlsxWriter>=3.0,<3.3 # Alternativa/complemento a openpyxl para Excel, más control
+# Para PDF (elige una o combina):
+reportlab>=3.6,<4.2  # Opción robusta y de bajo nivel para PDF
+xhtml2pdf>=0.2,<0.3  # Convierte HTML/CSS a PDF (requiere pisa)
+# WeasyPrint>=50,<60  # Otra excelente opción para HTML/CSS a PDF (puede tener más dependencias de sistema)
+# psycopg2-binary # (Opcional, si usas PostgreSQL)
+# gunicorn          # (Opcional, para producción)
