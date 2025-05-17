@@ -1,7 +1,7 @@
 <template>
   <div class="formulario-container">
     <form @submit.prevent="enviarFormulario" class="formulario-registro">
-      <h2 class="form-title">Registro de Documento</h2>
+      <h2 class="form-title">Registro de Operacion</h2>
       
       <!-- Campos comunes -->
       <div class="form-section">
@@ -28,10 +28,10 @@
         </div>
 
         <div class="form-group">
-          <label for="tipoOperacion">Tipo de Operación:</label>
+          <label for="tipoDocumento">Tipo de Operacion:</label>
           <select 
-            id="tipoOperacion" 
-            v-model="formData.tipoOperacion"
+            id="tipoDocumento" 
+            v-model="formData.tipoDocumento"
             required
             class="select-custom"
           >
@@ -50,9 +50,9 @@
       
       <!-- Campos específicos según tipo de documento -->
       <transition name="fade">
-        <div class="form-section specific-fields" v-if="formData.tipoOperacion">
+        <div class="form-section specific-fields" v-if="formData.tipoDocumento">
           <!-- Campos para Combustible -->
-          <template v-if="formData.tipoOperacion === 'combustible'">
+          <template v-if="formData.tipoDocumento === 'combustible'">
             <h3 class="section-title">Detalles de Combustible</h3>
             
             <div class="form-grid">
@@ -111,7 +111,7 @@
           </template>
 
           <!-- Campos para Mantenimiento -->
-          <template v-if="formData.tipoOperacion === 'mantenimiento'">
+          <template v-if="formData.tipoDocumento === 'mantenimiento'">
             <h3 class="section-title">Detalles de Mantenimiento</h3>
             
             <div class="form-grid">
@@ -165,7 +165,7 @@
           </template>
 
           <!-- Campos para Servicio -->
-          <template v-if="formData.tipoOperacion === 'servicio'">
+          <template v-if="formData.tipoDocumento === 'servicio'">
             <h3 class="section-title">Detalles del Servicio</h3>
             
             <div class="form-group">
@@ -222,7 +222,7 @@ const emit = defineEmits(['datos-enviados']);
 const formData = reactive({
   numeroDocumento: '',
   rucProveedor: '',
-  tipoOperacion: '',
+  tipoDocumento: '',
   fecha: '',
   // Campos para combustible
   cantidadGalones: '',
@@ -256,7 +256,7 @@ const calcularCostoTotal = () => {
 
 // Vigilamos cambios en los campos para actualizar automáticamente
 watch([() => formData.cantidadGalones, () => formData.costoPorGalon], () => {
-  if (formData.tipoOperacion === 'combustible') {
+  if (formData.tipoDocumento === 'combustible') {
     calcularCostoTotal();
   }
 });
@@ -310,40 +310,43 @@ const enviarFormulario = async () => {
 .formulario-container {
   max-width: 850px;
   margin: 0 auto;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   border-radius: 12px;
-  background-color: #fff;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
 }
 
 .form-title {
   text-align: center;
   margin-bottom: 25px;
-  color: #2c3e50;
+  color: #333333;
   font-size: 1.8rem;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #3498db;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #4a6fa5;
 }
 
 .section-title {
-  color: #3498db;
-  margin: 5px 0 15px;
+  color: #4a6fa5;
+  margin: 8px 0 15px;
   font-size: 1.3rem;
-  border-left: 4px solid #3498db;
-  padding-left: 10px;
+  border-left: 4px solid #4a6fa5;
+  padding-left: 12px;
+  font-weight: 600;
 }
 
 .form-section {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   padding: 20px;
-  background-color: #f8f9fa;
+  background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  border: 1px solid #eeeeee;
 }
 
 .specific-fields {
-  background-color: #f1f8ff;
-  border-left: 3px solid #3498db;
+  background-color: #f5f8fc;
+  border-left: 3px solid #4a6fa5;
 }
 
 .form-grid {
@@ -353,48 +356,53 @@ const enviarFormulario = async () => {
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
   display: flex;
   flex-direction: column;
 }
 
 .descripcion-group {
   grid-column: 1 / -1;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 label {
   font-weight: 600;
   margin-bottom: 8px;
-  color: #34495e;
-  font-size: 1rem;
+  color: #333333;
+  font-size: 0.95rem;
 }
 
 input, select, textarea {
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  background-color: #fff;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  color: #333333;
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  border-color: #4a6fa5;
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.15);
   outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #999999;
 }
 
 input[readonly] {
   background-color: #f5f5f5;
-  border: 1px dashed #aaa;
+  border: 1px dashed #aaaaaa;
   font-weight: bold;
-  color: #2c3e50;
+  color: #333333;
 }
 
 .select-custom {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a6fa5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
@@ -403,24 +411,24 @@ input[readonly] {
 
 textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 90px;
 }
 
 .form-actions {
   display: flex;
   gap: 15px;
-  margin-top: 20px;
+  margin-top: 25px;
   justify-content: center;
 }
 
 button {
-  padding: 12px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,53 +436,54 @@ button {
 }
 
 .btn-submit {
-  background-color: #3498db;
+  background-color: #4a6fa5;
   color: white;
 }
 
 .btn-submit:hover:not(:disabled) {
-  background-color: #2980b9;
+  background-color: #3a5982;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-reset {
-  background-color: #f8f9fa;
-  color: #34495e;
-  border: 1px solid #ddd;
+  background-color: #f2f2f2;
+  color: #333333;
+  border: 1px solid #dddddd;
 }
 
 .btn-reset:hover:not(:disabled) {
-  background-color: #ecf0f1;
+  background-color: #e5e5e5;
 }
 
 button:disabled {
-  background-color: #bdc3c7;
+  background-color: #cccccc;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+  color: #666666;
 }
 
 .mensaje {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 15px 0;
+  padding: 14px;
+  border-radius: 6px;
+  margin: 18px 0;
   text-align: center;
   font-weight: 500;
   animation: fadeIn 0.3s;
 }
 
 .mensaje.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background-color: #e8f4f0;
+  color: #0f6848;
+  border: 1px solid #b7e1d0;
 }
 
 .mensaje.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: #fbedee;
+  color: #a42834;
+  border: 1px solid #f5c8cb;
 }
 
 /* Animaciones para transiciones */
