@@ -16,7 +16,7 @@ export const useAuthStore = defineStore('auth', {
         async login(credentials) {
             this.loginError = null;
             try {
-                const response = await apiService.login(credentials); // Necesitarás crear esta función en apiService
+                const response = await apiService.login(credentials);
                 const token = response.data.access; // Asumiendo que tu API devuelve un token JWT (access y refresh)
                 const refreshToken = response.data.refresh; // Opcional
 

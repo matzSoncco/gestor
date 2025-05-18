@@ -30,14 +30,20 @@
     const loading = ref(false)
 
     const handleSubmit = async () => {
-    loading.value = true;
-    // Asegúrate que las credenciales coincidan con lo que espera tu backend
-    // Para DRF Simple JWT por defecto es 'username' y 'password'.
-    // Si usas email, tu User model y el serializer de login de Django deben estar configurados para ello.
-    
-    await authStore.login({ username: username.value, password: password.value });
-    loading.value = false;
-    }
+      loading.value = true;
+      //console.log('▶️ Valores antes de login:', {
+      //  username: username.value,
+      //  password: password.value
+      //});
+      try {
+        await authStore.login({
+          username: username.value,
+          password: password.value
+        });
+      } finally {
+        loading.value = false;
+      }
+    };
 </script>
 
 <style scoped>
