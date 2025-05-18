@@ -20,7 +20,7 @@ COMBUSTIBLE = [
 from django.db import models
 
 class tarjetaVehiculo(models.Model):
-    categoria = models.CharField(max_length=10)  
+    categoria = models.CharField(max_length=10) 
     marca = models.CharField(max_length=20)       
     modelo = models.CharField(max_length=20)     
     version = models.CharField(max_length=100)  

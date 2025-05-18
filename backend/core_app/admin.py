@@ -1,3 +1,7 @@
 from django.contrib import admin
-
-# Register your models here.
+from .models import tarjetaVehiculo, Vehiculo, Servicio, Mantenimiento, Combustible
+admin.site.register(tarjetaVehiculo)
+admin.site.register(Vehiculo)
+admin.site.register(Servicio)
+admin.site.register(Mantenimiento)
+admin.site.register(Combustible)
