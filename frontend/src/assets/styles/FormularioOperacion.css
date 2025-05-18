@@ -1,0 +1,55 @@
+.formulario-container {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+.form-title {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333333;
+  font-size: 1.8rem;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #4a6fa5;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  justify-content: center;
+}
+
+.btn-submit {
+  background-color: #4a6fa5;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-reset {
+  background-color: #f2f2f2;
+  color: #333333;
+  padding: 12px 24px;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
