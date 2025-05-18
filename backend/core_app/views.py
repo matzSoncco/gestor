@@ -1,4 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -6,6 +7,54 @@ import pandas as pd
 import csv
 import io
 from django.http import HttpResponse
+from .models import tarjetaVehiculo, Vehiculo, Servicio, Mantenimiento, Combustible
+from .serializers import (
+    TarjetaVehiculoSerializer, 
+    VehiculoSerializer, 
+    ServicioSerializer, 
+    MantenimientoSerializer, 
+    CombustibleSerializer
+)
+
+#rest - api
+class TarjetaVehiculoViewSet(ModelViewSet):
+    queryset = tarjetaVehiculo.objects.all()
+    serializer_class = TarjetaVehiculoSerializer
+    permission_classes = [IsAuthenticated]
+
+class VehiculoViewSet(ModelViewSet):
+    queryset = Vehiculo.objects.all()
+    serializer_class = VehiculoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Permite filtrar vehículos por placa o ubicación"""
+        queryset = Vehiculo.objects.all()
+        placa = self.request.query_params.get('placa')
+        ubicacion = self.request.query_params.get('ubicacion')
+        
+        if placa:
+            queryset = queryset.filter(placa__icontains=placa)
+        if ubicacion:
+            queryset = queryset.filter(ubicacion__icontains=ubicacion)
+            
+        return queryset
+
+class ServicioViewSet(ModelViewSet):
+    queryset = Servicio.objects.all()
+    serializer_class = ServicioSerializer
+    permission_classes = [IsAuthenticated]
+
+class MantenimientoViewSet(ModelViewSet):
+    queryset = Mantenimiento.objects.all()
+    serializer_class = MantenimientoSerializer
+    permission_classes = [IsAuthenticated]
+
+class CombustibleViewSet(ModelViewSet):
+    queryset = Combustible.objects.all()
+    serializer_class = CombustibleSerializer
+    permission_classes = [IsAuthenticated]
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -59,6 +108,7 @@ def csv_upload(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def report_generate(request):
+    
     """Endpoint para generar reportes en diferentes formatos"""
     format_type = request.query_params.get('format', 'excel')
     
@@ -124,3 +174,5 @@ def report_generate(request):
     else:
         return Response({"detail": f"Formato '{format_type}' no soportado"}, 
                       status=status.HTTP_400_BAD_REQUEST)
+
+
