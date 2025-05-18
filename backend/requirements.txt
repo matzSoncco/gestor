@@ -10,3 +10,5 @@ xhtml2pdf>=0.2,<0.3  # Convierte HTML/CSS a PDF (requiere pisa)
 # WeasyPrint>=50,<60  # Otra excelente opción para HTML/CSS a PDF (puede tener más dependencias de sistema)
 # psycopg2-binary # (Opcional, si usas PostgreSQL)
 # gunicorn          # (Opcional, para producción)
+pandas==2.2.3
+djangorestframework-simplejwt==0.0.2

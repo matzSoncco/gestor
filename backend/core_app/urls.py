@@ -1,15 +1,8 @@
 from django.urls import path
-from . import views # Importarás tus vistas aquí
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from . import views
 
-# urlpatterns = [
-#     path('ruta-ejemplo/', views.MiVista.as_view(), name='mi-vista'),
-# ]
-# Se completa más adelante
 urlpatterns = [
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('form-submit/', views.form_submit, name='form_submit'),
+    path('csv-upload/', views.csv_upload, name='csv_upload'),
+    path('report-generate/', views.report_generate, name='report_generate'),
 ]
