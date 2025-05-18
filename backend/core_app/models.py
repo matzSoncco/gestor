@@ -12,10 +12,42 @@ REPUESTO = [
     ('REP2', 'REPUESTO 2'),
 ]
 
+COMBUSTIBLE = [
+    ('GSL', 'GASOLINA'),
+    ('PET', 'PETROLEO'),
+]
+
+from django.db import models
+
 class tarjetaVehiculo(models.Model):
-    dato="prueba :v"
+    categoria = models.CharField(max_length=10)  
+    marca = models.CharField(max_length=20)       
+    modelo = models.CharField(max_length=20)     
+    version = models.CharField(max_length=100)  
+    color = models.CharField(max_length=30)     
+    anio_fabricacion = models.PositiveIntegerField() 
+    anio_modelo = models.PositiveIntegerField()      
+    motor = models.CharField(max_length=20)    
+    combustible = models.CharField(max_length=10, choices=COMBUSTIBLE)
+    forma_rodante = models.CharField(max_length=10) 
+    vin = models.CharField(max_length=30, unique=True) 
+    serie_chasis = models.CharField(max_length=30)     
+    ejes = models.PositiveIntegerField()          
+    ruedas = models.PositiveIntegerField()        
+    pasajeros = models.PositiveIntegerField()     
+    carroceria = models.CharField(max_length=20) 
+    peso_neto = models.DecimalField(max_digits=6, decimal_places=3)    
+    peso_bruto = models.DecimalField(max_digits=6, decimal_places=3)    
+    carga_util = models.DecimalField(max_digits=6, decimal_places=3) 
+    cilindrada = models.PositiveIntegerField()   
+    cilindros = models.PositiveIntegerField()     
+    altura = models.DecimalField(max_digits=4, decimal_places=2)    
+    ancho = models.DecimalField(max_digits=4, decimal_places=2)   
+    longitud = models.DecimalField(max_digits=5, decimal_places=3)  
+
     def __str__(self):
-        return self.dato
+        return f'{self.marca} {self.modelo} ({self.vin})'
+
 
 class Vehiculo(models.Model):
     placa=models.CharField(max_length=6)
