@@ -1,5 +1,6 @@
+/* FormularioRegistro.css */
 .formulario-container {
-  max-width: 850px;
+  max-width: 850px; /* Mantener el max-width original */
   margin: 0 auto;
   padding: 25px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
@@ -17,6 +18,30 @@
   border-bottom: 2px solid #4a6fa5;
 }
 
+.section-title {
+  color: #4a6fa5;
+  margin: 8px 0 15px;
+  font-size: 1.3rem;
+  border-left: 4px solid #4a6fa5;
+  padding-left: 12px;
+  font-weight: 600;
+}
+
+.form-section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  border: 1px solid #eeeeee;
+}
+
+.specific-fields {
+    margin-top: 20px;
+    background-color: #f5f8fc;
+    border-left: 3px solid #4a6fa5;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -29,6 +54,58 @@
   flex-direction: column;
 }
 
+label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333333;
+  font-size: 0.95rem;
+}
+
+input, select, textarea {
+  padding: 9px 10px; /* Reducido de 12px */
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  font-size: 14px; /* Reducido de 15px */
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  color: #333333;
+  /* Asegurar que los inputs puedan encogerse y no impidan que la columna del grid se encoja */
+  min-width: 0; /* Permite que el input se encoja más allá de su contenido base */
+  width: 100%; /* El input llenará la celda del grid asignada por .form-group */
+  box-sizing: border-box; /* Importante para que padding y border no aumenten el tamaño total respecto a width:100% */
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #4a6fa5;
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.15);
+  outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #999999;
+}
+
+input[readonly] {
+  background-color: #f5f5f5;
+  border: 1px dashed #aaaaaa;
+  font-weight: bold;
+  color: #333333;
+}
+
+.select-custom {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a6fa5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
 .form-actions {
   display: flex;
   gap: 15px;
@@ -36,20 +113,260 @@
   justify-content: center;
 }
 
-.btn-submit {
-  background-color: #4a6fa5;
-  color: white;
+button {
   padding: 12px 24px;
   border: none;
   border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+}
+
+.btn-submit {
+  background-color: #4a6fa5;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #3a5982;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-reset {
   background-color: #f2f2f2;
   color: #333333;
-  padding: 12px 24px;
   border: 1px solid #dddddd;
+}
+
+.btn-reset:hover:not(:disabled) {
+  background-color: #e5e5e5;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  color: #666666;
+}
+
+.mensaje {
+  width: 100%;
+  padding: 14px;
   border-radius: 6px;
+  margin: 18px 0;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s;
+}
+
+.mensaje.success {
+  background-color: #e8f4f0;
+  color: #0f6848;
+  border: 1px solid #b7e1d0;
+}
+
+.mensaje.error {
+  background-color: #fbedee;
+  color: #a42834;
+  border: 1px solid #f5c8cb;
+}
+
+/* Animaciones para transiciones */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.readonly-input {
+  background-color: #e9ecef; /* Un color de fondo ligeramente diferente para readonly */
+  color: #495057;
+}
+
+.dynamic-row {
+  display: grid;
+  /* Ajuste de columnas para mejor distribución y evitar desbordamiento */
+  /* Usamos minmax(0, Xfr) para permitir que las columnas se encojan si es necesario */
+  /* La última columna para el botón usará max-content para tomar solo el espacio necesario */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.2fr) max-content; /* Combustible: Cant, Costo, Subt, Placa, Btn */
+  gap: 10px; /* Reducido de 15px */
+  align-items: flex-end; /* Alinea los elementos (incluyendo el botón) en la parte inferior */
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+.dynamic-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.maintenance-row {
+  /* ItemDesc, Cant, CostoUnit, Subt, Btn */
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1fr) max-content;
+}
+
+.service-row {
+  /* DescServ, Costo, Btn */
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) max-content;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0; 
+  /* Añadido para asegurar que el form-group no impida el encogimiento */
+  min-width: 0; 
+}
+
+.item-description-group {
+  position: relative;
+}
+
+.autocomplete-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background-color: white;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 150px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.autocomplete-suggestions li {
+  padding: 8px 12px;
   cursor: pointer;
+  font-size: 13px; /* Un poco más pequeño para las sugerencias */
+}
+
+.autocomplete-suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+.btn-remove-row {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0; 
+  width: 10px; /* Reducido de 38px */
+  height: 38px; /* Reducido de 38px, debe coincidir con la altura de los inputs ajustados */
+  font-size: 1.2rem; /* Reducido de 1.5rem */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  /* Eliminamos margin-top y confiamos en align-items: flex-end del contenedor grid */
+  /* Si los inputs son más altos o se necesita un ajuste fino, align-self: center podría ser una opción */
+}
+
+.btn-remove-row:hover {
+  background-color: #d9363e;
+}
+
+.btn-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px dashed #1890ff;
+  padding: 8px 12px; /* Ligeramente más compacto */
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px; 
+  margin-bottom: 20px; 
+  font-weight: 500;
+  font-size: 14px; /* Ajustado */
+}
+
+.btn-add-row:hover {
+  background-color: #d0efff;
+  border-color: #0056b3;
+}
+.btn-add-row .plus-icon {
+    font-size: 1.1em; /* Ajustado */
+    font-weight: bold;
+}
+
+.total-summary {
+  margin-top: 20px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f0f2f5;
+  border-radius: 4px;
+  text-align: right;
+  font-size: 1.05rem; /* Ligeramente ajustado */
+}
+
+/* Responsive media queries */
+/* Se mantiene el breakpoint de 992px, pero los ajustes anteriores deberían ayudar en pantallas medianas */
+@media (max-width: 992px) { 
+  .dynamic-row, .maintenance-row, .service-row {
+    grid-template-columns: 1fr; 
+    gap: 10px; 
+  }
+  .dynamic-row .form-group,
+  .maintenance-row .form-group,
+  .service-row .form-group {
+     margin-bottom: 5px; 
+  }
+
+  .btn-remove-row {
+    width: 100%; 
+    margin-top: 5px; /* Reducido el margen superior en modo apilado */
+    height: 30px; /* Mantener altura consistente */
+    padding: 0; /* Padding ya es 0 */
+    line-height: 30px; /* Mantener line-height */
+  }
+}
+
+@media (max-width: 768px) { /* Ajustes adicionales para pantallas más pequeñas si el de 992px no es suficiente */
+  /* ... (Estilos originales responsivos para .form-grid, .form-actions, button se mantienen) ... */
+  .form-grid { /* Esto es para los campos comunes, no las filas dinámicas */
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  button { /* Esto afecta a los botones de submit/reset */
+    width: 100%;
+  }
+}
+
+/* Ajustar .descripcion-group si es necesario para que ocupe todo el ancho en el grid del formulario-container */
+.descripcion-group {
+  grid-column: 1 / -1; /* Asegura que ocupe todas las columnas del .form-grid si aplica */
+  margin-top: 12px;
 }
