@@ -50,10 +50,14 @@ apiClient.interceptors.request.use(config => {
 
 
 export default {
-  login(credentials) {
-    // Asume que tu backend espera 'username' y 'password' para Simple JWT
-    // o 'email' y 'password' si has personalizado el User model y el serializer de login
-    return apiClient.post('/token/', credentials); // Endpoint para obtener token (ej. DRF Simple JWT)
+  async login(credentials) {
+    // credentials = { username: '...', password: '...' }
+    const response = await apiClient.post('/token/', credentials);
+    // response.data → { access: '...', refresh: '...' }
+    const { access, refresh } = response.data;
+    localStorage.setItem('authToken', access);
+    localStorage.setItem('authRefreshToken', refresh);
+    return response;
   },
 
   // fetchCurrentUser() { // Ejemplo si tienes un endpoint para datos del usuario

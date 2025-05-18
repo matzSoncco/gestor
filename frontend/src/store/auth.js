@@ -16,7 +16,7 @@ export const useAuthStore = defineStore('auth', {
         async login(credentials) {
             this.loginError = null;
             try {
-                const response = await apiService.login(credentials); // Necesitarás crear esta función en apiService
+                const response = await apiService.login(credentials);
                 const token = response.data.access; // Asumiendo que tu API devuelve un token JWT (access y refresh)
                 const refreshToken = response.data.refresh; // Opcional
 
@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
                 // localStorage.setItem('authUser', JSON.stringify(this.user));
                 
                 // Simulación de datos de usuario por ahora
-                this.user = { email: credentials.email };
+                this.user = { username: credentials.username };
                 localStorage.setItem('authUser', JSON.stringify(this.user));
 
 
@@ -64,10 +64,10 @@ export const useAuthStore = defineStore('auth', {
         // útil si necesitas lógica más compleja al cargar
         initializeAuth() {
             const token = localStorage.getItem('authToken');
-            const user = localStorage.getItem('authUser');
-            if (token && user) {
+            const userString = localStorage.getItem('authUser'); //se cambia para evitar conflicto de nombre
+            if (token && userString) {
                 this.token = token;
-                this.user = JSON.parse(user);
+                this.user = JSON.parse(userString);
             } else {
                 this.token = null;
                 this.user = null;
