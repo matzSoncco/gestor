@@ -1,11 +1,11 @@
 <template>
   <div class="ingreso-datos-view">
-    <h1>Ingreso de Datos</h1>
+    <h1>Registro de Operaciones</h1>
     <p>Utiliza los formularios a continuación para ingresar datos manualmente o cargar un archivo CSV.</p>
 
     <section class="form-section">
-      <h2>Formulario de Ingreso</h2>
-      <FormularioIngreso @datos-enviados="handleDatosEnviados" />
+      <h2>Formulario de Registro para Operaciones</h2>
+      <FormularioIngreso @datos-enviados="handleDatosEnviados"/>
     </section>
 
     <hr class="section-divider" />

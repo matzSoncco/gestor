@@ -5,6 +5,7 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import IngresoDatosView from '../views/IngresoDatosView.vue'
 import ReportesView from '../views/ReportesView.vue'
+import VehiculosView from '../views/Vehiculos.vue'
 
 const routes = [
   {
@@ -28,6 +29,12 @@ const routes = [
     path: '/reportes',
     name: 'Reportes',
     component: ReportesView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/registro-vehiculos',
+    name: 'RegistroVehiculos',
+    component: VehiculosView,
     meta: { requiresAuth: true },
   },
   // Puedes añadir una ruta catch-all para 404 si quieres

@@ -42,8 +42,8 @@ class tarjetaVehiculo(models.Model):
     cilindrada = models.PositiveIntegerField()   
     cilindros = models.PositiveIntegerField()     
     altura = models.DecimalField(max_digits=4, decimal_places=2)    
-    ancho = models.DecimalField(max_digits=4, decimal_places=2)   
-    longitud = models.DecimalField(max_digits=5, decimal_places=3)  
+    ancho = models.DecimalField(max_digits=4, decimal_places=2)
+    longitud = models.DecimalField(max_digits=5, decimal_places=3)
 
     def __str__(self):
         return f'{self.marca} {self.modelo} ({self.vin})'
