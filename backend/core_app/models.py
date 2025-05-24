@@ -59,6 +59,9 @@ class Vehiculo(models.Model):
     def __str__(self):
         return f"{self.placa} ({self.anio})"
 
+class Repuesto(models.Model):
+    idRepuesto = models.IntegerChoices(null=False )
+
 class Servicio(models.Model):
     idServicio=models.IntegerField(null=False )
     RUC=models.CharField(max_length=11)
