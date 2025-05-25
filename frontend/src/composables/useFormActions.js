@@ -1,25 +1,21 @@
 import { ref } from 'vue';
 import { useNotificacion } from './useNotificacion.js';
 
-export function useFormActions({formDataRef, defaults, onSubmitService, extraComputed = {}}) {
+export function useFormActions({ defaults, onSubmitService, extraComputed = {}}) {
+    const formData = ref({ ...defaults });
     const loading = ref(false);
-    const { mostrarNotificacion, mensaje, tipoMensaje } = useNotificacion();
+    const { mostrarNotificacion } = useNotificacion();
 
     const resetForm = () => {
-        Object.keys(formData.value).forEach(key => {
-            if (key in defaults) {
-                formData.value[key] = defaults[key];
-            }
-        });
+        formData.value = { ...defaults };
     };
 
     const submitForm = async () => {
         loading.value = true;
         try {
             await onSubmitService(formData.value);
-            mostrarNotificacion('Operación exitosa', 'success');
-            resetForm();
         } catch (error) {
+            console.error('Error en submitForm de useFormActions:', error);
             mostrarNotificacion('Error al guardar los datos', 'error');
         } finally {
             loading.value = false;
@@ -27,6 +23,7 @@ export function useFormActions({formDataRef, defaults, onSubmitService, extraCom
     };
 
     return {
+        formData,
         loading,
         resetForm,
         submitForm,
