@@ -7,79 +7,11 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor para añadir token de autenticación
-apiClient.interceptors.request.use(config => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, error => {
-  return Promise.reject(error);
-});
+//funciones genericas para cada recurso del be
+export const getAll = async (resource) =>  apiClient.get(`/${resource}/`); //GET
+export const getOne = async (resource, id) => apiClient.get(`/${resource}/${id}/`); //GET
+export const create = async (resource, data) => apiClient.post(`/${resource}/`, data); //POST
+export const update = async (resource, id, data) => apiClient.put(`/${resource}/${id}/`, data); //PUT
+export const partialUpdate = async (resource, id, data) => apiClient.patch(`/${resource}/${id}/`, data); //PATCH
+export const remove = async (resource, id) => apiClient.delete(`/${resource}/${id}/`); //DELETE
 
-// Opcional: Interceptor para manejar errores 401 (Unauthorized) y refrescar token
-// apiClient.interceptors.response.use(response => response, async error => {
-//   const originalRequest = error.config;
-//   if (error.response.status === 401 && !originalRequest._retry) {
-//     originalRequest._retry = true;
-//     try {
-//       const refreshToken = localStorage.getItem('authRefreshToken');
-//       if (!refreshToken) return Promise.reject(error); // No hay refresh token
-//       const rs = await axios.post(`${apiClient.defaults.baseURL}/token/refresh/`, { refresh: refreshToken });
-//       const { access } = rs.data;
-//       localStorage.setItem('authToken', access);
-//       apiClient.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-//       originalRequest.headers['Authorization'] = `Bearer ${access}`;
-//       return apiClient(originalRequest);
-//     } catch (_error) {
-//       // Si el refresh token falla, desloguear
-//       // store.dispatch('auth/logout'); // Si usas Vuex clásico
-//       // O llamar a una acción del store de Pinia si está disponible aquí
-//       console.error("Refresh token failed", _error);
-//       localStorage.removeItem('authToken');
-//       localStorage.removeItem('authRefreshToken');
-//       localStorage.removeItem('authUser');
-//       // Redirigir a login
-//       // window.location.href = '/login'; // O usar router si está disponible
-//       return Promise.reject(_error);
-//     }
-//   }
-//   return Promise.reject(error);
-// });
-
-
-export default {
-  async login(credentials) {
-    // credentials = { username: '...', password: '...' }
-    const response = await apiClient.post('/token/', credentials);
-    // response.data → { access: '...', refresh: '...' }
-    const { access, refresh } = response.data;
-    localStorage.setItem('authToken', access);
-    localStorage.setItem('authRefreshToken', refresh);
-    return response;
-  },
-
-  // fetchCurrentUser() { // Ejemplo si tienes un endpoint para datos del usuario
-  //   return apiClient.get('/users/me/');
-  // },
-
-  submitFormData(data) {
-    return apiClient.post('/form-submit/', data); // Asegúrate que este endpoint exista en Django
-  },
-
-  uploadCsvFile(formData) {
-    return apiClient.post('/csv-upload/', formData, { // Asegúrate que este endpoint exista
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-
-  generateReport(format, params = {}) { // format puede ser 'excel' o 'pdf'
-    return apiClient.get(`/report-generate/`, { // Asegúrate que este endpoint exista
-      params: { ...params, format: format }, // Enviar formato como parámetro
-      responseType: 'blob',
-    });
-  },
-};
