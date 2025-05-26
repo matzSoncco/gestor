@@ -61,6 +61,8 @@ class Vehiculo(models.Model):
 
 class Repuesto(models.Model):
     idRepuesto = models.IntegerChoices(null=False )
+    nombre = models.CharField(max_length=100)
+
 
 class Servicio(models.Model):
     idServicio=models.IntegerField(null=False )
