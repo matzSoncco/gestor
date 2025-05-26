@@ -1,6 +1,6 @@
 <template>
   <div class="formulario-container">
-    <form @submit.prevent="submitForm" class="formulario-registro">
+    <form @submit.prevent="enviarFormulario" class="formulario-registro">
       <h2 class="form-title">Registro de Operacion</h2>
 
       <div class="form-grid">
@@ -34,7 +34,7 @@
             id="nombreProveedor"
             v-model="formData.nombreProveedor"
             placeholder="Aquí se mostrará el nombre del proveedor"
-            readonly
+            
           />
         </div>
       </div>
@@ -346,7 +346,7 @@ const {
   blurHandler,
   sugerencias,
   inputActivo,
-  updateSubtotal,
+  //updateSubtotal,
   costoTotalCombustible,
   costoTotalServicio,
   costoTotal,
@@ -361,7 +361,7 @@ const {
 async function enviarFormulario() {
   loading.value = true;
   try {
-    const response = await submitForm(formData);
+    const response = await submitForm();
     mensaje.value = 'Operación registrada exitosamente.';
     tipoMensaje.value = 'success';
     emits('datos-enviados', formData);

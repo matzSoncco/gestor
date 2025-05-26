@@ -4,7 +4,7 @@ import { useNotificacion } from './useNotificacion.js';
 export function useFormActions({ defaults, onSubmitService, extraComputed = {}}) {
     const formData = ref({ ...defaults });
     const loading = ref(false);
-    const { mostrarNotificacion } = useNotificacion();
+    const { mostrarNotificacion, mensaje, tipoMensaje } = useNotificacion();
 
     const resetForm = () => {
         formData.value = { ...defaults };
@@ -27,6 +27,8 @@ export function useFormActions({ defaults, onSubmitService, extraComputed = {}})
         loading,
         resetForm,
         submitForm,
+        mensaje,
+        tipoMensaje,
         ...extraComputed
     };
 }

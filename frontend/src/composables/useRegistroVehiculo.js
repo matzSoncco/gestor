@@ -1,5 +1,5 @@
 import { ref, reactive, watch } from 'vue';
-import apiService from '../services/apiService';
+import apiService from '../services/api';
 
 export default function useRegistroVehiculo() {
     // Definimos los datos del formulario como un objeto reactivo
