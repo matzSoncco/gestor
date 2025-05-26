@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.db.models import Sum, Count, Q
 import pandas as pd
@@ -24,13 +24,13 @@ from .serializers import (
 class TarjetaVehiculoViewSet(ModelViewSet):
     queryset = tarjetaVehiculo.objects.all()
     serializer_class = TarjetaVehiculoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny] #Se modifica para permitir solo a todos los usuarios
 
 
 class VehiculoViewSet(ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         """Permite filtrar vehículos por placa o ubicación"""
@@ -110,26 +110,26 @@ class VehiculoViewSet(ModelViewSet):
 class ServicioViewSet(ModelViewSet):
     queryset = Servicio.objects.all()
     serializer_class = ServicioSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 class MantenimientoViewSet(ModelViewSet):
     queryset = Mantenimiento.objects.all()
     serializer_class = MantenimientoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 class CombustibleViewSet(ModelViewSet):
     queryset = Combustible.objects.all()
     serializer_class = CombustibleSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 # Nuevo ViewSet para Operaciones
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
     serializer_class = OperacionesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         """Filtrar operaciones por varios criterios"""
@@ -234,7 +234,7 @@ class OperacionesViewSet(ModelViewSet):
 
 # Endpoints adicionales
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def form_submit(request):
     """Endpoint para recibir datos del formulario"""
     data = request.data
@@ -252,7 +252,7 @@ def form_submit(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def csv_upload(request):
     """Endpoint para recibir y procesar archivos CSV"""
     if 'file' not in request.FILES:
@@ -285,7 +285,7 @@ def csv_upload(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def report_generate(request):
     """Endpoint para generar reportes en diferentes formatos"""
     format_type = request.query_params.get('format', 'excel')
@@ -423,7 +423,7 @@ def report_generate(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def dashboard_stats(request):
     """Endpoint para obtener estadísticas del dashboard"""
     
@@ -499,7 +499,7 @@ def dashboard_stats(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def operacion_masiva(request):
     """Endpoint para crear múltiples operaciones de una vez"""
     operaciones_data = request.data.get('operaciones', [])
