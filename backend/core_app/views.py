@@ -126,111 +126,126 @@ class CombustibleViewSet(ModelViewSet):
 
 
 # Nuevo ViewSet para Operaciones
+# class OperacionesViewSet(ModelViewSet):
+#     queryset = Operaciones.objects.all()
+#     serializer_class = OperacionesSerializer
+#     permission_classes = [AllowAny]
+    
+#     def get_queryset(self):
+#         """Filtrar operaciones por varios criterios"""
+#         queryset = Operaciones.objects.all()
+        
+#         # Filtro por vehículo
+#         vehiculo_id = self.request.query_params.get('vehiculo')
+#         if vehiculo_id:
+#             queryset = queryset.filter(vehiculo_id=vehiculo_id)
+        
+#         # Filtro por tipo de operación
+#         tipo = self.request.query_params.get('tipo')
+#         if tipo:
+#             queryset = queryset.filter(tipo_operacion=tipo.upper())
+        
+#         # Filtro por rango de fechas
+#         fecha_desde = self.request.query_params.get('fecha_desde')
+#         fecha_hasta = self.request.query_params.get('fecha_hasta')
+        
+#         if fecha_desde:
+#             try:
+#                 fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
+#                 queryset = queryset.filter(fecha_operacion__gte=fecha_desde)
+#             except ValueError:
+#                 pass
+        
+#         if fecha_hasta:
+#             try:
+#                 fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
+#                 queryset = queryset.filter(fecha_operacion__lte=fecha_hasta)
+#             except ValueError:
+#                 pass
+        
+#         # Filtro por rango de costos
+#         costo_min = self.request.query_params.get('costo_min')
+#         costo_max = self.request.query_params.get('costo_max')
+        
+#         if costo_min:
+#             try:
+#                 queryset = queryset.filter(costo_total__gte=float(costo_min))
+#             except ValueError:
+#                 pass
+        
+#         if costo_max:
+#             try:
+#                 queryset = queryset.filter(costo_total__lte=float(costo_max))
+#             except ValueError:
+#                 pass
+        
+#         return queryset
+    
+#     @action(detail=False, methods=['get'])
+#     def resumen_general(self, request):
+#         """Resumen general de todas las operaciones"""
+#         total_operaciones = Operaciones.objects.count()
+        
+#         # Resumen por tipo
+#         por_tipo = Operaciones.objects.values('tipo_operacion').annotate(
+#             cantidad=Count('id'),
+#             costo_total=Sum('costo_total')
+#         )
+        
+#         # Operaciones por mes (últimos 6 meses)
+#         seis_meses_atras = datetime.now() - timedelta(days=180)
+#         por_mes = Operaciones.objects.filter(
+#             fecha_operacion__gte=seis_meses_atras
+#         ).extra(
+#             select={'mes': "strftime('%%Y-%%m', fecha_operacion)"}
+#         ).values('mes').annotate(
+#             cantidad=Count('id'),
+#             costo_total=Sum('costo_total')
+#         ).order_by('mes')
+        
+#         # Costo total
+#         costo_total = Operaciones.objects.aggregate(
+#             total=Sum('costo_total')
+#         )['total'] or 0
+        
+#         # Top 5 vehículos con más operaciones
+#         top_vehiculos = Operaciones.objects.values(
+#             'vehiculo__placa'
+#         ).annotate(
+#             cantidad_operaciones=Count('id'),
+#             costo_total=Sum('costo_total')
+#         ).order_by('-cantidad_operaciones')[:5]
+        
+#         return Response({
+#             'total_operaciones': total_operaciones,
+#             'costo_total_general': costo_total,
+#             'resumen_por_tipo': list(por_tipo),
+#             'resumen_por_mes': list(por_mes),
+#             'top_vehiculos': list(top_vehiculos)
+#         })
+    
+#     @action(detail=False, methods=['get'])
+#     def detalladas(self, request):
+#         """Obtener operaciones con todos sus detalles"""
+#         queryset = self.get_queryset()
+#         serializer = OperacionesDetalladaSerializer(queryset, many=True)
+#         return Response(serializer.data)
+
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
     serializer_class = OperacionesSerializer
     permission_classes = [AllowAny]
-    
-    def get_queryset(self):
-        """Filtrar operaciones por varios criterios"""
-        queryset = Operaciones.objects.all()
-        
-        # Filtro por vehículo
-        vehiculo_id = self.request.query_params.get('vehiculo')
-        if vehiculo_id:
-            queryset = queryset.filter(vehiculo_id=vehiculo_id)
-        
-        # Filtro por tipo de operación
-        tipo = self.request.query_params.get('tipo')
-        if tipo:
-            queryset = queryset.filter(tipo_operacion=tipo.upper())
-        
-        # Filtro por rango de fechas
-        fecha_desde = self.request.query_params.get('fecha_desde')
-        fecha_hasta = self.request.query_params.get('fecha_hasta')
-        
-        if fecha_desde:
-            try:
-                fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
-                queryset = queryset.filter(fecha_operacion__gte=fecha_desde)
-            except ValueError:
-                pass
-        
-        if fecha_hasta:
-            try:
-                fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
-                queryset = queryset.filter(fecha_operacion__lte=fecha_hasta)
-            except ValueError:
-                pass
-        
-        # Filtro por rango de costos
-        costo_min = self.request.query_params.get('costo_min')
-        costo_max = self.request.query_params.get('costo_max')
-        
-        if costo_min:
-            try:
-                queryset = queryset.filter(costo_total__gte=float(costo_min))
-            except ValueError:
-                pass
-        
-        if costo_max:
-            try:
-                queryset = queryset.filter(costo_total__lte=float(costo_max))
-            except ValueError:
-                pass
-        
-        return queryset
-    
-    @action(detail=False, methods=['get'])
-    def resumen_general(self, request):
-        """Resumen general de todas las operaciones"""
-        total_operaciones = Operaciones.objects.count()
-        
-        # Resumen por tipo
-        por_tipo = Operaciones.objects.values('tipo_operacion').annotate(
-            cantidad=Count('id'),
-            costo_total=Sum('costo_total')
-        )
-        
-        # Operaciones por mes (últimos 6 meses)
-        seis_meses_atras = datetime.now() - timedelta(days=180)
-        por_mes = Operaciones.objects.filter(
-            fecha_operacion__gte=seis_meses_atras
-        ).extra(
-            select={'mes': "strftime('%%Y-%%m', fecha_operacion)"}
-        ).values('mes').annotate(
-            cantidad=Count('id'),
-            costo_total=Sum('costo_total')
-        ).order_by('mes')
-        
-        # Costo total
-        costo_total = Operaciones.objects.aggregate(
-            total=Sum('costo_total')
-        )['total'] or 0
-        
-        # Top 5 vehículos con más operaciones
-        top_vehiculos = Operaciones.objects.values(
-            'vehiculo__placa'
-        ).annotate(
-            cantidad_operaciones=Count('id'),
-            costo_total=Sum('costo_total')
-        ).order_by('-cantidad_operaciones')[:5]
-        
-        return Response({
-            'total_operaciones': total_operaciones,
-            'costo_total_general': costo_total,
-            'resumen_por_tipo': list(por_tipo),
-            'resumen_por_mes': list(por_mes),
-            'top_vehiculos': list(top_vehiculos)
-        })
-    
-    @action(detail=False, methods=['get'])
-    def detalladas(self, request):
-        """Obtener operaciones con todos sus detalles"""
-        queryset = self.get_queryset()
-        serializer = OperacionesDetalladaSerializer(queryset, many=True)
-        return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        """Crear una nueva operación"""
+        is_many = False
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        operacion = serializer.save()
+
+        operacion.refresh_from_db()  # Asegurarse de que los datos estén actualizados
+        output_serializer = OperacionesDetalladaSerializer(operacion)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
 # Endpoints adicionales
 @api_view(['POST'])

@@ -1,4 +1,4 @@
-import { reactive, ref, watch } from 'vue';
+import { watch } from 'vue';
 import api from '../services/api.js';
 
 import { useCombustible } from './useCombustible.js';
@@ -20,52 +20,22 @@ export function useOpForm() {
     };
 
     const onSubmitService = async (payload) => {
-        const { data } = await api.post('/', payload);
+        //const { data } = await api.post('operaciones/', payload);
         try {
-            if (data.tipoOperacion === 'combustible') {
-                await Promise.all(
-                    payload.combustibles.map(item => {
-                        return api.post('combustibles/', {
-                            ...data,
-                            cantidadGalones: item.cantidadGalones,
-                            costoPorGalon: item.costoPorGalon,
-                            subtotal: item.cantidadGalones * item.costoPorGalon,
-                            placaVehiculo: item.placaVehiculo,
-                        });
-                    })
-                );
-            } else if (data.tipoOperacion === 'mantenimiento') {
-                await Promise.all(
-                    payload.mantenimientos.map(item => {
-                        return api.post('mantenimientos/', {
-                            ...data,
-                            descripcionItem: item.descripcionItem,
-                            cantidad: item.cantidad,
-                            costoUnitario: item.costoUnitario,
-                            subtotal: item.cantidad * item.costoUnitario,
-                        });
-                    })
-                );
-            } else if (data.tipoOperacion === 'servicio') {
-                await Promise.all(
-                    payload.servicios.map(item => {
-                        return api.post('servicios/', {
-                            ...data,
-                            descripcionServicio: item.descripcionServicio,
-                            costoServicio: item.costoServicio,
-                        });
-                    })
-                );
-            } else {
-                throw new Error('Tipo de operación no soportado');
-            }
+            await api.post('operaciones/', payload);
 
             mostrarNotificacion('Operación exitosa', 'success');
             resetForm();
-
         } catch (error) {
-            console.error(error);
-            mostrarNotificacion('Error al guardar los datos', 'error');
+            // El error ahora debería ser un 400 (Bad Request) con detalles, no un 500.
+            if (error.response) {
+                console.error('Error del servidor:', error.response.data);
+                // Aquí puedes mostrar los errores de validación al usuario
+                mostrarNotificacion('Error al registrar: ' + JSON.stringify(error.response.data), 'error');
+            } else {
+                console.error('Error de red o desconocido:', error);
+                mostrarNotificacion('Ocurrió un error inesperado.', 'error');
+            }
         }
     };
 

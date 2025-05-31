@@ -107,13 +107,16 @@
               </div>
               <div class="form-group">
                 <label :for="'placaVehiculo-' + comb.id">Placa/Vehículo:</label>
-                <input
-                  type="text"
+                <select
                   :id="'placaVehiculo-' + comb.id"
                   v-model="comb.placaVehiculo"
-                  placeholder="Placa o tipo"
                   required
-                />
+                >
+                  <option :value="null" disabled>Seleccione una placa</option>
+                  <option v-for="vehiculo in listaVehiculos" :key="vehiculo.id" :value="vehiculo.id">
+                    {{ vehiculo.placa }}
+                  </option>
+                </select>
               </div>
               <button
                 type="button"
@@ -326,9 +329,20 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue';
 import { useOpForm } from '../composables/useOpForm.js';
 
 const emits = defineEmits(['datos-enviados']);
+const listaVehiculos = ref([]);
+
+onMounted(async () => {
+  try {
+    const response = await fetch('vehiculos/');
+    listaVehiculos.value = response.json();
+  } catch (error) {
+    console.error('Error al cargar vehículos:', error);
+  }
+});
 
 const {
   formData,

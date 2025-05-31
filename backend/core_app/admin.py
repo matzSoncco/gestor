@@ -1,86 +1,130 @@
 from django.contrib import admin
 from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, tarjetaVehiculo, Operaciones
 
-class OperacionesInline(admin.TabularInline):
-    model = Operaciones
+# class OperacionesInline(admin.TabularInline):
+#     model = Operaciones
+#     extra = 0
+#     readonly_fields = ('fecha')
+#     fields = ('tipoOperacion', 'descripcion')
+
+class ServicioInline(admin.TabularInline):
+    """
+    Permite editar/visualizar el registro de Servicio directamente
+    desde la página de cambio/creación de Operaciones.
+    """
+    model = Servicio
+    fk_name = 'operacion'   # el campo OneToOneField hacia Operaciones
+    extra = 0               # Si no quieres filas en blanco adicionales, déjalo en 0
+    readonly_fields = ['idServicio', 'descripcion', 'costo']  # si deseas que sea solo lectura
+    # Si prefieres permitir edición de Servicio dentro de Operaciones, remueve 'readonly_fields'.
+
+class MantenimientoInline(admin.TabularInline):
+    """
+    Permite editar/visualizar el registro de Mantenimiento directamente
+    desde la página de Operaciones.
+    """
+    model = Mantenimiento
+    fk_name = 'operacion'
     extra = 0
-    readonly_fields = ('fecha_operacion',)
-    fields = ('tipo_operacion', 'costo_total', 'descripcion', 'ubicacion', 'fecha_operacion')
+    readonly_fields = ['idMantenim', 'descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
+    # Quita 'readonly_fields' si quieres que los campos sean editables en el inline.
+
+class CombustibleInline(admin.TabularInline):
+    """
+    Permite editar/visualizar el registro de Combustible directamente
+    desde la página de Operaciones.
+    """
+    model = Combustible
+    fk_name = 'operacion'
+    extra = 0
+    readonly_fields = ['idCombustible', 'cantidadGalones', 'costoPorGalon', 'subTotal', 'placaVehiculo']
+    # Quita 'readonly_fields' si quieres permitir edición en el inline.
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):
-    list_display = ('placa', 'anio', 'marca_modelo', 'kilometraje', 'ubicacion', 'total_operaciones')
+    list_display = ('placa', 'anio', 'marca_modelo', 'kilometraje', 'ubicacion')
     list_filter = ('anio', 'ubicacion', 'tarjetaVehiculo__marca')
     search_fields = ('placa', 'tarjetaVehiculo__marca', 'tarjetaVehiculo__modelo')
-    inlines = [OperacionesInline]
     
     def marca_modelo(self, obj):
         return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
     marca_modelo.short_description = 'Marca/Modelo'
     
-    def total_operaciones(self, obj):
-        return obj.operaciones.count()
-    total_operaciones.short_description = 'Total Operaciones'
 
 @admin.register(Operaciones)
 class OperacionesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'vehiculo', 'tipo_operacion', 'fecha_operacion', 'costo_total', 'ubicacion')
-    list_filter = ('tipo_operacion', 'fecha_operacion', 'vehiculo__placa')
-    search_fields = ('vehiculo__placa', 'descripcion')
-    date_hierarchy = 'fecha_operacion'
-    readonly_fields = ('fecha_operacion',)
-    
-    fieldsets = (
-        ('Información General', {
-            'fields': ('vehiculo', 'tipo_operacion', 'fecha_operacion')
-        }),
-        ('Detalles Financieros', {
-            'fields': ('costo_total',)
-        }),
-        ('Información Adicional', {
-            'fields': ('descripcion', 'ubicacion', 'objeto_id'),
-            'classes': ('collapse',)
-        }),
-    )
+    """
+    Configuración del admin para Operaciones.
+    """
+    list_display = [
+        'id',
+        'numeroDocumento',
+        'rucProveedor',
+        'nombreProveedor',
+        'tipoOperacion',
+        'fecha',
+        'descripcion',
+    ]
+    list_filter = ['tipoOperacion', 'fecha']
+    readonly_fields = []             # Si quieres que 'fecha' sea solo lectura: pon ['fecha']
+    date_hierarchy = 'fecha'         # Barra de navegación por año/mes/día usando el campo 'fecha'
+    inlines = [ServicioInline, MantenimientoInline, CombustibleInline]
+    search_fields = ['numeroDocumento', 'rucProveedor', 'nombreProveedor']
 
 @admin.register(Servicio)
 class ServicioAdmin(admin.ModelAdmin):
-    list_display = ('idServicio', 'proveedor', 'tipoServicio', 'RUC', 'operacion_vehiculo')
-    list_filter = ('tipoServicio',)
-    search_fields = ('proveedor', 'RUC')
-    
-    def operacion_vehiculo(self, obj):
-        if obj.operacion:
-            return obj.operacion.vehiculo.placa
-        return "Sin operación"
-    operacion_vehiculo.short_description = 'Vehículo'
+    """
+    Configuración del admin para Servicio (fuera de contexto de Operaciones).
+    """
+    list_display = [
+        'id', 
+        'idServicio',
+        'descripcion',
+        'costo',
+        'operacion'
+    ]
+    list_filter = ['costo']
+    readonly_fields = []   # Si quieres que “operacion” sea readonly, pon ['operacion']
+    search_fields = ['idServicio', 'descripcion']
 
 @admin.register(Mantenimiento)
 class MantenimientoAdmin(admin.ModelAdmin):
-    list_display = ('idMantenim', 'tipoRepuesto', 'cantidad', 'costo_total_display', 'operacion_vehiculo')
-    list_filter = ('tipoRepuesto',)
-    search_fields = ('comentario',)
-    
-    def costo_total_display(self, obj):
-        return getattr(obj, 'costoTotal', 0.0)
-    costo_total_display.short_description = 'Costo Total'
-    
-    def operacion_vehiculo(self, obj):
-        if obj.operacion:
-            return obj.operacion.vehiculo.placa
-        return "Sin operación"
-    operacion_vehiculo.short_description = 'Vehículo'
+    """
+    Configuración del admin para Mantenimiento.
+    """
+    list_display = [
+        'id',
+        'idMantenim',
+        'descripcionItem',
+        'cantidad',
+        'costoUnitario',
+        'subTotal',
+        'operacion'
+    ]
+    list_filter = ['fecha']  # si deseas filtrar por fecha, deberías haber un campo fecha; si no, elimina
+    # En tu modelo Mantenimiento no definiste fechaMantenimiento, así que en list_filter
+    # podrías filtrar por 'costoUnitario' o por otro campo que exista.
+    list_filter = ['costoUnitario']
+    readonly_fields = []  # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
+    search_fields = ['idMantenim', 'descripcionItem']
 
 @admin.register(Combustible)
 class CombustibleAdmin(admin.ModelAdmin):
-    list_display = ('idCombustible', 'cantidadGalon', 'costoGalon', 'costoTotal', 'operacion_vehiculo')
-    readonly_fields = ('costoTotal',)
-    
-    def operacion_vehiculo(self, obj):
-        if obj.operacion:
-            return obj.operacion.vehiculo.placa
-        return "Sin operación"
-    operacion_vehiculo.short_description = 'Vehículo'
+    """
+    Configuración del admin para Combustible.
+    """
+    list_display = [
+        'id',
+        'idCombustible',
+        'cantidadGalones',
+        'costoPorGalon',
+        'subTotal',
+        'placaVehiculo',
+        'operacion'
+    ]
+    list_filter = ['placaVehiculo']
+    readonly_fields = []   # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
+    search_fields = ['idCombustible']
 
 @admin.register(tarjetaVehiculo)
 class TarjetaVehiculoAdmin(admin.ModelAdmin):

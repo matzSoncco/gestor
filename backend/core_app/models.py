@@ -6,20 +6,15 @@ SERVICIOS = [
     ('SERV2', 'SERVICIO 2'),
 ]
 
-REPUESTO = [
-    ('REP1', 'REPUESTO 1'),
-    ('REP2', 'REPUESTO 2'),
-]
-
 COMBUSTIBLE = [
     ('GSL', 'GASOLINA'),
     ('PET', 'PETROLEO'),
 ]
 
 TIPO_OPERACION = [
-    ('COMBUSTIBLE', 'Combustible'),
-    ('MANTENIMIENTO', 'Mantenimiento'),
-    ('SERVICIO', 'Servicio'),
+    ('combustible', 'Combustible'),
+    ('mantenimiento', 'Mantenimiento'),
+    ('servicio', 'Servicio'),
 ]
 
 class tarjetaVehiculo(models.Model):
@@ -65,26 +60,21 @@ class Vehiculo(models.Model):
 
 
 class Operaciones(models.Model):
-    """
-    Clase padre que engloba todas las operaciones del vehículo
-    """
-    vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, related_name='operaciones')
-    tipo_operacion = models.CharField(max_length=15, choices=TIPO_OPERACION)
-    fecha_operacion = models.DateTimeField(auto_now_add=True)
-    costo_total = models.FloatField(null=False, default=0.0)
+    numeroDocumento = models.CharField(max_length=20, blank=True, null=True)
+    rucProveedor = models.CharField(max_length=11, blank=True, null=True)
+    nombreProveedor = models.CharField(max_length=100, blank=True, null=True)
+    tipoOperacion = models.CharField(max_length=15, choices=TIPO_OPERACION)
+    fecha = models.DateField(auto_now_add=False, default=None, null=True, blank=True)
     descripcion = models.TextField(blank=True, null=True)
-    ubicacion = models.CharField(max_length=100, blank=True, null=True)
-    
-    # Campo para identificar la operación específica
-    objeto_id = models.PositiveIntegerField(null=True, blank=True)
     
     class Meta:
-        ordering = ['-fecha_operacion']
+        ordering = ['-fecha']
         verbose_name = 'Operación'
         verbose_name_plural = 'Operaciones'
     
     def __str__(self):
-        return f"{self.vehiculo.placa} - {self.get_tipo_operacion_display()} - {self.fecha_operacion.strftime('%Y-%m-%d')}"
+        # Eliminamos referencias a campos inexistentes (vehiculo, fecha_operacion)
+        return f"{self.get_tipoOperacion_display()} - {self.fecha.strftime('%Y-%m-%d')}"
     
     def save(self, *args, **kwargs):
         # Aquí puedes agregar lógica adicional antes de guardar
@@ -105,20 +95,26 @@ class Servicio(models.Model):
     
     # Campos específicos del servicio
     idServicio = models.IntegerField(null=False)
-    RUC = models.CharField(max_length=11)
-    proveedor = models.CharField(max_length=100)  # Aumenté el tamaño
-    tipoServicio = models.CharField(max_length=10, choices=SERVICIOS)
+    descripcion = models.CharField(max_length=100, default="")
+    costo = models.FloatField(null=False, default=0.0)
+    placaVehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_vehiculo')
     
     def __str__(self):
-        return f"{self.proveedor} - {self.get_tipoServicio_display()}"
+        return f"Servicio {self.idServicio} - {self.descripcion}"
     
     def save(self, *args, **kwargs):
         # Crear o actualizar la operación padre
         if not self.operacion:
+            # Si no hay operación asociada, creamos una. OJO: Django NO sabrá cuál es la "fecha"
+            # porque aquí no le estamos pasando fecha, pero como 'fecha' no tiene auto_now_add,
+            # el frontend tendrá que enviarla más adelante o podrías forzar una fecha predeterminada.
             self.operacion = Operaciones.objects.create(
-                vehiculo_id=1,  # Deberás pasar el vehículo correspondiente
-                tipo_operacion='SERVICIO',
-                descripcion=f"Servicio: {self.get_tipoServicio_display()}"
+                numeroDocumento="",       # puedes dejar vacío o usar un valor por defecto
+                rucProveedor="",
+                nombreProveedor="",
+                tipoOperacion='SERVICIO',
+                fecha=models.DateField().to_python(models.DateField().default) if hasattr(models.DateField(), 'default') else None,
+                descripcion=f"Servicio: {self.descripcion}"
             )
         super().save(*args, **kwargs)
 
@@ -129,25 +125,28 @@ class Mantenimiento(models.Model):
     
     # Campos específicos del mantenimiento
     idMantenim = models.IntegerField(null=False)
-    comentario = models.TextField()
-    tipoRepuesto = models.CharField(max_length=10, choices=REPUESTO)
+    descripcionItem = models.CharField(max_length=100, default="")
     cantidad = models.IntegerField(null=False, default=0)
-    
-    def __str__(self):
-        return f"Mantenimiento {self.idMantenim} - {self.get_tipoRepuesto_display()}"
-    
+    costoUnitario = models.FloatField(null=False, default=0.0)
+    subTotal = models.FloatField(null=False, default=0.0)
+    placaVehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_vehiculo')
+
     def save(self, *args, **kwargs):
+        # Calculamos subTotal antes de crear la operación padre
+        self.subTotal = self.cantidad * self.costoUnitario
+
         # Crear o actualizar la operación padre
         if not self.operacion:
             self.operacion = Operaciones.objects.create(
-                vehiculo_id=1,  # Deberás pasar el vehículo correspondiente
-                tipo_operacion='MANTENIMIENTO',
-                costo_total=getattr(self, 'costoTotal', 0.0),
-                descripcion=f"Mantenimiento: {self.comentario}"
+                numeroDocumento="",
+                rucProveedor="",
+                nombreProveedor="",
+                tipoOperacion='MANTENIMIENTO',
+                fecha=models.DateField().to_python(models.DateField().default) if hasattr(models.DateField(), 'default') else None,
+                descripcion=f"Mantenimiento: {self.descripcionItem}"
             )
         else:
-            self.operacion.costo_total = getattr(self, 'costoTotal', 0.0)
-            self.operacion.descripcion = f"Mantenimiento: {self.comentario}"
+            self.operacion.descripcion = f"Mantenimiento: {self.descripcionItem}"
             self.operacion.save()
         
         super().save(*args, **kwargs)
@@ -159,28 +158,30 @@ class Combustible(models.Model):
     
     # Campos específicos del combustible
     idCombustible = models.IntegerField(null=False)
-    cantidadGalon = models.IntegerField(null=False, default=0)
-    costoGalon = models.FloatField(null=False, default=0.0)
-    costoTotal = models.FloatField(null=False, default=0.0)
+    cantidadGalones = models.IntegerField(null=False, default=0)
+    costoPorGalon = models.FloatField(null=False, default=0.0)
+    subTotal = models.FloatField(null=False, default=0.0)
+    placaVehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_vehiculo')
     
     def __str__(self):
-        return f"Combustible {self.idCombustible} - {self.cantidadGalon} galones"
+        return f"Combustible {self.idCombustible} - {self.cantidadGalones} galones"
 
     def save(self, *args, **kwargs):
-        # Calcular costo total
-        self.costoTotal = self.cantidadGalon * self.costoGalon
+        # Calcular subTotal correctamente
+        self.subTotal = self.cantidadGalones * self.costoPorGalon
         
         # Crear o actualizar la operación padre
         if not self.operacion:
             self.operacion = Operaciones.objects.create(
-                vehiculo_id=1,  # Deberás pasar el vehículo correspondiente
-                tipo_operacion='COMBUSTIBLE',
-                costo_total=self.costoTotal,
-                descripcion=f"Combustible: {self.cantidadGalon} galones a ${self.costoGalon} c/u"
+                numeroDocumento="",
+                rucProveedor="",
+                nombreProveedor="",
+                tipoOperacion='COMBUSTIBLE',
+                fecha=models.DateField().to_python(models.DateField().default) if hasattr(models.DateField(), 'default') else None,
+                descripcion=f"Combustible: {self.cantidadGalones} galones a ${self.costoPorGalon} c/u"
             )
         else:
-            self.operacion.costo_total = self.costoTotal
-            self.operacion.descripcion = f"Combustible: {self.cantidadGalon} galones a ${self.costoGalon} c/u"
+            self.operacion.descripcion = f"Combustible: {self.cantidadGalones} galones a ${self.costoPorGalon} c/u"
             self.operacion.save()
         
         super().save(*args, **kwargs)

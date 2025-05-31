@@ -1,140 +1,209 @@
 from rest_framework import serializers
-from .models import tarjetaVehiculo, Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones
+from .models import (
+    tarjetaVehiculo,
+    Vehiculo,
+    Operaciones,
+    Servicio,
+    Mantenimiento,
+    Combustible
+)
 
+# ---------------------------------------------------
+# 1) Serializer para tarjetaVehiculo
+# ---------------------------------------------------
 class TarjetaVehiculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = tarjetaVehiculo
-        fields = ['id', 'categoria', 'marca', 'modelo', 'version', 'color', 
-                 'anio_fabricacion', 'anio_modelo', 'motor', 'combustible', 
-                 'forma_rodante', 'vin', 'serie_chasis', 'ejes', 'ruedas', 
-                 'pasajeros', 'carroceria', 'peso_neto', 'peso_bruto', 
-                 'carga_util', 'cilindrada', 'cilindros', 'altura', 'ancho', 'longitud']
+        fields = [
+            'id', 'categoria', 'marca', 'modelo', 'version', 'color',
+            'anio_fabricacion', 'anio_modelo', 'motor', 'combustible',
+            'forma_rodante', 'vin', 'serie_chasis', 'ejes', 'ruedas',
+            'pasajeros', 'carroceria', 'peso_neto', 'peso_bruto',
+            'carga_util', 'cilindrada', 'cilindros', 'altura', 'ancho', 'longitud'
+        ]
 
-
-class OperacionesSerializer(serializers.ModelSerializer):
-    tipo_operacion_display = serializers.CharField(source='get_tipo_operacion_display', read_only=True)
-    vehiculo_placa = serializers.CharField(source='vehiculo.placa', read_only=True)
-    
-    class Meta:
-        model = Operaciones
-        fields = ['id', 'vehiculo', 'vehiculo_placa', 'tipo_operacion', 'tipo_operacion_display',
-                 'fecha_operacion', 'costo_total', 'descripcion', 'ubicacion', 'objeto_id']
-
-
+# ------------------------
+# 3) Serializer para Servicio
+# ---------------------------
 class ServicioSerializer(serializers.ModelSerializer):
-    tipo_servicio_nombre = serializers.CharField(source='get_tipoServicio_display', read_only=True)
-    operacion_detalle = OperacionesSerializer(source='operacion', read_only=True)
-    vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all(), write_only=True)
-
     class Meta:
         model = Servicio
-        fields = ['id', 'idServicio', 'RUC', 'proveedor', 'tipoServicio', 'tipo_servicio_nombre',
-                 'operacion', 'operacion_detalle', 'vehiculo']
-    
-    def create(self, validated_data):
-        vehiculo = validated_data.pop('vehiculo', None)
-        servicio = Servicio.objects.create(**validated_data)
-        
-        # Crear la operación asociada
-        if vehiculo:
-            operacion = Operaciones.objects.create(
-                vehiculo=vehiculo,
-                tipo_operacion='SERVICIO',
-                descripcion=f"Servicio: {servicio.get_tipoServicio_display()}",
-                costo_total=0.0  # Puedes calcular esto según tus necesidades
-            )
-            servicio.operacion = operacion
-            servicio.save()
-        
-        return servicio
+        fields = ['descripcion', 'costoServicio']
 
-
+# ---------------------------------
+# 4) Serializer para Mantenimiento
+# ---------------------------------
 class MantenimientoSerializer(serializers.ModelSerializer):
-    tipo_repuesto_nombre = serializers.CharField(source='get_tipoRepuesto_display', read_only=True)
-    operacion_detalle = OperacionesSerializer(source='operacion', read_only=True)
-    vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all(), write_only=True)
-    costoTotal = serializers.FloatField(default=0.0)
-
     class Meta:
         model = Mantenimiento
-        fields = ['id', 'idMantenim', 'costoTotal', 'comentario', 'tipoRepuesto', 
-                 'tipo_repuesto_nombre', 'cantidad', 'operacion', 'operacion_detalle', 'vehiculo']
-    
-    def create(self, validated_data):
-        vehiculo = validated_data.pop('vehiculo', None)
-        costo_total = validated_data.get('costoTotal', 0.0)
-        mantenimiento = Mantenimiento.objects.create(**validated_data)
-        
-        # Crear la operación asociada
-        if vehiculo:
-            operacion = Operaciones.objects.create(
-                vehiculo=vehiculo,
-                tipo_operacion='MANTENIMIENTO',
-                costo_total=costo_total,
-                descripcion=f"Mantenimiento: {mantenimiento.comentario}"
-            )
-            mantenimiento.operacion = operacion
-            mantenimiento.save()
-        
-        return mantenimiento
+        fields = ['descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
+        #read_only_fields = ['subTotal']
 
-
+# -----------------------------------
+# 5) Serializer para Combustible
+# -----------------------------------
 class CombustibleSerializer(serializers.ModelSerializer):
-    operacion_detalle = OperacionesSerializer(source='operacion', read_only=True)
-    vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all(), write_only=True)
-    
     class Meta:
         model = Combustible
-        fields = ['id', 'idCombustible', 'cantidadGalon', 'costoGalon', 
-                 'costoTotal', 'operacion', 'operacion_detalle', 'vehiculo']
-    
-    def create(self, validated_data):
-        vehiculo = validated_data.pop('vehiculo', None)
-        combustible = Combustible.objects.create(**validated_data)
-        
-        # Crear la operación asociada
-        if vehiculo:
-            operacion = Operaciones.objects.create(
-                vehiculo=vehiculo,
-                tipo_operacion='COMBUSTIBLE',
-                costo_total=combustible.costoTotal,
-                descripcion=f"Combustible: {combustible.cantidadGalon} galones a ${combustible.costoGalon} c/u"
-            )
-            combustible.operacion = operacion
-            combustible.save()
-        
-        return combustible
+        fields = ['cantidadGalones', 'costoPorGalon', 'placaVehiculo', 'subTotal']
+        #read_only_fields = ['subTotal']
+
+# ---------------------------------------------------
+# 2) Serializer para Operaciones (ENDPOINT: /api/operaciones/)
+# ---------------------------------------------------
+class OperacionesSerializer(serializers.ModelSerializer):
+    combustibles = CombustibleSerializer(many=True, required=False)
+    mantenimientos = MantenimientoSerializer(many=True, required=False)
+    servicios = ServicioSerializer(many=True, required=False)
+
+    class Meta:
+        model = Operaciones
+        fields = [
+            'id',
+            'numeroDocumento',
+            'rucProveedor',
+            'nombreProveedor',
+            'tipoOperacion',
+            'fecha',
+            'descripcion',
+            'combustibles',
+            'mantenimientos',
+            'servicios',
+        ]
+        #read_only_fields = ['id']
+
+        def create(self, validated_data):
+            # 1. Extraemos los datos anidados del diccionario validado
+            combustibles_data = validated_data.pop('combustibles', [])
+            mantenimientos_data = validated_data.pop('mantenimientos', [])
+            servicios_data = validated_data.pop('servicios', [])
+
+            operacion = Operaciones.objects.create(**validated_data)
+
+            for combustible_data in combustibles_data:
+                Combustible.objects.create(operacion=operacion, **combustible_data)
+
+            for mantenimiento_data in mantenimientos_data:
+                Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
+
+            for servicio_data in servicios_data:
+                Servicio.objects.create(operacion=operacion, **servicio_data)
+
+            return operacion
 
 
+# ---------------------------------------------------
+# 6) Serializer para Vehiculo
+# ---------------------------------------------------
 class VehiculoSerializer(serializers.ModelSerializer):
     tarjeta_detalle = TarjetaVehiculoSerializer(source='tarjetaVehiculo', read_only=True)
-    operaciones_recientes = OperacionesSerializer(source='operaciones', many=True, read_only=True)
-    total_operaciones = serializers.SerializerMethodField()
-    costo_total_operaciones = serializers.SerializerMethodField()
+    operaciones_recientes = serializers.SerializerMethodField()
+    total_operaciones     = serializers.SerializerMethodField()
 
     class Meta:
         model = Vehiculo
-        fields = ['id', 'placa', 'anio', 'tarjetaVehiculo', 'kilometraje', 
-                 'costo', 'ubicacion', 'tarjeta_detalle', 'operaciones_recientes',
-                 'total_operaciones', 'costo_total_operaciones']
-    
+        fields = [
+            'id',
+            'placa',
+            'anio',
+            'tarjetaVehiculo',
+            'kilometraje',
+            'costo',
+            'ubicacion',
+            'tarjeta_detalle',
+            'operaciones_recientes',
+            'total_operaciones',
+        ]
+
+    def get_operaciones_recientes(self, obj):
+        # Si tu Operaciones no tiene FK directo a Vehiculo,
+        # deberías filtrar por el campo objeto_id, o establecer 
+        # un FK en Operaciones hacia Vehiculo. Aquí asumimos que
+        # Operaciones.objeto_id almacena el ID del Vehiculo:
+        qs = Operaciones.objects.filter(objeto_id=obj.id).order_by('-fecha')
+        return OperacionesSerializer(qs, many=True).data
+
     def get_total_operaciones(self, obj):
-        return obj.operaciones.count()
-    
-    def get_costo_total_operaciones(self, obj):
-        return sum(op.costo_total for op in obj.operaciones.all())
+        return Operaciones.objects.filter(objeto_id=obj.id).count()
 
-
-# Serializer combinado para reportes
 class OperacionesDetalladaSerializer(serializers.ModelSerializer):
-    vehiculo_detalle = VehiculoSerializer(source='vehiculo', read_only=True)
-    servicio_detalle = ServicioSerializer(source='servicio_detalle', read_only=True)
-    mantenimiento_detalle = MantenimientoSerializer(source='mantenimiento_detalle', read_only=True)
-    combustible_detalle = CombustibleSerializer(source='combustible_detalle', read_only=True)
-    tipo_operacion_display = serializers.CharField(source='get_tipo_operacion_display', read_only=True)
-    
+    """
+    Serializa una Operación junto con los datos de Vehiculo (si existe),
+    y los detalles de Servicio, Mantenimiento y Combustible (cada uno OneToOne).
+    """
+
+    # Asumiendo que Operaciones no tiene FK directo a Vehiculo, usamos objeto_id:
+    vehiculo_detalle = serializers.SerializerMethodField()
+    servicio_detalle = serializers.SerializerMethodField()
+    mantenimiento_detalle = serializers.SerializerMethodField()
+    combustible_detalle = serializers.SerializerMethodField()
+
     class Meta:
         model = Operaciones
-        fields = ['id', 'vehiculo', 'vehiculo_detalle', 'tipo_operacion', 'tipo_operacion_display',
-                 'fecha_operacion', 'costo_total', 'descripcion', 'ubicacion',
-                 'servicio_detalle', 'mantenimiento_detalle', 'combustible_detalle']
+        fields = [
+            'id',
+            'numeroDocumento',
+            'rucProveedor',
+            'nombreProveedor',
+            'tipoOperacion',
+            'fecha',
+            'descripcion',
+            'objeto_id',
+            'vehiculo_detalle',
+            'servicio_detalle',
+            'mantenimiento_detalle',
+            'combustible_detalle',
+        ]
+
+    def get_vehiculo_detalle(self, obj):
+        """
+        Si `obj.objeto_id` guarda el ID de un Vehiculo, podemos buscarlo así:
+        """
+        try:
+            veh = Vehiculo.objects.get(id=obj.objeto_id)
+            return {
+                'placa': veh.placa,
+                'anio': veh.anio,
+                'kilometraje': veh.kilometraje,
+                'costo': veh.costo,
+                'ubicacion': veh.ubicacion
+            }
+        except Vehiculo.DoesNotExist:
+            return None
+
+    def get_servicio_detalle(self, obj):
+        """
+        El related_name en Servicio es 'servicio_detalle', así que:
+        """
+        if hasattr(obj, 'servicio_detalle') and obj.servicio_detalle is not None:
+            s = obj.servicio_detalle
+            return {
+                'idServicio': s.idServicio,
+                'descripcion': s.descripcion,
+                'costo': s.costo
+            }
+        return None
+
+    def get_mantenimiento_detalle(self, obj):
+        if hasattr(obj, 'mantenimiento_detalle') and obj.mantenimiento_detalle is not None:
+            m = obj.mantenimiento_detalle
+            return {
+                'idMantenim': m.idMantenim,
+                'descripcionItem': m.descripcionItem,
+                'cantidad': m.cantidad,
+                'costoUnitario': m.costoUnitario,
+                'subTotal': m.subTotal
+            }
+        return None
+
+    def get_combustible_detalle(self, obj):
+        if hasattr(obj, 'combustible_detalle') and obj.combustible_detalle is not None:
+            c = obj.combustible_detalle
+            return {
+                'idCombustible': c.idCombustible,
+                'cantidadGalones': c.cantidadGalones,
+                'costoPorGalon': c.costoPorGalon,
+                'subTotal': c.subTotal,
+                'placaVehiculo': c.placaVehiculo_id
+            }
+        return None

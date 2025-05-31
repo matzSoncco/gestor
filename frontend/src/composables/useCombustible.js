@@ -11,7 +11,7 @@ export function useCombustible(formData) {
         cantidadGalones: null,
         costoPorGalon: null,
         subtotal: 0,
-        placaVehiculo: "",
+        placaVehiculo: null,
         });
     };
     
