@@ -1,12 +1,6 @@
 from django.contrib import admin
 from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, tarjetaVehiculo, Operaciones
 
-# class OperacionesInline(admin.TabularInline):
-#     model = Operaciones
-#     extra = 0
-#     readonly_fields = ('fecha')
-#     fields = ('tipoOperacion', 'descripcion')
-
 class ServicioInline(admin.TabularInline):
     """
     Permite editar/visualizar el registro de Servicio directamente
@@ -42,12 +36,15 @@ class CombustibleInline(admin.TabularInline):
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):
-    list_display = ('placa', 'anio', 'marca_modelo', 'kilometraje', 'ubicacion')
-    list_filter = ('anio', 'ubicacion', 'tarjetaVehiculo__marca')
-    search_fields = ('placa', 'tarjetaVehiculo__marca', 'tarjetaVehiculo__modelo')
+    list_display = ('placa', 'anio', 'marca_modelo', 'kilometraje', 'ubicacion', 'costo')
+    list_filter = ('anio', 'ubicacion')
+    search_fields = ('placa',)
+    list_editable = ('kilometraje', 'costo')
     
     def marca_modelo(self, obj):
-        return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
+        if obj.tarjetaVehiculo:
+            return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
+        return "Sin tarjeta"
     marca_modelo.short_description = 'Marca/Modelo'
     
 

@@ -96,10 +96,10 @@ class OperacionesSerializer(serializers.ModelSerializer):
 # 6) Serializer para Vehiculo
 # ---------------------------------------------------
 class VehiculoSerializer(serializers.ModelSerializer):
-    tarjeta_detalle = TarjetaVehiculoSerializer(source='tarjetaVehiculo', read_only=True)
-    operaciones_recientes = serializers.SerializerMethodField()
-    total_operaciones     = serializers.SerializerMethodField()
-
+    tarjetaVehiculo = TarjetaVehiculoSerializer(read_only=True)
+    tarjetaVehiculo_id = serializers.IntegerField(write_only=True)
+    marca_modelo = serializers.SerializerMethodField()
+    
     class Meta:
         model = Vehiculo
         fields = [
@@ -107,24 +107,17 @@ class VehiculoSerializer(serializers.ModelSerializer):
             'placa',
             'anio',
             'tarjetaVehiculo',
+            'tarjetaVehiculo_id',
             'kilometraje',
             'costo',
             'ubicacion',
-            'tarjeta_detalle',
-            'operaciones_recientes',
-            'total_operaciones',
+            'marca_modelo',
         ]
 
-    def get_operaciones_recientes(self, obj):
-        # Si tu Operaciones no tiene FK directo a Vehiculo,
-        # deberías filtrar por el campo objeto_id, o establecer 
-        # un FK en Operaciones hacia Vehiculo. Aquí asumimos que
-        # Operaciones.objeto_id almacena el ID del Vehiculo:
-        qs = Operaciones.objects.filter(objeto_id=obj.id).order_by('-fecha')
-        return OperacionesSerializer(qs, many=True).data
-
-    def get_total_operaciones(self, obj):
-        return Operaciones.objects.filter(objeto_id=obj.id).count()
+    def get_marca_modelo(self, obj):
+        if obj.tarjetaVehiculo:
+            return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
+        return ""
 
 class OperacionesDetalladaSerializer(serializers.ModelSerializer):
     """

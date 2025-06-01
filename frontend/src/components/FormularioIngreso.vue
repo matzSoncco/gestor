@@ -329,6 +329,7 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import { useOpForm } from '../composables/useOpForm.js';
 
@@ -337,10 +338,12 @@ const listaVehiculos = ref([]);
 
 onMounted(async () => {
   try {
-    const response = await fetch('vehiculos/');
-    listaVehiculos.value = response.json();
+    const response = await axios.get('/api/vehiculos/');
+    listaVehiculos.value = response.data;
+    console.log('Vehículos cargados:', listaVehiculos.value);
   } catch (error) {
     console.error('Error al cargar vehículos:', error);
+    listaVehiculos.value = [];
   }
 });
 

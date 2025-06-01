@@ -28,83 +28,12 @@ class TarjetaVehiculoViewSet(ModelViewSet):
 
 
 class VehiculoViewSet(ModelViewSet):
-    queryset = Vehiculo.objects.all()
+    queryset = Vehiculo.objects.select_related('tarjetaVehiculo').all()
     serializer_class = VehiculoSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
-        """Permite filtrar vehículos por placa o ubicación"""
-        queryset = Vehiculo.objects.all()
-        placa = self.request.query_params.get('placa')
-        ubicacion = self.request.query_params.get('ubicacion')
-        
-        if placa:
-            queryset = queryset.filter(placa__icontains=placa)
-        if ubicacion:
-            queryset = queryset.filter(ubicacion__icontains=ubicacion)
-            
-        return queryset
-    
-    @action(detail=True, methods=['get'])
-    def operaciones(self, request, pk=None):
-        """Obtener todas las operaciones de un vehículo específico"""
-        vehiculo = self.get_object()
-        operaciones = vehiculo.operaciones.all()
-        
-        # Filtros opcionales
-        tipo = request.query_params.get('tipo')
-        fecha_desde = request.query_params.get('fecha_desde')
-        fecha_hasta = request.query_params.get('fecha_hasta')
-        
-        if tipo:
-            operaciones = operaciones.filter(tipo_operacion=tipo.upper())
-        
-        if fecha_desde:
-            try:
-                fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
-                operaciones = operaciones.filter(fecha_operacion__gte=fecha_desde)
-            except ValueError:
-                pass
-        
-        if fecha_hasta:
-            try:
-                fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
-                operaciones = operaciones.filter(fecha_operacion__lte=fecha_hasta)
-            except ValueError:
-                pass
-        
-        serializer = OperacionesDetalladaSerializer(operaciones, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
-    def resumen_operaciones(self, request, pk=None):
-        """Obtener resumen estadístico de operaciones del vehículo"""
-        vehiculo = self.get_object()
-        
-        # Resumen por tipo de operación
-        resumen = vehiculo.operaciones.values('tipo_operacion').annotate(
-            total_operaciones=Count('id'),
-            costo_total=Sum('costo_total')
-        )
-        
-        # Operaciones del último mes
-        ultimo_mes = datetime.now() - timedelta(days=30)
-        operaciones_recientes = vehiculo.operaciones.filter(
-            fecha_operacion__gte=ultimo_mes
-        ).count()
-        
-        # Costo total histórico
-        costo_total_historico = vehiculo.operaciones.aggregate(
-            total=Sum('costo_total')
-        )['total'] or 0
-        
-        return Response({
-            'vehiculo': vehiculo.placa,
-            'resumen_por_tipo': list(resumen),
-            'operaciones_ultimo_mes': operaciones_recientes,
-            'costo_total_historico': costo_total_historico,
-            'total_operaciones': vehiculo.operaciones.count()
-        })
+        return Vehiculo.objects.select_related('tarjetaVehiculo')
 
 
 class ServicioViewSet(ModelViewSet):
@@ -123,113 +52,6 @@ class CombustibleViewSet(ModelViewSet):
     queryset = Combustible.objects.all()
     serializer_class = CombustibleSerializer
     permission_classes = [AllowAny]
-
-
-# Nuevo ViewSet para Operaciones
-# class OperacionesViewSet(ModelViewSet):
-#     queryset = Operaciones.objects.all()
-#     serializer_class = OperacionesSerializer
-#     permission_classes = [AllowAny]
-    
-#     def get_queryset(self):
-#         """Filtrar operaciones por varios criterios"""
-#         queryset = Operaciones.objects.all()
-        
-#         # Filtro por vehículo
-#         vehiculo_id = self.request.query_params.get('vehiculo')
-#         if vehiculo_id:
-#             queryset = queryset.filter(vehiculo_id=vehiculo_id)
-        
-#         # Filtro por tipo de operación
-#         tipo = self.request.query_params.get('tipo')
-#         if tipo:
-#             queryset = queryset.filter(tipo_operacion=tipo.upper())
-        
-#         # Filtro por rango de fechas
-#         fecha_desde = self.request.query_params.get('fecha_desde')
-#         fecha_hasta = self.request.query_params.get('fecha_hasta')
-        
-#         if fecha_desde:
-#             try:
-#                 fecha_desde = datetime.strptime(fecha_desde, '%Y-%m-%d')
-#                 queryset = queryset.filter(fecha_operacion__gte=fecha_desde)
-#             except ValueError:
-#                 pass
-        
-#         if fecha_hasta:
-#             try:
-#                 fecha_hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d')
-#                 queryset = queryset.filter(fecha_operacion__lte=fecha_hasta)
-#             except ValueError:
-#                 pass
-        
-#         # Filtro por rango de costos
-#         costo_min = self.request.query_params.get('costo_min')
-#         costo_max = self.request.query_params.get('costo_max')
-        
-#         if costo_min:
-#             try:
-#                 queryset = queryset.filter(costo_total__gte=float(costo_min))
-#             except ValueError:
-#                 pass
-        
-#         if costo_max:
-#             try:
-#                 queryset = queryset.filter(costo_total__lte=float(costo_max))
-#             except ValueError:
-#                 pass
-        
-#         return queryset
-    
-#     @action(detail=False, methods=['get'])
-#     def resumen_general(self, request):
-#         """Resumen general de todas las operaciones"""
-#         total_operaciones = Operaciones.objects.count()
-        
-#         # Resumen por tipo
-#         por_tipo = Operaciones.objects.values('tipo_operacion').annotate(
-#             cantidad=Count('id'),
-#             costo_total=Sum('costo_total')
-#         )
-        
-#         # Operaciones por mes (últimos 6 meses)
-#         seis_meses_atras = datetime.now() - timedelta(days=180)
-#         por_mes = Operaciones.objects.filter(
-#             fecha_operacion__gte=seis_meses_atras
-#         ).extra(
-#             select={'mes': "strftime('%%Y-%%m', fecha_operacion)"}
-#         ).values('mes').annotate(
-#             cantidad=Count('id'),
-#             costo_total=Sum('costo_total')
-#         ).order_by('mes')
-        
-#         # Costo total
-#         costo_total = Operaciones.objects.aggregate(
-#             total=Sum('costo_total')
-#         )['total'] or 0
-        
-#         # Top 5 vehículos con más operaciones
-#         top_vehiculos = Operaciones.objects.values(
-#             'vehiculo__placa'
-#         ).annotate(
-#             cantidad_operaciones=Count('id'),
-#             costo_total=Sum('costo_total')
-#         ).order_by('-cantidad_operaciones')[:5]
-        
-#         return Response({
-#             'total_operaciones': total_operaciones,
-#             'costo_total_general': costo_total,
-#             'resumen_por_tipo': list(por_tipo),
-#             'resumen_por_mes': list(por_mes),
-#             'top_vehiculos': list(top_vehiculos)
-#         })
-    
-#     @action(detail=False, methods=['get'])
-#     def detalladas(self, request):
-#         """Obtener operaciones con todos sus detalles"""
-#         queryset = self.get_queryset()
-#         serializer = OperacionesDetalladaSerializer(queryset, many=True)
-#         return Response(serializer.data)
 
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
