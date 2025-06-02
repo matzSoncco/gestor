@@ -55,19 +55,16 @@ class CombustibleViewSet(ModelViewSet):
 
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
-    serializer_class = OperacionesSerializer
+    serializer_class = OperacionesDetalladaSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        """Crear una nueva operación"""
-        is_many = False
-        serializer = self.get_serializer(data=request.data, many=is_many)
+        # Ahora OperacionesDetalladaSerializer debe definirse para aceptar 
+        # payload de payload['combustible_detalle'] como nested write (many=True)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         operacion = serializer.save()
-
-        operacion.refresh_from_db()  # Asegurarse de que los datos estén actualizados
-        output_serializer = OperacionesDetalladaSerializer(operacion)
-        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Endpoints adicionales
 @api_view(['POST'])

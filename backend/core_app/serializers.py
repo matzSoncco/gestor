@@ -72,25 +72,24 @@ class OperacionesSerializer(serializers.ModelSerializer):
         ]
         #read_only_fields = ['id']
 
-        def create(self, validated_data):
-            # 1. Extraemos los datos anidados del diccionario validado
-            combustibles_data = validated_data.pop('combustibles', [])
-            mantenimientos_data = validated_data.pop('mantenimientos', [])
-            servicios_data = validated_data.pop('servicios', [])
+    def create(self, validated_data):
+        # 1. Extraemos los datos anidados del diccionario validado
+        combustibles_data = validated_data.pop('combustibles', [])
+        mantenimientos_data = validated_data.pop('mantenimientos', [])
+        servicios_data = validated_data.pop('servicios', [])
 
-            operacion = Operaciones.objects.create(**validated_data)
+        operacion = Operaciones.objects.create(**validated_data)
 
-            for combustible_data in combustibles_data:
-                Combustible.objects.create(operacion=operacion, **combustible_data)
+        for combustible_data in combustibles_data:
+            Combustible.objects.create(operacion=operacion, **combustible_data)
 
-            for mantenimiento_data in mantenimientos_data:
-                Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
+        for mantenimiento_data in mantenimientos_data:
+            Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
 
-            for servicio_data in servicios_data:
-                Servicio.objects.create(operacion=operacion, **servicio_data)
+        for servicio_data in servicios_data:
+            Servicio.objects.create(operacion=operacion, **servicio_data)
 
-            return operacion
-
+        return operacion
 
 # ---------------------------------------------------
 # 6) Serializer para Vehiculo
@@ -99,7 +98,7 @@ class VehiculoSerializer(serializers.ModelSerializer):
     tarjetaVehiculo = TarjetaVehiculoSerializer(read_only=True)
     tarjetaVehiculo_id = serializers.IntegerField(write_only=True)
     marca_modelo = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Vehiculo
         fields = [
@@ -129,7 +128,7 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
     vehiculo_detalle = serializers.SerializerMethodField()
     servicio_detalle = serializers.SerializerMethodField()
     mantenimiento_detalle = serializers.SerializerMethodField()
-    combustible_detalle = serializers.SerializerMethodField()
+    combustible_detalle = CombustibleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Operaciones
@@ -141,7 +140,6 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
             'tipoOperacion',
             'fecha',
             'descripcion',
-            'objeto_id',
             'vehiculo_detalle',
             'servicio_detalle',
             'mantenimiento_detalle',
@@ -153,7 +151,7 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
         Si `obj.objeto_id` guarda el ID de un Vehiculo, podemos buscarlo así:
         """
         try:
-            veh = Vehiculo.objects.get(id=obj.objeto_id)
+            veh = Vehiculo.objects.get(id=obj.id)
             return {
                 'placa': veh.placa,
                 'anio': veh.anio,
@@ -168,35 +166,33 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
         """
         El related_name en Servicio es 'servicio_detalle', así que:
         """
-        if hasattr(obj, 'servicio_detalle') and obj.servicio_detalle is not None:
-            s = obj.servicio_detalle
+        s = obj.servicio_detalle.first()
+        if s is not None:
             return {
-                'idServicio': s.idServicio,
                 'descripcion': s.descripcion,
                 'costo': s.costo
             }
         return None
 
     def get_mantenimiento_detalle(self, obj):
-        if hasattr(obj, 'mantenimiento_detalle') and obj.mantenimiento_detalle is not None:
-            m = obj.mantenimiento_detalle
+        s = obj.mantenimiento_detalle.first()
+        if s is not None:
             return {
-                'idMantenim': m.idMantenim,
-                'descripcionItem': m.descripcionItem,
-                'cantidad': m.cantidad,
-                'costoUnitario': m.costoUnitario,
-                'subTotal': m.subTotal
+                'descripcionItem': s.descripcionItem,
+                'cantidad': s.cantidad,
+                'costoUnitario': s.costoUnitario,
+                'subTotal': s.subTotal,
+                'placaVehiculo': s.placaVehiculo_id
             }
         return None
 
     def get_combustible_detalle(self, obj):
-        if hasattr(obj, 'combustible_detalle') and obj.combustible_detalle is not None:
-            c = obj.combustible_detalle
+        s = obj.combustible_detalle.first()
+        if s is not None:
             return {
-                'idCombustible': c.idCombustible,
-                'cantidadGalones': c.cantidadGalones,
-                'costoPorGalon': c.costoPorGalon,
-                'subTotal': c.subTotal,
-                'placaVehiculo': c.placaVehiculo_id
+                'cantidadGalones': s.cantidadGalones,
+                'costoPorGalon': s.costoPorGalon,
+                'placaVehiculo': s.placaVehiculo_id,
+                'subTotal': s.subTotal
             }
         return None

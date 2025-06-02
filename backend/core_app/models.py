@@ -91,16 +91,12 @@ class Repuesto(models.Model):
 
 class Servicio(models.Model):
     # Relación con Operaciones
-    operacion = models.OneToOneField(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_detalle')
+    operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_detalle')
     
     # Campos específicos del servicio
-    idServicio = models.IntegerField(null=False)
     descripcion = models.CharField(max_length=100, default="")
     costo = models.FloatField(null=False, default=0.0)
     placaVehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_vehiculo')
-    
-    def __str__(self):
-        return f"Servicio {self.idServicio} - {self.descripcion}"
     
     def save(self, *args, **kwargs):
         # Crear o actualizar la operación padre
@@ -121,10 +117,9 @@ class Servicio(models.Model):
 
 class Mantenimiento(models.Model):
     # Relación con Operaciones
-    operacion = models.OneToOneField(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_detalle')
+    operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_detalle')
     
     # Campos específicos del mantenimiento
-    idMantenim = models.IntegerField(null=False)
     descripcionItem = models.CharField(max_length=100, default="")
     cantidad = models.IntegerField(null=False, default=0)
     costoUnitario = models.FloatField(null=False, default=0.0)
@@ -143,10 +138,8 @@ class Mantenimiento(models.Model):
                 nombreProveedor="",
                 tipoOperacion='MANTENIMIENTO',
                 fecha=models.DateField().to_python(models.DateField().default) if hasattr(models.DateField(), 'default') else None,
-                descripcion=f"Mantenimiento: {self.descripcionItem}"
             )
         else:
-            self.operacion.descripcion = f"Mantenimiento: {self.descripcionItem}"
             self.operacion.save()
         
         super().save(*args, **kwargs)
@@ -154,17 +147,13 @@ class Mantenimiento(models.Model):
 
 class Combustible(models.Model):
     # Relación con Operaciones
-    operacion = models.OneToOneField(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_detalle')
+    operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_detalle')
     
     # Campos específicos del combustible
-    idCombustible = models.IntegerField(null=False)
     cantidadGalones = models.IntegerField(null=False, default=0)
     costoPorGalon = models.FloatField(null=False, default=0.0)
     subTotal = models.FloatField(null=False, default=0.0)
     placaVehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_vehiculo')
-    
-    def __str__(self):
-        return f"Combustible {self.idCombustible} - {self.cantidadGalones} galones"
 
     def save(self, *args, **kwargs):
         # Calcular subTotal correctamente
@@ -178,10 +167,8 @@ class Combustible(models.Model):
                 nombreProveedor="",
                 tipoOperacion='COMBUSTIBLE',
                 fecha=models.DateField().to_python(models.DateField().default) if hasattr(models.DateField(), 'default') else None,
-                descripcion=f"Combustible: {self.cantidadGalones} galones a ${self.costoPorGalon} c/u"
             )
         else:
-            self.operacion.descripcion = f"Combustible: {self.cantidadGalones} galones a ${self.costoPorGalon} c/u"
             self.operacion.save()
         
         super().save(*args, **kwargs)

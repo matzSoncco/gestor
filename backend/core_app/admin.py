@@ -9,7 +9,7 @@ class ServicioInline(admin.TabularInline):
     model = Servicio
     fk_name = 'operacion'   # el campo OneToOneField hacia Operaciones
     extra = 0               # Si no quieres filas en blanco adicionales, déjalo en 0
-    readonly_fields = ['idServicio', 'descripcion', 'costo']  # si deseas que sea solo lectura
+    readonly_fields = ['descripcion', 'costo']  # si deseas que sea solo lectura
     # Si prefieres permitir edición de Servicio dentro de Operaciones, remueve 'readonly_fields'.
 
 class MantenimientoInline(admin.TabularInline):
@@ -20,7 +20,7 @@ class MantenimientoInline(admin.TabularInline):
     model = Mantenimiento
     fk_name = 'operacion'
     extra = 0
-    readonly_fields = ['idMantenim', 'descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
+    readonly_fields = ['descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
     # Quita 'readonly_fields' si quieres que los campos sean editables en el inline.
 
 class CombustibleInline(admin.TabularInline):
@@ -31,7 +31,7 @@ class CombustibleInline(admin.TabularInline):
     model = Combustible
     fk_name = 'operacion'
     extra = 0
-    readonly_fields = ['idCombustible', 'cantidadGalones', 'costoPorGalon', 'subTotal', 'placaVehiculo']
+    readonly_fields = ['cantidadGalones', 'costoPorGalon', 'subTotal', 'placaVehiculo']
     # Quita 'readonly_fields' si quieres permitir edición en el inline.
 
 @admin.register(Vehiculo)
@@ -75,14 +75,13 @@ class ServicioAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id', 
-        'idServicio',
         'descripcion',
         'costo',
         'operacion'
     ]
     list_filter = ['costo']
     readonly_fields = []   # Si quieres que “operacion” sea readonly, pon ['operacion']
-    search_fields = ['idServicio', 'descripcion']
+    search_fields = ['descripcion']
 
 @admin.register(Mantenimiento)
 class MantenimientoAdmin(admin.ModelAdmin):
@@ -91,7 +90,6 @@ class MantenimientoAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'idMantenim',
         'descripcionItem',
         'cantidad',
         'costoUnitario',
@@ -103,7 +101,7 @@ class MantenimientoAdmin(admin.ModelAdmin):
     # podrías filtrar por 'costoUnitario' o por otro campo que exista.
     list_filter = ['costoUnitario']
     readonly_fields = []  # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
-    search_fields = ['idMantenim', 'descripcionItem']
+    search_fields = ['descripcionItem']
 
 @admin.register(Combustible)
 class CombustibleAdmin(admin.ModelAdmin):
@@ -112,7 +110,6 @@ class CombustibleAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'idCombustible',
         'cantidadGalones',
         'costoPorGalon',
         'subTotal',
@@ -121,7 +118,6 @@ class CombustibleAdmin(admin.ModelAdmin):
     ]
     list_filter = ['placaVehiculo']
     readonly_fields = []   # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
-    search_fields = ['idCombustible']
 
 @admin.register(tarjetaVehiculo)
 class TarjetaVehiculoAdmin(admin.ModelAdmin):

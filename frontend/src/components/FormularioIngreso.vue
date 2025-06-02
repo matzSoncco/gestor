@@ -340,7 +340,6 @@ onMounted(async () => {
   try {
     const response = await axios.get('/api/vehiculos/');
     listaVehiculos.value = response.data;
-    console.log('Vehículos cargados:', listaVehiculos.value);
   } catch (error) {
     console.error('Error al cargar vehículos:', error);
     listaVehiculos.value = [];
@@ -382,6 +381,14 @@ async function enviarFormulario() {
     mensaje.value = 'Operación registrada exitosamente.';
     tipoMensaje.value = 'success';
     emits('datos-enviados', formData);
+
+    console.log('Datos del formulario antes de enviar:', formData.value);
+    
+    // Verificar estructura de los datos
+    console.log('Combustibles:', formData.value.combustibles);
+    console.log('Mantenimientos:', formData.value.mantenimientos);
+    console.log('Servicios:', formData.value.servicios);
+
   } catch (error) {
     mensaje.value = 'Error al registrar la operación. Intente nuevamente.';
     tipoMensaje.value = 'error';
