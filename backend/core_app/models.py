@@ -144,7 +144,6 @@ class Mantenimiento(models.Model):
         
         super().save(*args, **kwargs)
 
-
 class Combustible(models.Model):
     # Relación con Operaciones
     operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_detalle')

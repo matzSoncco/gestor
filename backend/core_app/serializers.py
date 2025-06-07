@@ -43,6 +43,7 @@ class MantenimientoSerializer(serializers.ModelSerializer):
 # 5) Serializer para Combustible
 # -----------------------------------
 class CombustibleSerializer(serializers.ModelSerializer):
+    placaVehiculo = serializers.SlugRelatedField(read_only=True, slug_field='placa')
     class Meta:
         model = Combustible
         fields = ['cantidadGalones', 'costoPorGalon', 'placaVehiculo', 'subTotal']
@@ -125,10 +126,9 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
     """
 
     # Asumiendo que Operaciones no tiene FK directo a Vehiculo, usamos objeto_id:
-    vehiculo_detalle = serializers.SerializerMethodField()
-    servicio_detalle = serializers.SerializerMethodField()
-    mantenimiento_detalle = serializers.SerializerMethodField()
-    combustible_detalle = CombustibleSerializer(many=True, read_only=True)
+    servicio_detalle = ServicioSerializer(many=True)
+    mantenimiento_detalle = MantenimientoSerializer(many=True)
+    combustible_detalle = CombustibleSerializer(many=True)
 
     class Meta:
         model = Operaciones
@@ -140,27 +140,35 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
             'tipoOperacion',
             'fecha',
             'descripcion',
-            'vehiculo_detalle',
             'servicio_detalle',
             'mantenimiento_detalle',
             'combustible_detalle',
         ]
 
-    def get_vehiculo_detalle(self, obj):
-        """
-        Si `obj.objeto_id` guarda el ID de un Vehiculo, podemos buscarlo así:
-        """
-        try:
-            veh = Vehiculo.objects.get(id=obj.id)
-            return {
-                'placa': veh.placa,
-                'anio': veh.anio,
-                'kilometraje': veh.kilometraje,
-                'costo': veh.costo,
-                'ubicacion': veh.ubicacion
-            }
-        except Vehiculo.DoesNotExist:
-            return None
+    def create(self, validated_data):
+        # 1) Extraemos y removemos la lista de combustibles del validated_data:
+        combustibles_data = validated_data.pop('combustible_detalle', [])
+        # 2) Creamos la operación sin combustible:
+        operacion = Operaciones.objects.create(**validated_data)
+        # 3) Por cada dict en combustibles_data, creamos el Combustible vinculado:
+        for c_data in combustibles_data:
+            Combustible.objects.create(operacion=operacion, **c_data)
+        return operacion
+    
+    def update(self, instance, validated_data):
+        # Si quieres soportar PUT/PATCH con reemplazo de lista:
+        combustibles_data = validated_data.pop('combustible_detalle', None)
+        # Actualizas campos simples de la operación:
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if combustibles_data is not None:
+            # Por ejemplo, borras los viejos y creas nuevos:
+            instance.combustible_detalle.all().delete()
+            for c_data in combustibles_data:
+                Combustible.objects.create(operacion=instance, **c_data)
+        return instance
 
     def get_servicio_detalle(self, obj):
         """
@@ -182,7 +190,7 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
                 'cantidad': s.cantidad,
                 'costoUnitario': s.costoUnitario,
                 'subTotal': s.subTotal,
-                'placaVehiculo': s.placaVehiculo_id
+                'placaVehiculo': s.placaVehiculo.placa if s.placaVehiculo else None
             }
         return None
 
@@ -192,7 +200,7 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
             return {
                 'cantidadGalones': s.cantidadGalones,
                 'costoPorGalon': s.costoPorGalon,
-                'placaVehiculo': s.placaVehiculo_id,
+                'placaVehiculo': s.placaVehiculo.placa if s.placaVehiculo else None,
                 'subTotal': s.subTotal
             }
         return None

@@ -6,6 +6,8 @@ import LoginView from '../views/LoginView.vue'
 import IngresoDatosView from '../views/IngresoDatosView.vue'
 import ReportesView from '../views/ReportesView.vue'
 import VehiculosView from '../views/Vehiculos.vue'
+import OpTable from '../components/OpTable.vue'
+import OpView from '../views/OpView.vue'
 
 const routes = [
   {
@@ -37,6 +39,17 @@ const routes = [
     component: VehiculosView,
     meta: { requiresAuth: true },
   },
+  {
+    path: '/operaciones',
+    name: 'OpTable',
+    component: OpTable
+  },
+  {
+    path: '/operaciones/:id',
+    name: 'OpView',
+    component: OpView,
+    props: true
+  }
   // Puedes añadir una ruta catch-all para 404 si quieres
   // { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFoundView.vue') }
 ]
