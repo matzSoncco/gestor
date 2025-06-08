@@ -46,7 +46,6 @@
       <table v-else>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Cantidad Galones</th>
             <th>Costo por Galón</th>
             <th>SubTotal</th>
@@ -55,7 +54,6 @@
         </thead>
         <tbody>
           <tr v-for="c in operacion.combustible_detalle" :key="c.id">
-            <td>{{ c.id }}</td>
             <td>{{ c.cantidadGalones }}</td>
             <td>{{ c.costoPorGalon }}</td>
             <td>{{ c.subTotal }}</td>

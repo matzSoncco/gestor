@@ -29,6 +29,7 @@ const handleLogout = () => {
 
 <style scoped>
 #app-container {
+  width: 1200px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -37,6 +38,7 @@ const handleLogout = () => {
 
 header {
   background-color: #333;
+  max-width: 100%;
   color: white;
   padding: 1rem;
   text-align: center;
@@ -69,7 +71,7 @@ nav a.router-link-exact-active {
 main {
   flex-grow: 1;
   padding: 20px;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   width: 100%;
 }

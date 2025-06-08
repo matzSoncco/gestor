@@ -9,7 +9,7 @@ class ServicioInline(admin.TabularInline):
     model = Servicio
     fk_name = 'operacion'   # el campo OneToOneField hacia Operaciones
     extra = 0               # Si no quieres filas en blanco adicionales, déjalo en 0
-    readonly_fields = ['descripcion', 'costo']  # si deseas que sea solo lectura
+    readonly_fields = ['descripcion_item', 'costo_servicio']  # si deseas que sea solo lectura
     # Si prefieres permitir edición de Servicio dentro de Operaciones, remueve 'readonly_fields'.
 
 class MantenimientoInline(admin.TabularInline):
@@ -20,7 +20,7 @@ class MantenimientoInline(admin.TabularInline):
     model = Mantenimiento
     fk_name = 'operacion'
     extra = 0
-    readonly_fields = ['descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
+    readonly_fields = ['descripcion_item', 'cantidad', 'costo_unitario', 'subtotal']
     # Quita 'readonly_fields' si quieres que los campos sean editables en el inline.
 
 class CombustibleInline(admin.TabularInline):
@@ -31,7 +31,7 @@ class CombustibleInline(admin.TabularInline):
     model = Combustible
     fk_name = 'operacion'
     extra = 0
-    readonly_fields = ['cantidadGalones', 'costoPorGalon', 'subTotal', 'placaVehiculo']
+    readonly_fields = ['cantidad_galones', 'costo_por_galon', 'subtotal', 'placa_vehiculo']
     # Quita 'readonly_fields' si quieres permitir edición en el inline.
 
 @admin.register(Vehiculo)
@@ -55,18 +55,18 @@ class OperacionesAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'numeroDocumento',
-        'rucProveedor',
-        'nombreProveedor',
-        'tipoOperacion',
+        'numero_documento',
+        'ruc_proveedor',
+        'nombre_proveedor',
+        'tipo_operacion',
         'fecha',
         'descripcion',
     ]
-    list_filter = ['tipoOperacion', 'fecha']
+    list_filter = ['tipo_operacion', 'fecha']
     readonly_fields = []             # Si quieres que 'fecha' sea solo lectura: pon ['fecha']
     date_hierarchy = 'fecha'         # Barra de navegación por año/mes/día usando el campo 'fecha'
     inlines = [ServicioInline, MantenimientoInline, CombustibleInline]
-    search_fields = ['numeroDocumento', 'rucProveedor', 'nombreProveedor']
+    search_fields = ['numero_documento', 'ruc_proveedor', 'nombre_proveedor']
 
 @admin.register(Servicio)
 class ServicioAdmin(admin.ModelAdmin):
@@ -75,13 +75,14 @@ class ServicioAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id', 
-        'descripcion',
-        'costo',
+        'descripcion_item',
+        'costo_servicio',
+        'placa_vehiculo',
         'operacion'
     ]
-    list_filter = ['costo']
+    list_filter = ['costo_servicio']
     readonly_fields = []   # Si quieres que “operacion” sea readonly, pon ['operacion']
-    search_fields = ['descripcion']
+    search_fields = ['descripcion_item']
 
 @admin.register(Mantenimiento)
 class MantenimientoAdmin(admin.ModelAdmin):
@@ -90,18 +91,19 @@ class MantenimientoAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'descripcionItem',
+        'descripcion_item',
         'cantidad',
-        'costoUnitario',
-        'subTotal',
+        'costo_unitario',
+        'subtotal',
+        'placa_vehiculo',
         'operacion'
     ]
     list_filter = ['fecha']  # si deseas filtrar por fecha, deberías haber un campo fecha; si no, elimina
     # En tu modelo Mantenimiento no definiste fechaMantenimiento, así que en list_filter
     # podrías filtrar por 'costoUnitario' o por otro campo que exista.
-    list_filter = ['costoUnitario']
+    list_filter = ['costo_unitario']
     readonly_fields = []  # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
-    search_fields = ['descripcionItem']
+    search_fields = ['descripcion_item']
 
 @admin.register(Combustible)
 class CombustibleAdmin(admin.ModelAdmin):
@@ -110,13 +112,13 @@ class CombustibleAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'cantidadGalones',
-        'costoPorGalon',
-        'subTotal',
-        'placaVehiculo',
+        'cantidad_galones',
+        'costo_por_galon',
+        'subtotal',
+        'placa_vehiculo',
         'operacion'
     ]
-    list_filter = ['placaVehiculo']
+    list_filter = ['placa_vehiculo']
     readonly_fields = []   # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
 
 @admin.register(tarjetaVehiculo)

@@ -5,21 +5,21 @@
 
       <div class="form-grid">
         <div class="form-group">
-          <label for="numeroDocumento">N° de Factura o Documento:</label>
+          <label for="numero_documento">N° de Factura o Documento:</label>
           <input
             type="number"
-            id="numeroDocumento"
-            v-model="formData.numeroDocumento"
+            id="numero_documento"
+            v-model="formData.numero_documento"
             placeholder="Ingrese número de documento"
             required
           />
         </div>
         <div class="form-group">
-          <label for="rucProveedor">RUC del Proveedor:</label>
+          <label for="ruc_proveedor">RUC del Proveedor:</label>
           <input
             type="number"
-            id="rucProveedor"
-            v-model="formData.rucProveedor"
+            id="ruc_proveedor"
+            v-model="formData.ruc_proveedor"
             placeholder="Ingrese RUC"
             required
           />
@@ -28,11 +28,11 @@
 
       <div class="form-grid">
         <div class="form-group">
-          <label for="nombreProveedor">Nombre del Proveedor</label>
+          <label for="nombre_proveedor">Nombre del Proveedor</label>
           <input
             type="text"
-            id="nombreProveedor"
-            v-model="formData.nombreProveedor"
+            id="nombre_proveedor"
+            v-model="formData.nombre_proveedor"
             placeholder="Aquí se mostrará el nombre del proveedor"
             
           />
@@ -41,10 +41,10 @@
 
       <div class="form-grid">
         <div class="form-group">
-          <label for="tipoOperacion">Tipo de Operacion:</label>
+          <label for="tipo_operacion">Tipo de Operacion:</label>
           <select
-            id="tipoOperacion"
-            v-model="formData.tipoOperacion"
+            id="tipo_operacion"
+            v-model="formData.tipo_operacion"
             required
             class="select-custom"
           >
@@ -61,10 +61,10 @@
       </div>
 
       <transition name="fade">
-        <div class="form-section specific-fields" v-if="formData.tipoOperacion">
+        <div class="form-section specific-fields" v-if="formData.tipo_operacion">
 
           <!-- Combustible -->
-          <template v-if="formData.tipoOperacion === 'combustible'">
+          <template v-if="formData.tipo_operacion === 'combustible'">
             <h3 class="section-title">Detalles de Combustible</h3>
             <div
               v-for="(comb, index) in formData.combustibles"
@@ -72,11 +72,11 @@
               class="dynamic-row"
             >
               <div class="form-group">
-                <label :for="'cantidadGalones-' + comb.id">Cant. Galones:</label>
+                <label :for="'cantidad_galones-' + comb.id">Cant. Galones:</label>
                 <input
                   type="number"
-                  :id="'cantidadGalones-' + comb.id"
-                  v-model.number="comb.cantidadGalones"
+                  :id="'cantidad_galones-' + comb.id"
+                  v-model.number="comb.cantidad_galones"
                   placeholder="Galones"
                   min="0"
                   step="0.01"
@@ -84,11 +84,11 @@
                 />
               </div>
               <div class="form-group">
-                <label :for="'costoPorGalon-' + comb.id">Costo/Galón:</label>
+                <label :for="'costo_por_galon-' + comb.id">Costo/Galón:</label>
                 <input
                   type="number"
-                  :id="'costoPorGalon-' + comb.id"
-                  v-model.number="comb.costoPorGalon"
+                  :id="'costo_por_galon-' + comb.id"
+                  v-model.number="comb.costo_por_galon"
                   placeholder="S/ por Galón"
                   min="0"
                   step="0.01"
@@ -106,10 +106,10 @@
                 />
               </div>
               <div class="form-group">
-                <label :for="'placaVehiculo-' + comb.id">Placa/Vehículo:</label>
+                <label :for="'placa_vehiculo-' + comb.id">Placa/Vehículo:</label>
                 <select
-                  :id="'placaVehiculo-' + comb.id"
-                  v-model="comb.placaVehiculo"
+                  :id="'placa_vehiculo-' + comb.id"
+                  v-model="comb.placa_vehiculo"
                   required
                 >
                   <option :value="null" disabled>Seleccione una placa</option>
@@ -141,7 +141,7 @@
           </template>
 
           <!-- Mantenimiento -->
-          <template v-if="formData.tipoOperacion === 'mantenimiento'">
+          <template v-if="formData.tipo_operacion === 'mantenimiento'">
             <h3 class="section-title">Detalles de Mantenimiento</h3>
             <div
               v-for="(mant, index) in formData.mantenimientos"
@@ -149,13 +149,13 @@
               class="dynamic-row maintenance-row"
             >
               <div class="form-group item-description-group">
-                <label :for="'descripcionItem-' + mant.id">
+                <label :for="'descripcion_item-' + mant.id">
                   Item Cambiado/Servicio:
                 </label>
                 <input
                   type="text"
-                  :id="'descripcionItem-' + mant.id"
-                  v-model="mant.descripcionItem"
+                  :id="'descripcion_item-' + mant.id"
+                  v-model="mant.descripcion_item"
                   placeholder="Escriba o seleccione item"
                   @input="updateSugerencias($event.target.value, index)"
                   @focus="updateSugerencias($event.target.value, index)"
@@ -194,7 +194,7 @@
                 <input
                   type="number"
                   :id="'costoUnitarioMantenimiento-' + mant.id"
-                  v-model.number="mant.costoUnitario"
+                  v-model.number="mant.costo_unitario"
                   placeholder="S/ Unitario"
                   min="0"
                   step="0.01"
@@ -208,10 +208,23 @@
                 <input
                   type="number"
                   :id="'subtotalMantenimiento-' + mant.id"
-                  v-model="mant.subtotalItem"
+                  v-model="mant.subtotal"
                   readonly
                   class="readonly-input"
                 />
+              </div>
+              <div class="form-group">
+                <label :for="'placa_vehiculo-' + mant.id">Placa/Vehículo:</label>
+                <select
+                  :id="'placa_vehiculo-' + mant.id"
+                  v-model="mant.placa_vehiculo"
+                  required
+                >
+                  <option :value="null" disabled>Seleccione una placa</option>
+                  <option v-for="vehiculo in listaVehiculos" :key="vehiculo.id" :value="vehiculo.id">
+                    {{ vehiculo.placa }}
+                  </option>
+                </select>
               </div>
               <button
                 type="button"
@@ -236,10 +249,10 @@
           </template>
 
           <!-- Servicio -->
-          <template v-if="formData.tipoOperacion === 'servicio'">
+          <template v-if="formData.tipo_operacion === 'servicio'">
             <h3 class="section-title">Detalles del Servicio</h3>
             <div
-              v-for="(serv, index) in formData.servicios"
+              v-for="(serv) in formData.servicios"
               :key="serv.id"
               class="dynamic-row service-row"
             >
@@ -250,7 +263,7 @@
                 <input
                   type="text"
                   :id="'descripcionServicio-' + serv.id"
-                  v-model="serv.descripcionServicio"
+                  v-model="serv.descripcion_item"
                   placeholder="Especifique el servicio"
                   required
                 />
@@ -262,12 +275,25 @@
                 <input
                   type="number"
                   :id="'costoServicio-' + serv.id"
-                  v-model.number="serv.costoServicio"
+                  v-model.number="serv.costo_servicio"
                   placeholder="S/ Costo"
                   min="0"
                   step="0.01"
                   required
                 />
+              </div>
+              <div class="form-group">
+                <label :for="'placa_vehiculo-' + serv.id">Placa/Vehículo:</label>
+                <select
+                  :id="'placa_vehiculo-' + serv.id"
+                  v-model="serv.placa_vehiculo"
+                  required
+                >
+                  <option :value="null" disabled>Seleccione una placa</option>
+                  <option v-for="vehiculo in listaVehiculos" :key="vehiculo.id" :value="vehiculo.id">
+                    {{ vehiculo.placa }}
+                  </option>
+                </select>
               </div>
               <button
                 type="button"
@@ -291,7 +317,7 @@
             </div>
           </template>
 
-          <div class="form-group descripcion-group" v-if="formData.tipoOperacion">
+          <div class="form-group descripcion-group" v-if="formData.tipo_operacion">
             <label for="descripcion">Descripción Adicional (Opcional):</label>
             <textarea
               id="descripcion"
@@ -329,7 +355,7 @@
 </template>
 
 <script setup>
-import axios from 'axios';
+import api from '../services/api.js';
 import { onMounted, ref } from 'vue';
 import { useOpForm } from '../composables/useOpForm.js';
 
@@ -338,10 +364,10 @@ const listaVehiculos = ref([]);
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/vehiculos/');
+    const response = await api.get('vehiculos/');
     listaVehiculos.value = response.data;
   } catch (error) {
-    console.error('Error al cargar vehículos:', error);
+    console.error('Error al cargar vehículos:', error.response || error);
     listaVehiculos.value = [];
   }
 });
@@ -362,7 +388,6 @@ const {
   blurHandler,
   sugerencias,
   inputActivo,
-  //updateSubtotal,
   costoTotalCombustible,
   costoTotalServicio,
   costoTotal,

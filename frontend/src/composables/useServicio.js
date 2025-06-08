@@ -7,8 +7,8 @@ export function useServicio(formData) {
     const addServicioRow = () => {
         formData.servicios.push({
             id: generateId(),
-            descripcionServicio: '',
-            costoServicio: null,
+            descripcion_servicio: '',
+            costo_servicio: null,
         });
     };
 
@@ -17,7 +17,9 @@ export function useServicio(formData) {
     };
 
     const costoTotalServicio = computed(() => {
-        return parseFloat(formData.servicios.reduce((sum, c) => sum + (c.costoServicio || 0), 0).toFixed(2));
+        return parseFloat(
+            formData.servicios.reduce((sum, c) => sum + (c.costo_servicio || 0), 0).toFixed(2)
+        );
     });
 
     return {

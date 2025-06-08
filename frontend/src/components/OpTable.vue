@@ -5,25 +5,21 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Número Documento</th>
           <th>RUC Proveedor</th>
           <th>Nombre Proveedor</th>
           <th>Tipo Operación</th>
           <th>Fecha</th>
-          <th>Descripción</th>
           <th>Ver Detalle</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="op in operaciones" :key="op.id">
-          <td>{{ op.id }}</td>
           <td>{{ op.numeroDocumento }}</td>
           <td>{{ op.rucProveedor }}</td>
           <td>{{ op.nombreProveedor }}</td>
           <td>{{ op.tipoOperacion }}</td>
           <td>{{ op.fecha }}</td>
-          <td>{{ op.descripcion }}</td>
           <td>
             <router-link :to="{ name: 'OpView', params: { id: op.id } }">
               Detalle

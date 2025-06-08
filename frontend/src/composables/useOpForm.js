@@ -9,12 +9,13 @@ import { useNotificacion } from './useNotificacion.js';
 
 export function useOpForm() {
     const defaults = {
-        numeroDocumento: '',
-        rucProveedor: '',
-        nombreProveedor: '',
-        tipoOperacion: '',
+        numero_documento: '',
+        ruc_proveedor: '',
+        nombre_proveedor: '',
+        tipo_operacion: '',
         fecha: '',
         descripcion: '',
+        costo_total: 0,
         combustibles: [],
         mantenimientos: [],
         servicios: [],
@@ -23,9 +24,19 @@ export function useOpForm() {
     const { mostrarNotificacion } = useNotificacion();
     
     const onSubmitService = async (payload) => {
-        //const { data } = await api.post('operaciones/', payload);
+        const dto = {
+            ...payload,
+            combustible_detalle: payload.combustibles,
+            mantenimiento_detalle: payload.mantenimientos,
+            servicio_detalle: payload.servicios,
+        }
+
+        delete dto.combustibles;
+        delete dto.mantenimientos;
+        delete dto.servicios;
+
         try {
-            await api.post('operaciones/', payload);
+            await api.post('operaciones/', dto);
 
             mostrarNotificacion('Operación exitosa', 'success');
             resetForm();
@@ -85,7 +96,7 @@ export function useOpForm() {
 
     //inicializa al cambiar de operacion
     watch(
-        () => formDataRefAcciones.value.tipoOperacion,
+        () => formDataRefAcciones.value.tipo_operacion,
         tipo => {
             if (tipo === 'combustible' && formDataRefAcciones.value.combustibles.length === 0) {
                 addCombustibleRow();

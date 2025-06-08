@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.db import transaction
+from decimal import Decimal
 from .models import (
     tarjetaVehiculo,
     Vehiculo,
@@ -26,28 +28,31 @@ class TarjetaVehiculoSerializer(serializers.ModelSerializer):
 # 3) Serializer para Servicio
 # ---------------------------
 class ServicioSerializer(serializers.ModelSerializer):
+    placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     class Meta:
         model = Servicio
-        fields = ['descripcion', 'costoServicio']
+        fields = ['id', 'descripcion_item', 'costo_servicio', 'placa_vehiculo']
+        read_only_fields = ['costo_servicio']
 
 # ---------------------------------
 # 4) Serializer para Mantenimiento
 # ---------------------------------
 class MantenimientoSerializer(serializers.ModelSerializer):
+    placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     class Meta:
         model = Mantenimiento
-        fields = ['descripcionItem', 'cantidad', 'costoUnitario', 'subTotal']
-        #read_only_fields = ['subTotal']
+        fields = ['id', 'descripcion_item', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo']
+        read_only_fields = ['subtotal']
 
 # -----------------------------------
 # 5) Serializer para Combustible
 # -----------------------------------
 class CombustibleSerializer(serializers.ModelSerializer):
-    placaVehiculo = serializers.SlugRelatedField(read_only=True, slug_field='placa')
+    placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     class Meta:
         model = Combustible
-        fields = ['cantidadGalones', 'costoPorGalon', 'placaVehiculo', 'subTotal']
-        #read_only_fields = ['subTotal']
+        fields = ['id', 'cantidad_galones', 'costo_por_galon', 'placa_vehiculo', 'subtotal']
+        read_only_fields = ['subtotal']
 
 # ---------------------------------------------------
 # 2) Serializer para Operaciones (ENDPOINT: /api/operaciones/)
@@ -61,17 +66,18 @@ class OperacionesSerializer(serializers.ModelSerializer):
         model = Operaciones
         fields = [
             'id',
-            'numeroDocumento',
-            'rucProveedor',
-            'nombreProveedor',
-            'tipoOperacion',
+            'numero_documento',
+            'ruc_proveedor',
+            'nombre_proveedor',
+            'tipo_operacion',
             'fecha',
             'descripcion',
             'combustibles',
             'mantenimientos',
             'servicios',
+            'costo_total'
         ]
-        #read_only_fields = ['id']
+        read_only_fields = ['costo_total']
 
     def create(self, validated_data):
         # 1. Extraemos los datos anidados del diccionario validado
@@ -120,87 +126,88 @@ class VehiculoSerializer(serializers.ModelSerializer):
         return ""
 
 class OperacionesDetalladaSerializer(serializers.ModelSerializer):
-    """
-    Serializa una Operación junto con los datos de Vehiculo (si existe),
-    y los detalles de Servicio, Mantenimiento y Combustible (cada uno OneToOne).
-    """
-
-    # Asumiendo que Operaciones no tiene FK directo a Vehiculo, usamos objeto_id:
-    servicio_detalle = ServicioSerializer(many=True)
-    mantenimiento_detalle = MantenimientoSerializer(many=True)
-    combustible_detalle = CombustibleSerializer(many=True)
+    servicio_detalle = ServicioSerializer(many=True, required=False)
+    mantenimiento_detalle = MantenimientoSerializer(many=True, required=False)
+    combustible_detalle = CombustibleSerializer(many=True, required=False)
 
     class Meta:
         model = Operaciones
         fields = [
-            'id',
-            'numeroDocumento',
-            'rucProveedor',
-            'nombreProveedor',
-            'tipoOperacion',
-            'fecha',
-            'descripcion',
-            'servicio_detalle',
-            'mantenimiento_detalle',
-            'combustible_detalle',
+            'id', 'numero_documento', 'ruc_proveedor', 'nombre_proveedor',
+            'tipo_operacion', 'fecha', 'descripcion', 'costo_total',
+            'servicio_detalle', 'mantenimiento_detalle', 'combustible_detalle',
         ]
+        read_only_fields = ['costo_total']
 
     def create(self, validated_data):
-        # 1) Extraemos y removemos la lista de combustibles del validated_data:
-        combustibles_data = validated_data.pop('combustible_detalle', [])
-        # 2) Creamos la operación sin combustible:
-        operacion = Operaciones.objects.create(**validated_data)
-        # 3) Por cada dict en combustibles_data, creamos el Combustible vinculado:
-        for c_data in combustibles_data:
-            Combustible.objects.create(operacion=operacion, **c_data)
-        return operacion
+        # Usamos una transacción. Si algo falla, nada se guarda.
+        with transaction.atomic():
+            servicios_data = validated_data.pop('servicio_detalle', [])
+            mantenimientos_data = validated_data.pop('mantenimiento_detalle', [])
+            combustibles_data = validated_data.pop('combustible_detalle', [])
+
+            # Creamos la operación principal
+            operacion = Operaciones.objects.create(**validated_data)
+            
+            total_operacion = Decimal('0.0')
+
+            # Creamos los detalles y vamos sumando sus subtotales
+            for servicio_data in servicios_data:
+                servicio = Servicio.objects.create(operacion=operacion, **servicio_data)
+                total_operacion += servicio.costo_servicio  # Sumamos el costo del servicio
+
+            for mantenimiento_data in mantenimientos_data:
+                mantenimiento = Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
+                total_operacion += mantenimiento.subtotal # El subtotal se calculó en el .save() del modelo
+
+            for combustible_data in combustibles_data:
+                combustible = Combustible.objects.create(operacion=operacion, **combustible_data)
+                total_operacion += combustible.subtotal # El subtotal se calculó en el .save() del modelo
+
+            # ASIGNAMOS Y GUARDAMOS EL COSTO TOTAL CALCULADO
+            operacion.costo_total = total_operacion
+            operacion.save()
+
+            return operacion
     
     def update(self, instance, validated_data):
-        # Si quieres soportar PUT/PATCH con reemplazo de lista:
-        combustibles_data = validated_data.pop('combustible_detalle', None)
-        # Actualizas campos simples de la operación:
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+        # Misma lógica de transacción para el update
+        with transaction.atomic():
+            servicios_data = validated_data.pop('servicio_detalle', [])
+            mantenimientos_data = validated_data.pop('mantenimiento_detalle', [])
+            combustibles_data = validated_data.pop('combustible_detalle', [])
 
-        if combustibles_data is not None:
-            # Por ejemplo, borras los viejos y creas nuevos:
+            # Actualizamos los campos simples de la operación
+            instance.numero_documento = validated_data.get('numero_documento', instance.numero_documento)
+            instance.ruc_proveedor = validated_data.get('ruc_proveedor', instance.ruc_proveedor)
+            # ... (continúa para los otros campos simples)
+            instance.save()
+
+            total_operacion = Decimal('0.0')
+
+            # Estrategia "Borrar y Reemplazar" para los detalles
+            # (es simple y efectiva para la mayoría de los casos de uso de formularios)
+            
+            # Servicios
+            instance.servicio_detalle.all().delete()
+            for servicio_data in servicios_data:
+                servicio = Servicio.objects.create(operacion=instance, **servicio_data)
+                total_operacion += servicio.costo_servicio
+
+            # Mantenimientos
+            instance.mantenimiento_detalle.all().delete()
+            for mantenimiento_data in mantenimientos_data:
+                mantenimiento = Mantenimiento.objects.create(operacion=instance, **mantenimiento_data)
+                total_operacion += mantenimiento.subtotal
+
+            # Combustibles
             instance.combustible_detalle.all().delete()
-            for c_data in combustibles_data:
-                Combustible.objects.create(operacion=instance, **c_data)
-        return instance
+            for combustible_data in combustibles_data:
+                combustible = Combustible.objects.create(operacion=instance, **combustible_data)
+                total_operacion += combustible.subtotal
 
-    def get_servicio_detalle(self, obj):
-        """
-        El related_name en Servicio es 'servicio_detalle', así que:
-        """
-        s = obj.servicio_detalle.first()
-        if s is not None:
-            return {
-                'descripcion': s.descripcion,
-                'costo': s.costo
-            }
-        return None
-
-    def get_mantenimiento_detalle(self, obj):
-        s = obj.mantenimiento_detalle.first()
-        if s is not None:
-            return {
-                'descripcionItem': s.descripcionItem,
-                'cantidad': s.cantidad,
-                'costoUnitario': s.costoUnitario,
-                'subTotal': s.subTotal,
-                'placaVehiculo': s.placaVehiculo.placa if s.placaVehiculo else None
-            }
-        return None
-
-    def get_combustible_detalle(self, obj):
-        s = obj.combustible_detalle.first()
-        if s is not None:
-            return {
-                'cantidadGalones': s.cantidadGalones,
-                'costoPorGalon': s.costoPorGalon,
-                'placaVehiculo': s.placaVehiculo.placa if s.placaVehiculo else None,
-                'subTotal': s.subTotal
-            }
-        return None
+            # RECALCULAMOS, ASIGNAMOS Y GUARDAMOS EL NUEVO COSTO TOTAL
+            instance.costo_total = total_operacion
+            instance.save()
+            
+            return instance

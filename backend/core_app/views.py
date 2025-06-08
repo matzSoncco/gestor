@@ -59,11 +59,9 @@ class OperacionesViewSet(ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # Ahora OperacionesDetalladaSerializer debe definirse para aceptar 
-        # payload de payload['combustible_detalle'] como nested write (many=True)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        operacion = serializer.save()
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Endpoints adicionales
@@ -186,12 +184,7 @@ def report_generate(request):
         
     elif format_type == 'pdf':
         # Para PDF necesitarías bibliotecas adicionales como ReportLab o WeasyPrint
-        import tempfile
-        from reportlab.pdfgen import canvas
-        from reportlab.lib.pagesizes import letter, A4
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.lib import colors
+
         
         # Crear un buffer en memoria
         buffer = io.BytesIO()

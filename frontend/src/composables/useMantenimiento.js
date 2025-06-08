@@ -30,10 +30,11 @@ export function useMantenimiento (formData) {
     const addMantenimientoRow = () => {
         formData.mantenimientos.push({
             id: generateId(),
-            descripcionItem: '',
+            descripcion_item: '',
             cantidad: null,
-            costoUnitario: null,
-            subtotalItem: 0,
+            costo_unitario: null,
+            subtotal: 0,
+            placa_vehiculo: null,
         });
     };
 
@@ -45,10 +46,10 @@ export function useMantenimiento (formData) {
         const query = typeof text === 'string' ? text.toLowerCase() : '';
         sugerencias.value = query ? itemsConocidos.value.filter(item => item.toLowerCase().includes(query)) : [];
         inputActivo.value = rowIndex;
-    }
+    };
 
     const selectItem = (item, rowIndex) => {
-        formData.mantenimientos[rowIndex].descripcionItem = item;
+        formData.mantenimientos[rowIndex].descripcion_item = item;
         sugerencias.value = [];
         inputActivo.value = null;
     };
@@ -61,17 +62,19 @@ export function useMantenimiento (formData) {
     }
 
     const updateSubtotal = () => {
-        formData.mantenimientos.forEach(item => {
+        formData.mantenimientos.forEach((item) => {
             const cantidad = parseFloat(item.cantidad) || 0;
-            const costo = parseFloat(item.costoUnitario) || 0;
-            item.subtotalItem = parseFloat((cantidad * costo).toFixed(2));
+            const costo = parseFloat(item.costo_unitario) || 0;
+            item.subtotal = parseFloat((cantidad * costo).toFixed(2));
         });
     };
     watch(() => formData.mantenimientos, updateSubtotal, { deep: true });
 
-    const costoTotal = computed(() =>
-        parseFloat(formData.mantenimientos.reduce((sum, item) => sum + (item.subtotalItem || 0), 0).toFixed(2))
-    );
+    const costoTotal = computed(() => {
+        return parseFloat(
+            formData.mantenimientos.reduce((sum, item) => sum + (item.subtotal || 0), 0).toFixed(2)
+        );
+    });
 
     return {
         addMantenimientoRow,

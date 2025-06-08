@@ -279,13 +279,11 @@ button:disabled {
   border: none;
   border-radius: 4px;
   padding: 0; 
-  width: 10px; /* Reducido de 38px */
+  width: 2px; /* Reducido de 38px */
   height: 38px; /* Reducido de 38px, debe coincidir con la altura de los inputs ajustados */
   font-size: 1.2rem; /* Reducido de 1.5rem */
   cursor: pointer;
   transition: background-color 0.2s;
-  /* Eliminamos margin-top y confiamos en align-items: flex-end del contenedor grid */
-  /* Si los inputs son más altos o se necesita un ajuste fino, align-self: center podría ser una opción */
 }
 
 .btn-remove-row:hover {

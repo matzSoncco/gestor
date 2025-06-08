@@ -8,29 +8,29 @@ export function useCombustible(formData) {
     const addCombustibleRow = () => {
         formData.combustibles.push({
         id: generateId(),
-        cantidadGalones: null,
-        costoPorGalon: null,
+        cantidad_galones: null,
+        costo_por_galon: null,
         subtotal: 0,
-        placaVehiculo: null,
+        placa_vehiculo: null,
         });
     };
     
     const removeCombustibleRow = (id) => {
-        formData.combustibles = formData.combustibles.filter((c) => c.id !== id);
+        formData.combustibles = formData.combustibles.filter((item) => item.id !== id);
     };
     
-    const updateTotalCombustible = () => {
+    const updateSubtotals = () => {
         formData.combustibles.forEach((c) => {
-        const cantidad = parseFloat(c.cantidadGalones) || 0;
-        const costo = parseFloat(c.costoPorGalon) || 0;
+        const cantidad = parseFloat(c.cantidad_galones) || 0;
+        const costo = parseFloat(c.costo_por_galon) || 0;
         c.subtotal = parseFloat((cantidad * costo).toFixed(2));
         });
     };
-    watch(() => formData.combustibles, updateTotalCombustible, { deep: true });
+    watch(() => formData.combustibles, updateSubtotals, { deep: true });
     
     const costoTotalCombustible = computed(() => {
         return parseFloat(
-            formData.combustibles.reduce((sum, c) => sum + (c.subtotal || 0), 0).toFixed(2)
+            formData.combustibles.reduce((sum, item) => sum + (item.subtotal || 0), 0).toFixed(2)
         );
     });
     
