@@ -6,6 +6,7 @@ import { useMantenimiento } from './useMantenimiento.js';
 import { useServicio } from './useServicio.js';
 import { useFormActions } from './useFormActions.js';
 import { useNotificacion } from './useNotificacion.js';
+import useMensajeGlobal from './useMensajeGlobal.js';
 
 export function useOpForm() {
     const defaults = {
@@ -24,16 +25,32 @@ export function useOpForm() {
     const { mostrarNotificacion } = useNotificacion();
     
     const onSubmitService = async (payload) => {
+        // Función para limpiar IDs temporales de los arrays
+        const limpiarArray = (array) => {
+            return array.map(item => {
+                // Crear copia del item sin el ID temporal
+                const { id, ...itemLimpio } = item;
+                
+                // Solo conservar el ID si es un número (ID real de BD)
+                if (typeof id === 'number' && id > 0) {
+                    itemLimpio.id = id;
+                }
+                
+                return itemLimpio;
+            });
+        };
+
         const dto = {
             ...payload,
-            combustible_detalle: payload.combustibles,
-            mantenimiento_detalle: payload.mantenimientos,
-            servicio_detalle: payload.servicios,
+            combustible_detalle: limpiarArray(payload.combustibles || []),
+            mantenimiento_detalle: limpiarArray(payload.mantenimientos || []),
+            servicio_detalle: limpiarArray(payload.servicios || []),
         }
 
         delete dto.combustibles;
         delete dto.mantenimientos;
         delete dto.servicios;
+        delete dto.costo_total; // No enviar costo_total, se calcula en el backend
 
         try {
             await api.post('operaciones/', dto);
@@ -61,13 +78,7 @@ export function useOpForm() {
         tipoMensaje,
         resetForm,
         submitForm
-    } = useFormActions({
-        defaults,
-        onSubmitService,
-        extraComputed: {
-            // estos se definen después
-        }
-    });
+    } = useFormActions({ defaults, onSubmitService, extraComputed: {} });
 
     // Ahora puedes pasar formDataRefAcciones.value a los sub-composables
     const {
@@ -94,17 +105,43 @@ export function useOpForm() {
         costoTotalServicio,
     } = useServicio(formDataRefAcciones.value);
 
-    //inicializa al cambiar de operacion
+    const {
+        mensajeGlobal,
+        tipoMensajeGlobal,
+        modalVisible,
+        mostrarMensaje,
+        cerrarMensaje
+    } = useMensajeGlobal();
+
     watch(
         () => formDataRefAcciones.value.tipo_operacion,
-        tipo => {
-            if (tipo === 'combustible' && formDataRefAcciones.value.combustibles.length === 0) {
-                addCombustibleRow();
-            } else if (tipo === 'mantenimiento' && formDataRefAcciones.value.mantenimientos.length === 0) {
-                addMantenimientoRow();
-            } else if (tipo === 'servicio' && formDataRefAcciones.value.servicios.length === 0) {
-                addServicioRow();
-            }
+        nuevoTipo => {
+        const fd = formDataRefAcciones.value;
+
+        // Si cambiamos fuera de combustible y había datos, los borramos
+        if (nuevoTipo !== 'combustible' && fd.combustibles.length) {
+            fd.combustibles = [];
+            mostrarMensaje('Se han descartado los datos de Combustible.', 'error');
+        }
+        // Si cambiamos fuera de mantenimiento y había datos, los borramos
+        if (nuevoTipo !== 'mantenimiento' && fd.mantenimientos.length) {
+            fd.mantenimientos = [];
+            mostrarMensaje('Se han descartado los datos de Mantenimiento.', 'error');
+        }
+        // Si cambiamos fuera de servicio y había datos, los borramos
+        if (nuevoTipo !== 'servicio' && fd.servicios.length) {
+            fd.servicios = [];
+            mostrarMensaje('Se han descartado los datos de Servicio.', 'error');
+        }
+
+        // Luego, inicializamos la fila del tipo seleccionado (si está vacío)
+        if (nuevoTipo === 'combustible' && !fd.combustibles.length) {
+            addCombustibleRow();
+        } else if (nuevoTipo === 'mantenimiento' && !fd.mantenimientos.length) {
+            addMantenimientoRow();
+        } else if (nuevoTipo === 'servicio' && !fd.servicios.length) {
+            addServicioRow();
+        }
         }
     );
 

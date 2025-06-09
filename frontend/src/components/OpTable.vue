@@ -15,10 +15,10 @@
       </thead>
       <tbody>
         <tr v-for="op in operaciones" :key="op.id">
-          <td>{{ op.numeroDocumento }}</td>
-          <td>{{ op.rucProveedor }}</td>
-          <td>{{ op.nombreProveedor }}</td>
-          <td>{{ op.tipoOperacion }}</td>
+          <td>{{ op.numero_documento }}</td>
+          <td>{{ op.ruc_proveedor }}</td>
+          <td>{{ op.nombre_proveedor }}</td>
+          <td>{{ op.tipo_operacion }}</td>
           <td>{{ op.fecha }}</td>
           <td>
             <router-link :to="{ name: 'OpView', params: { id: op.id } }">
@@ -74,10 +74,6 @@ onMounted(async () => {
 .operations-table th {
   background-color: #ca6565;
 }
-
-/* .operations-table tbody tr:hover {
-  background-color: #e09090;
-} */
 
 .operations-table a {
   color: #42b983;

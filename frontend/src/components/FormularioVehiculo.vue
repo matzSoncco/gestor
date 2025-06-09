@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import useFormularioVehiculos from '../composables/useRegistroVehiculo';
+import useFormularioVehiculos from '../composables/useVehiculo';
 
 // Definir emisión de eventos
 const emit = defineEmits(['datos-enviados']);

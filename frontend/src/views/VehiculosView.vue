@@ -9,8 +9,8 @@
 </template>
 
 <script setup>
-import FormularioVehiculos from '../components/RegistroVehiculos.vue'
-import useRegistroVehiculos from '../composables/useRegistroVehiculo'
+import FormularioVehiculos from '../components/FormularioVehiculo.vue'
+import useRegistroVehiculos from '../composables/useVehiculo'
 import '../assets/styles/IngresoDatos.css'
 
 // Usar el composable de registro de vehículos

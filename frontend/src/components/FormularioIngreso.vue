@@ -1,5 +1,11 @@
 <template>
   <div class="formulario-container">
+    <ModalGlobal
+      :show="mensajeGlobal !== ''"
+      :mensaje="mensajeGlobal"
+      :tipo="tipoMensajeGlobal"
+      @close="mensajeGlobal = ''"
+    />
     <form @submit.prevent="enviarFormulario" class="formulario-registro">
       <h2 class="form-title">Registro de Operacion</h2>
 
@@ -358,9 +364,12 @@
 import api from '../services/api.js';
 import { onMounted, ref } from 'vue';
 import { useOpForm } from '../composables/useOpForm.js';
+import ModalGlobal from './ModalGlobal.vue';
+import useMensajeGlobal from '../composables/useMensajeGlobal.js';
 
 const emits = defineEmits(['datos-enviados']);
 const listaVehiculos = ref([]);
+const { mensajeGlobal, tipoMensajeGlobal, mostrarMensaje } = useMensajeGlobal();
 
 onMounted(async () => {
   try {
@@ -406,14 +415,6 @@ async function enviarFormulario() {
     mensaje.value = 'Operación registrada exitosamente.';
     tipoMensaje.value = 'success';
     emits('datos-enviados', formData);
-
-    console.log('Datos del formulario antes de enviar:', formData.value);
-    
-    // Verificar estructura de los datos
-    console.log('Combustibles:', formData.value.combustibles);
-    console.log('Mantenimientos:', formData.value.mantenimientos);
-    console.log('Servicios:', formData.value.servicios);
-
   } catch (error) {
     mensaje.value = 'Error al registrar la operación. Intente nuevamente.';
     tipoMensaje.value = 'error';

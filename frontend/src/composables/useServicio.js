@@ -7,7 +7,7 @@ export function useServicio(formData) {
     const addServicioRow = () => {
         formData.servicios.push({
             id: generateId(),
-            descripcion_servicio: '',
+            descripcion_item: '',
             costo_servicio: null,
         });
     };

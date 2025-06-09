@@ -44,6 +44,9 @@ class tarjetaVehiculo(models.Model):
     ancho = models.DecimalField(max_digits=4, decimal_places=2)
     longitud = models.DecimalField(max_digits=5, decimal_places=3)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f'{self.marca} {self.modelo} ({self.vin})'
 
@@ -53,8 +56,11 @@ class Vehiculo(models.Model):
     anio = models.IntegerField(null=False, default=0)
     tarjetaVehiculo = models.ForeignKey(tarjetaVehiculo, on_delete=models.CASCADE)
     kilometraje = models.FloatField(null=False, default=0.0)
-    costo = models.FloatField(null=False, default=0.0)
+    costo = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
     ubicacion = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.placa} ({self.anio})"
@@ -67,7 +73,7 @@ class Operaciones(models.Model):
     tipo_operacion = models.CharField(max_length=15, choices=TIPO_OPERACION)
     fecha = models.DateField(auto_now_add=False, default=None, null=True, blank=True)
     descripcion = models.TextField(blank=True, null=True)
-    costo_total = models.DecimalField(null=False, default=0.0, editable=False, decimal_places=2, max_digits=10)
+    costo_total = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
     
     class Meta:
         ordering = ['-fecha']
@@ -97,10 +103,11 @@ class Servicio(models.Model):
 
     # Campos específicos del servicio
     descripcion_item = models.CharField(max_length=100, default="")
-    costo_servicio = models.DecimalField(null=False, default=0.0, decimal_places=2, max_digits=10)
+    costo_servicio = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
     
     def save(self, *args, **kwargs):
-        return f"Servicio: {self.descripcion_item} - S/ {self.costo}"
+        # 1) Si necesitas lógica adicional: colócala aquí…
+        super().save(*args, **kwargs)
 
 
 class Mantenimiento(models.Model):
@@ -111,8 +118,8 @@ class Mantenimiento(models.Model):
     # Campos específicos del mantenimiento
     descripcion_item = models.CharField(max_length=100, default="")
     cantidad = models.IntegerField(null=False, default=0)
-    costo_unitario = models.DecimalField(null=False, default=0.0, decimal_places=2, max_digits=10)
-    subtotal = models.DecimalField(null=False, default=0.0, editable=False, decimal_places=2, max_digits=10)
+    costo_unitario = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
+    subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
 
     def save(self, *args, **kwargs):
         self.subtotal = Decimal(self.cantidad) * self.costo_unitario
@@ -125,8 +132,8 @@ class Combustible(models.Model):
 
     # Campos específicos del combustible
     cantidad_galones = models.IntegerField(null=False, default=0)
-    costo_por_galon = models.DecimalField(null=False, default=0.0, decimal_places=2, max_digits=10)
-    subtotal = models.DecimalField(null=False, default=0.0, editable=False, decimal_places=2, max_digits=10)
+    costo_por_galon = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
+    subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
 
     def save(self, *args, **kwargs):
         self.subtotal = Decimal(self.cantidad_galones) * self.costo_por_galon

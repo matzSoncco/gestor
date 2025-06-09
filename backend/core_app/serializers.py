@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+import logging
 from .models import (
     tarjetaVehiculo,
     Vehiculo,
@@ -32,7 +33,7 @@ class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servicio
         fields = ['id', 'descripcion_item', 'costo_servicio', 'placa_vehiculo']
-        read_only_fields = ['costo_servicio']
+        read_only_fields = ['id']
 
 # ---------------------------------
 # 4) Serializer para Mantenimiento
@@ -42,7 +43,7 @@ class MantenimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mantenimiento
         fields = ['id', 'descripcion_item', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo']
-        read_only_fields = ['subtotal']
+        read_only_fields = ['id', 'subtotal']
 
 # -----------------------------------
 # 5) Serializer para Combustible
@@ -52,7 +53,7 @@ class CombustibleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Combustible
         fields = ['id', 'cantidad_galones', 'costo_por_galon', 'placa_vehiculo', 'subtotal']
-        read_only_fields = ['subtotal']
+        read_only_fields = ['id', 'subtotal']
 
 # ---------------------------------------------------
 # 2) Serializer para Operaciones (ENDPOINT: /api/operaciones/)
@@ -141,6 +142,7 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Usamos una transacción. Si algo falla, nada se guarda.
+        logger = logging.getLogger(__name__)
         with transaction.atomic():
             servicios_data = validated_data.pop('servicio_detalle', [])
             mantenimientos_data = validated_data.pop('mantenimiento_detalle', [])
@@ -149,20 +151,35 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
             # Creamos la operación principal
             operacion = Operaciones.objects.create(**validated_data)
             
-            total_operacion = Decimal('0.0')
+            total_operacion = Decimal('0.00')
+
+            def safe_decimal_conversion(value, field_name="campo"):
+                """Convierte un valor a Decimal de forma segura"""
+                try:
+                    if value is None:
+                        return Decimal('0.00')
+                    if isinstance(value, Decimal):
+                        return value
+                    return Decimal(str(value))
+                except (InvalidOperation, ValueError, TypeError) as e:
+                    logger.error(f"Error convirtiendo {field_name}: {value} - {e}")
+                    return Decimal('0.00')
 
             # Creamos los detalles y vamos sumando sus subtotales
             for servicio_data in servicios_data:
                 servicio = Servicio.objects.create(operacion=operacion, **servicio_data)
-                total_operacion += servicio.costo_servicio  # Sumamos el costo del servicio
+                costo_servicio = safe_decimal_conversion(servicio.costo_servicio, "costo_servicio")
+                total_operacion += costo_servicio
 
             for mantenimiento_data in mantenimientos_data:
                 mantenimiento = Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
-                total_operacion += mantenimiento.subtotal # El subtotal se calculó en el .save() del modelo
+                subtotal_mantenimiento = safe_decimal_conversion(mantenimiento.subtotal, "subtotal_mantenimiento")
+                total_operacion += subtotal_mantenimiento
 
             for combustible_data in combustibles_data:
                 combustible = Combustible.objects.create(operacion=operacion, **combustible_data)
-                total_operacion += combustible.subtotal # El subtotal se calculó en el .save() del modelo
+                subtotal_combustible = safe_decimal_conversion(combustible.subtotal, "subtotal_combustible")
+                total_operacion += subtotal_combustible
 
             # ASIGNAMOS Y GUARDAMOS EL COSTO TOTAL CALCULADO
             operacion.costo_total = total_operacion
