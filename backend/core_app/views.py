@@ -9,32 +9,19 @@ import csv
 import io
 from django.http import HttpResponse
 from datetime import datetime, timedelta
-from .models import tarjetaVehiculo, Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones
+from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones
 from .serializers import (
-    TarjetaVehiculoSerializer, 
     VehiculoSerializer, 
     ServicioSerializer, 
     MantenimientoSerializer, 
     CombustibleSerializer,
-    OperacionesSerializer,
     OperacionesDetalladaSerializer
 )
 
-# ViewSets existentes
-class TarjetaVehiculoViewSet(ModelViewSet):
-    queryset = tarjetaVehiculo.objects.all()
-    serializer_class = TarjetaVehiculoSerializer
-    permission_classes = [AllowAny] #Se modifica para permitir solo a todos los usuarios
-
-
 class VehiculoViewSet(ModelViewSet):
-    queryset = Vehiculo.objects.select_related('tarjetaVehiculo').all()
+    queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
     permission_classes = [AllowAny]
-    
-    def get_queryset(self):
-        return Vehiculo.objects.select_related('tarjetaVehiculo')
-
 
 class ServicioViewSet(ModelViewSet):
     queryset = Servicio.objects.all()
@@ -151,8 +138,8 @@ def report_generate(request):
             data.append({
                 'Placa': v.placa,
                 'Año': v.anio,
-                'Marca': v.tarjetaVehiculo.marca,
-                'Modelo': v.tarjetaVehiculo.modelo,
+                'Marca': v.marca,
+                'Modelo': v.modelo,
                 'Kilometraje': v.kilometraje,
                 'Ubicación': v.ubicacion,
                 'Total Operaciones': total_ops,

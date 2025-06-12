@@ -4,7 +4,6 @@ import { useIdGenerator } from "./useIdGenerator.js";
 export function useCombustible(formData) {
     const { generateId } = useIdGenerator();
     
-    // --- Lógica para Combustible ---
     const addCombustibleRow = () => {
         formData.combustibles.push({
         id: generateId(),

@@ -3,11 +3,15 @@ import { useAuthStore } from '../store/auth' // Importar el store
 
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
+
 import IngresoDatosView from '../views/IngresoDatosView.vue'
-import ReportesView from '../views/ReportesView.vue'
-import VehiculosView from '../views/VehiculosView.vue'
 import OpTable from '../components/OpTable.vue'
-import OpView from '../views/OpView.vue'
+import OpView from '../components/OpView.vue'
+
+import ReportesView from '../views/ReportesView.vue'
+import FormularioVehiculo from '../components/FormularioVehiculo.vue'
+import VehiculosView from '../views/VehiculosView.vue'
+import VehiculoDetailView from '../views/VehiculoDetailView.vue'
 
 const routes = [
   {
@@ -36,7 +40,7 @@ const routes = [
   {
     path: '/registro-vehiculos',
     name: 'RegistroVehiculos',
-    component: VehiculosView,
+    component: FormularioVehiculo,
     meta: { requiresAuth: true },
   },
   {
@@ -51,13 +55,26 @@ const routes = [
     props: true
   },
   {
+    path: '/vehiculo/new',
+    name: 'VehiculoNew',
+    component: FormularioVehiculo,
+  },
+  {
     path: '/vehiculos',
     name: 'Vehiculos',
+    component: VehiculosView
   },
   {
     path: '/vehiculos/:id',
     name: 'VehiculoView',
-  }
+    component: VehiculoDetailView
+  },
+  {
+    path: '/vehiculos/:id/edit',
+    name: 'VehiculoEdit',
+    component: FormularioVehiculo
+  },
+
   // Puedes añadir una ruta catch-all para 404 si quieres
   // { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFoundView.vue') }
 ]

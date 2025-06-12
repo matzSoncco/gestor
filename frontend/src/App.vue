@@ -6,6 +6,7 @@
         <router-link to="/ingreso-datos">Registro de Operaciones</router-link> |
         <router-link to="/registro-vehiculos">Registrar Vehiculos</router-link> |
         <router-link to="/operaciones">Operaciones</router-link> |
+        <router-link to="/vehiculos">Vehiculos</router-link> |
         <router-link to="/reportes">Reportes</router-link>
         <button @click="handleLogout" class="logout-button">Cerrar Sesión {{ authStore.currentUser?.email }}</button>
       </nav>

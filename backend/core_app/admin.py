@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, tarjetaVehiculo, Operaciones
+from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones
 
 class ServicioInline(admin.TabularInline):
     """
@@ -36,16 +36,76 @@ class CombustibleInline(admin.TabularInline):
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):
-    list_display = ('placa', 'anio', 'marca_modelo', 'kilometraje', 'ubicacion', 'costo')
-    list_filter = ('anio', 'ubicacion')
-    search_fields = ('placa',)
-    list_editable = ('kilometraje', 'costo')
-    
-    def marca_modelo(self, obj):
-        if obj.tarjetaVehiculo:
-            return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
-        return "Sin tarjeta"
-    marca_modelo.short_description = 'Marca/Modelo'
+    # Columnas que se muestran en la lista de registros
+    list_display = (
+        'placa',
+        'marca',
+        'modelo',
+        'anio',
+        'kilometraje',
+        'costo',
+        'combustible',
+    )
+    # Filtros laterales
+    list_filter = (
+        'marca',
+        'categoria',
+        'combustible',
+        'anio',
+    )
+    # Búsqueda por estos campos
+    search_fields = (
+        'placa',
+        'vin',
+        'serie_chasis',
+        'marca',
+        'modelo',
+    )
+    # Orden por defecto (puede omitirse porque lo definiste en Meta.ordering)
+    ordering = ('placa',)
+
+    # Agrupación de campos en el formulario de detalle
+    fieldsets = (
+        ('Datos básicos', {
+            'fields': (
+                'placa',
+                'anio',
+                'kilometraje',
+                'costo',
+                'ubicacion',
+            )
+        }),
+        ('Tarjeta del Vehículo', {
+            'fields': (
+                'categoria',
+                'marca',
+                'modelo',
+                'version',
+                'color',
+                ('anio_fabricacion', 'anio_modelo'),
+                'motor',
+                'combustible',
+                'forma_rodante',
+                'vin',
+                'serie_chasis',
+                ('ejes', 'ruedas', 'pasajeros'),
+                'carroceria',
+            )
+        }),
+        ('Dimensiones y pesos', {
+            'fields': (
+                ('peso_neto', 'peso_bruto', 'carga_util'),
+                ('cilindrada', 'cilindros'),
+                ('altura', 'ancho', 'longitud'),
+            )
+        }),
+    )
+
+    # Campos de sólo lectura (si los tuvieras)
+    readonly_fields = ()
+
+    # Número de elementos por página
+    list_per_page = 25
     
 
 @admin.register(Operaciones)
@@ -120,35 +180,6 @@ class CombustibleAdmin(admin.ModelAdmin):
     ]
     list_filter = ['placa_vehiculo']
     readonly_fields = []   # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
-
-@admin.register(tarjetaVehiculo)
-class TarjetaVehiculoAdmin(admin.ModelAdmin):
-    list_display = ('vin', 'marca', 'modelo', 'anio_fabricacion', 'combustible')
-    list_filter = ('marca', 'combustible', 'anio_fabricacion')
-    search_fields = ('vin', 'marca', 'modelo', 'serie_chasis')
-    
-    fieldsets = (
-        ('Información Básica', {
-            'fields': ('categoria', 'marca', 'modelo', 'version', 'color')
-        }),
-        ('Años', {
-            'fields': ('anio_fabricacion', 'anio_modelo')
-        }),
-        ('Motor y Combustible', {
-            'fields': ('motor', 'combustible', 'cilindrada', 'cilindros')
-        }),
-        ('Identificación', {
-            'fields': ('vin', 'serie_chasis')
-        }),
-        ('Características Físicas', {
-            'fields': ('forma_rodante', 'ejes', 'ruedas', 'pasajeros', 'carroceria'),
-            'classes': ('collapse',)
-        }),
-        ('Pesos y Medidas', {
-            'fields': ('peso_neto', 'peso_bruto', 'carga_util', 'altura', 'ancho', 'longitud'),
-            'classes': ('collapse',)
-        }),
-    )
 
 # Personalización del sitio de administración
 admin.site.site_header = "Administración de Vehículos"

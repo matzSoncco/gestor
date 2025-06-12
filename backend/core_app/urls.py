@@ -4,7 +4,6 @@ from . import views
 
 # Router principal
 router = DefaultRouter()
-router.register(r'tarjetas', views.TarjetaVehiculoViewSet)
 router.register(r'vehiculos', views.VehiculoViewSet)
 router.register(r'operaciones', views.OperacionesViewSet, basename='operaciones')  # /api/operaciones/
 # operaciones_router.register(r'operaciones/servicios', views.ServicioViewSet, basename='operaciones-servicios')  # /api/operaciones/servicios/

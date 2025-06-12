@@ -3,27 +3,12 @@ from django.db import transaction
 from decimal import Decimal, InvalidOperation
 import logging
 from .models import (
-    tarjetaVehiculo,
     Vehiculo,
     Operaciones,
     Servicio,
     Mantenimiento,
     Combustible
 )
-
-# ---------------------------------------------------
-# 1) Serializer para tarjetaVehiculo
-# ---------------------------------------------------
-class TarjetaVehiculoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = tarjetaVehiculo
-        fields = [
-            'id', 'categoria', 'marca', 'modelo', 'version', 'color',
-            'anio_fabricacion', 'anio_modelo', 'motor', 'combustible',
-            'forma_rodante', 'vin', 'serie_chasis', 'ejes', 'ruedas',
-            'pasajeros', 'carroceria', 'peso_neto', 'peso_bruto',
-            'carga_util', 'cilindrada', 'cilindros', 'altura', 'ancho', 'longitud'
-        ]
 
 # ------------------------
 # 3) Serializer para Servicio
@@ -103,9 +88,8 @@ class OperacionesSerializer(serializers.ModelSerializer):
 # 6) Serializer para Vehiculo
 # ---------------------------------------------------
 class VehiculoSerializer(serializers.ModelSerializer):
-    tarjetaVehiculo = TarjetaVehiculoSerializer(read_only=True)
-    tarjetaVehiculo_id = serializers.IntegerField(write_only=True)
-    marca_modelo = serializers.SerializerMethodField()
+    # Campo extra combinado
+    marca_modelo = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Vehiculo
@@ -113,18 +97,41 @@ class VehiculoSerializer(serializers.ModelSerializer):
             'id',
             'placa',
             'anio',
-            'tarjetaVehiculo',
-            'tarjetaVehiculo_id',
             'kilometraje',
             'costo',
             'ubicacion',
+            # Datos de tarjeta
+            'categoria',
+            'marca',
+            'modelo',
+            'version',
+            'color',
+            'anio_fabricacion',
+            'anio_modelo',
+            'motor',
+            'combustible',
+            'forma_rodante',
+            'vin',
+            'serie_chasis',
+            'ejes',
+            'ruedas',
+            'pasajeros',
+            'carroceria',
+            'peso_neto',
+            'peso_bruto',
+            'carga_util',
+            'cilindrada',
+            'cilindros',
+            'altura',
+            'ancho',
+            'longitud',
+            # Campo derivado
             'marca_modelo',
         ]
+        read_only_fields = ['id', 'marca_modelo']
 
     def get_marca_modelo(self, obj):
-        if obj.tarjetaVehiculo:
-            return f"{obj.tarjetaVehiculo.marca} {obj.tarjetaVehiculo.modelo}"
-        return ""
+        return f"{obj.marca} {obj.modelo}"
 
 class OperacionesDetalladaSerializer(serializers.ModelSerializer):
     servicio_detalle = ServicioSerializer(many=True, required=False)

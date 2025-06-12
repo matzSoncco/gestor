@@ -1,226 +1,133 @@
 <template>
-  <div class="formulario-container">
-    <form @submit.prevent="enviarFormulario" class="formulario-registro">
-      <h2 class="form-title">Registro de Vehículo</h2>
+  <form @submit.prevent="onSubmit" class="form-vehiculo">
+    <h3>{{ isEdit ? 'Editar' : 'Nuevo' }} Vehículo</h3>
 
-      <!-- Información del Vehículo -->
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="placa">Placa:</label>
-          <input type="text" id="placa" v-model="formData.placa" placeholder="Ingrese placa del vehículo" required maxlength="6" />
-        </div>
-        <div class="form-group">
-          <label for="anio">Año:</label>
-          <input type="number" id="anio" v-model.number="formData.anio" placeholder="Año del vehículo" required />
-        </div>
+    <!-- Bloque 2 columnas -->
+    <div class="grid-2">
+      <div class="form-group">
+        <label for="placa">Placa</label>
+        <input id="placa" v-model="form.placa" required />
       </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="kilometraje">Kilometraje Inicial:</label>
-          <input type="number" id="kilometraje" v-model.number="formData.kilometraje" placeholder="Km actuales" required step="0.01" />
-        </div>
-        <div class="form-group">
-          <label for="costo">Costo de Adquisición (S/):</label>
-          <input type="number" id="costo" v-model.number="formData.costo" placeholder="Costo del vehículo" required step="0.01" />
-        </div>
+      <div class="form-group">
+        <label for="anio">Año</label>
+        <input id="anio" type="number" v-model.number="form.anio" required />
       </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="ubicacion">Ubicación:</label>
-          <input type="text" id="ubicacion" v-model="formData.ubicacion" placeholder="Ubicación actual del vehículo" required />
-        </div>
+      <div class="form-group">
+        <label for="kilometraje">Kilometraje</label>
+        <input id="kilometraje" type="number" v-model.number="form.kilometraje" step="0.1" required />
       </div>
-
-      <!-- Información de Tarjeta de Vehículo -->
-      <h3 class="section-title">Datos de Tarjeta de Propiedad</h3>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="categoria">Categoría:</label>
-          <input type="text" id="categoria" v-model="formData.tarjetaVehiculo.categoria" placeholder="Categoría del vehículo" required maxlength="10" />
-        </div>
-        <div class="form-group">
-          <label for="marca">Marca:</label>
-          <input type="text" id="marca" v-model="formData.tarjetaVehiculo.marca" placeholder="Marca del vehículo" required maxlength="20" />
-        </div>
+      <div class="form-group">
+        <label for="costo">Costo (S/)</label>
+        <input id="costo" type="number" v-model.number="form.costo" step="0.01" required />
       </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="modelo">Modelo:</label>
-          <input type="text" id="modelo" v-model="formData.tarjetaVehiculo.modelo" placeholder="Modelo del vehículo" required maxlength="20" />
-        </div>
-        <div class="form-group">
-          <label for="version">Versión:</label>
-          <input type="text" id="version" v-model="formData.tarjetaVehiculo.version" placeholder="Versión del vehículo" required maxlength="100" />
-        </div>
+      <div class="form-group">
+        <label for="ubicacion">Ubicación</label>
+        <input id="ubicacion" v-model="form.ubicacion" required />
       </div>
+    </div>
 
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="color">Color:</label>
-          <input type="text" id="color" v-model="formData.tarjetaVehiculo.color" placeholder="Color del vehículo" required maxlength="30" />
-        </div>
-        <div class="form-group">
-          <label for="combustible">Tipo de Combustible:</label>
-          <select id="combustible" v-model="formData.tarjetaVehiculo.combustible" required class="select-custom">
-            <option value="" disabled>Seleccione un tipo</option>
-            <option v-for="(tipo, index) in tiposCombustible" :key="index" :value="tipo">{{ tipo }}</option>
-          </select>
-        </div>
+    <h4>Datos de Tarjeta del Vehículo</h4>
+    <div class="grid-3">
+      <!-- Repite este patrón para cada campo -->
+      <div class="form-group">
+        <label for="categoria">Categoría</label>
+        <input id="categoria" v-model="form.categoria" required />
       </div>
+      <div class="form-group">
+        <label for="marca">Marca</label>
+        <input id="marca" v-model="form.marca" required />
+      </div>
+      <div class="form-group">
+        <label for="modelo">Modelo</label>
+        <input id="modelo" v-model="form.modelo" required />
+      </div>
+      <!-- … sigue con version, color, anio_fabricacion, anio_modelo, motor … -->
+      <div class="form-group">
+        <label for="combustible">Combustible</label>
+        <select id="combustible" v-model="form.combustible" required>
+          <option disabled value="">Seleccione</option>
+          <option value="GASOLINA">Gasolina</option>
+          <option value="DIÉSEL">Diésel</option>
+          <option value="ELÉCTRICO">Eléctrico</option>
+        </select>
+      </div>
+      <!-- … resto de campos: forma_rodante, vin, serie_chasis, ejes, ruedas, pasajeros … -->
+      <div class="form-group">
+        <label for="peso_neto">Peso Neto (kg)</label>
+        <input id="peso_neto" type="number" v-model.number="form.peso_neto" step="0.001" required />
+      </div>
+      <!-- … peso_bruto, carga_util, cilindrada, cilindros, altura, ancho, longitud … -->
+    </div>
 
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="anio_fabricacion">Año de Fabricación:</label>
-          <input type="number" id="anio_fabricacion" v-model.number="formData.tarjetaVehiculo.anio_fabricacion" placeholder="Año de fabricación" required />
-        </div>
-        <div class="form-group">
-          <label for="anio_modelo">Año del Modelo:</label>
-          <input type="number" id="anio_modelo" v-model.number="formData.tarjetaVehiculo.anio_modelo" placeholder="Año del modelo" required />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="motor">Motor:</label>
-          <input type="text" id="motor" v-model="formData.tarjetaVehiculo.motor" placeholder="Número de motor" required maxlength="20" />
-        </div>
-        <div class="form-group">
-          <label for="forma_rodante">Forma Rodante:</label>
-          <input type="text" id="forma_rodante" v-model="formData.tarjetaVehiculo.forma_rodante" placeholder="Forma rodante" required maxlength="10" />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="vin">VIN:</label>
-          <input type="text" id="vin" v-model="formData.tarjetaVehiculo.vin" placeholder="Número de identificación del vehículo" required maxlength="30" />
-        </div>
-        <div class="form-group">
-          <label for="serie_chasis">Serie/Chasis:</label>
-          <input type="text" id="serie_chasis" v-model="formData.tarjetaVehiculo.serie_chasis" placeholder="Serie o número de chasis" required maxlength="30" />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="ejes">Número de Ejes:</label>
-          <input type="number" id="ejes" v-model.number="formData.tarjetaVehiculo.ejes" placeholder="Cantidad de ejes" required />
-        </div>
-        <div class="form-group">
-          <label for="ruedas">Número de Ruedas:</label>
-          <input type="number" id="ruedas" v-model.number="formData.tarjetaVehiculo.ruedas" placeholder="Cantidad de ruedas" required />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="pasajeros">Número de Pasajeros:</label>
-          <input type="number" id="pasajeros" v-model.number="formData.tarjetaVehiculo.pasajeros" placeholder="Capacidad de pasajeros" required />
-        </div>
-        <div class="form-group">
-          <label for="carroceria">Carrocería:</label>
-          <input type="text" id="carroceria" v-model="formData.tarjetaVehiculo.carroceria" placeholder="Tipo de carrocería" required maxlength="20" />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="peso_neto">Peso Neto (ton):</label>
-          <input type="number" id="peso_neto" v-model.number="formData.tarjetaVehiculo.peso_neto" placeholder="Peso neto en toneladas" required step="0.001" />
-        </div>
-        <div class="form-group">
-          <label for="peso_bruto">Peso Bruto (ton):</label>
-          <input type="number" id="peso_bruto" v-model.number="formData.tarjetaVehiculo.peso_bruto" placeholder="Peso bruto en toneladas" required step="0.001" />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="carga_util">Carga Útil (ton):</label>
-          <input type="number" id="carga_util" v-model.number="formData.tarjetaVehiculo.carga_util" placeholder="Carga útil en toneladas" required step="0.001" />
-        </div>
-        <div class="form-group">
-          <label for="cilindrada">Cilindrada (cc):</label>
-          <input type="number" id="cilindrada" v-model.number="formData.tarjetaVehiculo.cilindrada" placeholder="Cilindrada en cc" required />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="cilindros">Número de Cilindros:</label>
-          <input type="number" id="cilindros" v-model.number="formData.tarjetaVehiculo.cilindros" placeholder="Cantidad de cilindros" required />
-        </div>
-      </div>
-
-      <h3 class="section-title">Dimensiones</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="altura">Altura (m):</label>
-          <input type="number" id="altura" v-model.number="formData.tarjetaVehiculo.altura" placeholder="Altura en metros" required step="0.01" />
-        </div>
-        <div class="form-group">
-          <label for="ancho">Ancho (m):</label>
-          <input type="number" id="ancho" v-model.number="formData.tarjetaVehiculo.ancho" placeholder="Ancho en metros" required step="0.01" />
-        </div>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="longitud">Longitud (m):</label>
-          <input type="number" id="longitud" v-model.number="formData.tarjetaVehiculo.longitud" placeholder="Longitud en metros" required step="0.001" />
-        </div>
-      </div>
-
-      <div v-if="mensaje" :class="['mensaje', tipoMensaje]">
-        {{ mensaje }}
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" :disabled="loading" class="btn-submit">
-          {{ loading ? 'Enviando...' : 'Registrar Vehículo' }}
-        </button>
-        <button type="button" @click="resetForm" class="btn-reset" :disabled="loading">
-          Limpiar Formulario
-        </button>
-      </div>
-    </form>
-  </div>
+    <button type="submit">{{ isEdit ? 'Guardar' : 'Crear' }}</button>
+    <button v-if="isEdit" type="button" @click="$emit('cancel')">Cancelar</button>
+  </form>
 </template>
 
 <script setup>
-import useFormularioVehiculos from '../composables/useVehiculo';
+import { reactive, computed, watch } from 'vue';
 
-// Definir emisión de eventos
-const emit = defineEmits(['datos-enviados']);
+const props = defineProps({
+  modelValue: { type: Object, default: null }
+});
+const emits = defineEmits(['save','cancel']);
 
-// Usar el composable
-const { 
-  formData, 
-  loading, 
-  mensaje, 
-  tipoMensaje, 
-  enviarFormulario, 
-  resetForm, 
-  calcularCargaUtil 
-} = useFormularioVehiculos();
+const form = reactive({
+  placa: '',
+  anio:  new Date().getFullYear(),
+  kilometraje: 0,
+  costo: 0,
+  ubicacion: '',
 
-// Método para manejar el envío del formulario
-const submitForm = async () => {
-  try {
-    const resultado = await enviarFormulario();
-    
-    // Si el formulario se procesó correctamente, emitir los datos
-    if (resultado) {
-      emit('datos-enviados', resultado);
+  categoria: '',
+  marca: '',
+  modelo: '',
+  version: '',
+  color: '',
+  anio_fabricacion: new Date().getFullYear(),
+  anio_modelo:    new Date().getFullYear(),
+  motor: '',
+  combustible: '',
+  forma_rodante: '',
+  vin: '',
+  serie_chasis: '',
+  ejes: 0,
+  ruedas: 0,
+  pasajeros: 0,
+  carroceria: '',
+  peso_neto: 0,
+  peso_bruto: 0,
+  carga_util: 0,
+  cilindrada: 0,
+  cilindros: 0,
+  altura: 0,
+  ancho: 0,
+  longitud: 0,
+});
+
+const isEdit = computed(() => !!props.modelValue);
+
+watch(
+  () => props.modelValue,
+  val => {
+    if (val) {
+      Object.assign(form, { ...val });
     }
-  } catch (error) {
-    console.error('Error al enviar formulario:', error);
-  }
+  },
+  { immediate: true }
+);
+
+const onSubmit = () => {
+  emits('save', { ...form });
 };
 </script>
 
-<style scoped src="../assets/styles/FormularioOperacion.css"></style>
+<style scoped>
+.form-vehiculo { margin-bottom: 2rem; }
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.form-group { display: flex; flex-direction: column; }
+label { font-weight: 600; margin-bottom: .25rem; }
+input, select { padding: .5rem; }
+button { margin-top: 1rem; margin-right: .5rem; }
+</style>
