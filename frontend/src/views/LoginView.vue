@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <!--div class="login-container">
     <h2>Iniciar Sesión</h2>
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
@@ -17,7 +17,8 @@
         {{ loading ? 'Ingresando...' : 'Ingresar' }}
       </button>
     </form>
-  </div>
+  </div-->
+  <h1>LOGIN EN CONSTRUCCIÓN 👀, PRUEBE CON REGISTROS</h1>
 </template>
 
 <script setup>

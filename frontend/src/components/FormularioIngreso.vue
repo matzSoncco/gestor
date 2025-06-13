@@ -7,7 +7,7 @@
       @close="mensajeGlobal = ''"
     />
     <form @submit.prevent="enviarFormulario" class="formulario-registro">
-      <h2 class="form-title">Registro de Operacion</h2>
+      <h3 class="form-title">Registro de Operacion</h3>
 
       <div class="form-grid">
         <div class="form-group">
@@ -27,6 +27,7 @@
             id="ruc_proveedor"
             v-model="formData.ruc_proveedor"
             placeholder="Ingrese RUC"
+            max="99999999999"
             required
           />
         </div>
@@ -369,7 +370,7 @@ import useMensajeGlobal from '../composables/useMensajeGlobal.js';
 
 const emits = defineEmits(['datos-enviados']);
 const listaVehiculos = ref([]);
-const { mensajeGlobal, tipoMensajeGlobal, mostrarMensaje } = useMensajeGlobal();
+const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 
 onMounted(async () => {
   try {

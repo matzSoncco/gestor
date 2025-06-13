@@ -1,5 +1,6 @@
 <template>
   <div class="home-view">
+    <!--
     <h1>Bienvenido a la Aplicación</h1>
     <p>
       Esta es la página principal. Desde aquí puedes navegar a las diferentes
@@ -16,6 +17,8 @@
         </li>
       </ul>
     </section>
+    -->
+    <h1>PAGINA DE INICIO EN CONSTRUCCIÓN 🙌</h1> <!-- mensaje para muestra para el usuario -->
   </div>
 </template>
 

@@ -12,13 +12,14 @@ import ReportesView from '../views/ReportesView.vue'
 import FormularioVehiculo from '../components/FormularioVehiculo.vue'
 import VehiculosView from '../views/VehiculosView.vue'
 import VehiculoDetailView from '../views/VehiculoDetailView.vue'
+import RegistroVehiView from '../views/RegistroVehiView.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomeView,
-    meta: { requiresAuth: true }, // Proteger esta ruta
+    meta: { requiresAuth: false }, // Proteger esta ruta
   },
   {
     path: '/login',
@@ -29,19 +30,19 @@ const routes = [
     path: '/ingreso-datos',
     name: 'IngresoDatos',
     component: IngresoDatosView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/reportes',
     name: 'Reportes',
     component: ReportesView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/registro-vehiculos',
     name: 'RegistroVehiculos',
-    component: FormularioVehiculo,
-    meta: { requiresAuth: true },
+    component: RegistroVehiView,
+    meta: { requiresAuth: false }, //cambiar luego a true si se requiere autenticación
   },
   {
     path: '/operaciones',
@@ -72,7 +73,7 @@ const routes = [
   {
     path: '/vehiculos/:id/edit',
     name: 'VehiculoEdit',
-    component: FormularioVehiculo
+    component: RegistroVehiView
   },
 
   // Puedes añadir una ruta catch-all para 404 si quieres
