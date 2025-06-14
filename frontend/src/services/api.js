@@ -10,10 +10,11 @@ function getCookie(name) {
 }
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/' || 'https://localhost:8000/api/',
-  withCredentials: true, // Permite enviar cookies con las solicitudes
-  xsrfCookieName: 'csrftoken', // Nombre de la cookie CSRF
-  xsrfHeaderName: 'X-CSRFToken', // Nombre del encabezado CSRF
+  baseURL: process.env.VUE_APP_API_URL || 'https://localhost:8000/api/',
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
+
   headers: {
     'Content-Type': 'application/json',
     'X-CSRFToken': getCookie('csrftoken'), // Incluye el token CSRF en los encabezados

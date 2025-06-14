@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
 from datetime import timedelta
 
@@ -34,10 +36,11 @@ CORS_ORIGIN_WHITELIST = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080", # Ejemplo para Vue CLI
-    "http://127.0.0.1:8080",
-    "http://localhost:5173", # Ejemplo para Vite
-    "http://127.0.0.1:5173",
+    # "http://localhost:8080", # Ejemplo para Vue CLI
+    # "http://127.0.0.1:8080",
+    # "http://localhost:5173", # Ejemplo para Vite
+    # "http://127.0.0.1:5173",
+    os.environ.get('FRONTEND_URL')
 ]
 # O, para desarrollo y menos restrictivo (no recomendado para producción):
 # CORS_ALLOW_ALL_ORIGINS = True
@@ -62,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     'corsheaders.middleware.CorsMiddleware',
@@ -111,10 +115,10 @@ WSGI_APPLICATION = 'project_config.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    )
 }
 
 
@@ -152,7 +156,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
