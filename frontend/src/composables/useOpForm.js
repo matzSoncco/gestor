@@ -1,14 +1,15 @@
-import { watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import api from '../services/api.js';
 
 import { useCombustible } from './useCombustible.js';
 import { useMantenimiento } from './useMantenimiento.js';
 import { useServicio } from './useServicio.js';
 import { useFormActions } from './useFormActions.js';
-import { useNotificacion } from './useNotificacion.js';
 import useMensajeGlobal from './useMensajeGlobal.js';
 
 export function useOpForm() {
+    const isResetting = ref(false);
+
     const defaults = {
         numero_documento: '',
         ruc_proveedor: '',
@@ -22,8 +23,8 @@ export function useOpForm() {
         servicios: [],
     };
 
-    const { mostrarNotificacion } = useNotificacion();
-    
+    const { mostrarExito, mostrarError, mostrarInfo, mostrarAdvertencia } = useMensajeGlobal();
+
     const onSubmitService = async (payload) => {
         // Función para limpiar IDs temporales de los arrays
         const limpiarArray = (array) => {
@@ -55,17 +56,21 @@ export function useOpForm() {
         try {
             await api.post('operaciones/', dto);
 
-            mostrarNotificacion('Operación exitosa', 'success');
+            mostrarExito('Operación exitosa', 'success');
             resetForm();
+
+            nextTick(() => {
+                isResetting.value = false;
+            });
         } catch (error) {
             // El error ahora debería ser un 400 (Bad Request) con detalles, no un 500.
             if (error.response) {
                 console.error('Error del servidor:', error.response.data);
                 // Aquí puedes mostrar los errores de validación al usuario
-                mostrarNotificacion('Error al registrar: ' + JSON.stringify(error.response.data), 'error');
+                mostrarError('Error al registrar: ' + JSON.stringify(error.response.data), 'error');
             } else {
                 console.error('Error de red o desconocido:', error);
-                mostrarNotificacion('Ocurrió un error inesperado.', 'error');
+                mostrarError('Ocurrió un error inesperado.', 'error');
             }
         }
     };
@@ -76,16 +81,21 @@ export function useOpForm() {
         loading,
         mensaje,
         tipoMensaje,
-        resetForm,
+        resetForm: originalResetForm,
         submitForm
     } = useFormActions({ defaults, onSubmitService, extraComputed: {} });
+
+    const resetForm = async() => {
+        await originalResetForm();
+        mostrarInfo('Formulario limpado correctamente', 'info')
+    }
 
     // Ahora puedes pasar formDataRefAcciones.value a los sub-composables
     const {
         addCombustibleRow,
         removeCombustibleRow,
         costoTotalCombustible,
-    } = useCombustible(formDataRefAcciones.value);
+    } = useCombustible(formDataRefAcciones);
 
     const {
         addMantenimientoRow,
@@ -97,37 +107,47 @@ export function useOpForm() {
         inputActivo,
         updateSubtotal,
         costoTotal
-    } = useMantenimiento(formDataRefAcciones.value);
+    } = useMantenimiento(formDataRefAcciones);
 
     const {
         addServicioRow,
         removeServicioRow,
         costoTotalServicio,
-    } = useServicio(formDataRefAcciones.value);
-
-    const {
-        mostrarMensaje,
-    } = useMensajeGlobal();
+    } = useServicio(formDataRefAcciones);
 
     watch(
         () => formDataRefAcciones.value.tipo_operacion,
-        nuevoTipo => {
-        const fd = formDataRefAcciones.value;
+        (nuevoTipo, viejoTipo) => {
+        console.log('Watch ejecutado:', { nuevoTipo, viejoTipo, isResetting: isResetting.value });
+
+        if (isResetting.value) {
+            console.log('Watch bloqueado por isResetting');
+            return;
+        }
+        const fd = formDataRefAcciones.value;        
+
+        // Solo ejecutar si hay un cambio real y valores válidos
+        if (!viejoTipo || !nuevoTipo || viejoTipo === nuevoTipo) {
+            console.log('Watch bloqueado por valores inválidos');
+            return;
+        }
+        
+        console.log('Ejecutando lógica del watch');
 
         // Si cambiamos fuera de combustible y había datos, los borramos
         if (nuevoTipo !== 'combustible' && fd.combustibles.length) {
             fd.combustibles = [];
-            mostrarMensaje('Se han descartado los datos de Combustible.', 'error');
+            mostrarInfo('Se han descartado los datos de Combustible.', 'info');
         }
         // Si cambiamos fuera de mantenimiento y había datos, los borramos
         if (nuevoTipo !== 'mantenimiento' && fd.mantenimientos.length) {
             fd.mantenimientos = [];
-            mostrarMensaje('Se han descartado los datos de Mantenimiento.', 'error');
+            mostrarInfo('Se han descartado los datos de Mantenimiento.', 'info');
         }
         // Si cambiamos fuera de servicio y había datos, los borramos
         if (nuevoTipo !== 'servicio' && fd.servicios.length) {
             fd.servicios = [];
-            mostrarMensaje('Se han descartado los datos de Servicio.', 'error');
+            mostrarInfo('Se han descartado los datos de Servicio.', 'info');
         }
 
         // Luego, inicializamos la fila del tipo seleccionado (si está vacío)

@@ -1,7 +1,7 @@
 import { ref, watch, computed } from 'vue';
 import { useIdGenerator } from './useIdGenerator.js';
 
-export function useMantenimiento (formData) {
+export function useMantenimiento (formDataRef) {
     const { generateId } = useIdGenerator();
 
     const itemsConocidos = ref([
@@ -28,7 +28,7 @@ export function useMantenimiento (formData) {
     const inputActivo = ref(null);
 
     const addMantenimientoRow = () => {
-        formData.mantenimientos.push({
+        formDataRef.value.mantenimientos.push({
             id: generateId(),
             descripcion_item: '',
             cantidad: null,
@@ -39,7 +39,7 @@ export function useMantenimiento (formData) {
     };
 
     const removeMantenimientoRow = (id) => {
-        formData.mantenimientos = formData.mantenimientos.filter(item => item.id !== id);
+        formDataRef.value.mantenimientos = formDataRef.value.mantenimientos.filter(item => item.id !== id);
     };
 
     const updateSugerencias = (text, rowIndex) => {
@@ -49,7 +49,7 @@ export function useMantenimiento (formData) {
     };
 
     const selectItem = (item, rowIndex) => {
-        formData.mantenimientos[rowIndex].descripcion_item = item;
+        formDataRef.value.mantenimientos[rowIndex].descripcion_item = item;
         sugerencias.value = [];
         inputActivo.value = null;
     };
@@ -62,17 +62,17 @@ export function useMantenimiento (formData) {
     }
 
     const updateSubtotal = () => {
-        formData.mantenimientos.forEach((item) => {
+        formDataRef.value.mantenimientos.forEach((item) => {
             const cantidad = parseFloat(item.cantidad) || 0;
             const costo = parseFloat(item.costo_unitario) || 0;
             item.subtotal = parseFloat((cantidad * costo).toFixed(2));
         });
     };
-    watch(() => formData.mantenimientos, updateSubtotal, { deep: true });
+    watch(() => formDataRef.value.mantenimientos, updateSubtotal, { deep: true });
 
     const costoTotal = computed(() => {
         return parseFloat(
-            formData.mantenimientos.reduce((sum, item) => sum + (item.subtotal || 0), 0).toFixed(2)
+            formDataRef.value.mantenimientos.reduce((sum, item) => sum + (item.subtotal || 0), 0).toFixed(2)
         );
     });
 

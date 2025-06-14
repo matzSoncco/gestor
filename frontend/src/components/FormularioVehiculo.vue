@@ -1,7 +1,12 @@
 <template>
   <div class="formulario-container">
-    <form @submit.prevent="onSubmit" class="formulario-registro">
-
+    <ModalGlobal
+    :show="mensajeGlobal !== ''"
+    :mensaje="mensajeGlobal"
+    :tipo="tipoMensajeGlobal"
+    @close="mensajeGlobal = ''"
+    />
+    <form @submit.prevent="submitForm" class="formulario-registro">
       <!-- Bloque 2 columnas -->
       <div class="form-grid">
         <div class="form-group">
@@ -11,9 +16,11 @@
             id="placa"
             v-model="formData.placa"
             placeholder="Ingrese la placa del vehículo"
+            minlength="6"
             maxlength="6"
+            pattern="[A-Z0-9]{6}"
             required
-            @input = "formData.placa = formData.placa.toUpperCase()"
+            @input="formData.placa = formData.placa.toUpperCase().replace(/[^A-Z0-9]/g, '')"
           />
         </div>
         <div class="form-group">
@@ -22,6 +29,7 @@
             id="anio"
             type="number"
             v-model.number="formData.anio"
+            min="1900"
             max="2100"
             placeholder="Ingrese el año de matriculación"
             required
@@ -33,6 +41,7 @@
             id="kilometraje"
             type="number"
             v-model.number="formData.kilometraje"
+            min="0"
             step="0.1"
             placeholder="Ingrese el kilometraje inicial"
             required
@@ -44,6 +53,7 @@
             id="costo"
             type="number"
             v-model.number="formData.costo"
+            min="0"
             step="0.01"
             placeholder="Ingrese el costo del vehiculo"
             required
@@ -90,6 +100,7 @@
             type="number"
             v-model.number="formData.anio_fabricacion"
             placeholder="Ingrese el año de fabricación"
+            min="1900"
             max="2100"
             required
           />
@@ -101,6 +112,7 @@
             type="number"
             v-model.number="formData.anio_modelo"
             placeholder="Ingrese el año de modelo"
+            min="1900"
             max="2100"
             required
           />
@@ -128,9 +140,14 @@
             id="vin"
             v-model="formData.vin"
             placeholder="Ingrese el VIN del vehiculo"
+            minlength="17"
             maxlength="17"
+            pattern="[A-HJ-NPR-Z0-9]{17}"
+            title="17 caracteres alfanuméricos en mayúscula, sin I, O, Q."
+            @input="formData.vin = formData.vin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '')"
             required
           />
+          <small>17 caracteres sin I, O, Q</small>
         </div>
         <div class="form-group">
           <label for="serie_chasis">Serie de Chasis</label>
@@ -209,7 +226,10 @@
 
 <script setup>
 import { useVehiculos } from '../composables/useVehiculo.js';
+import ModalGlobal from './ModalGlobal.vue'
+import useMensajeGlobal from '../composables/useMensajeGlobal.js';
 
+const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 const {
   formData,
   loading,

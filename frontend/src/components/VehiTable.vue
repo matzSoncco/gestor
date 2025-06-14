@@ -6,9 +6,8 @@
       <thead>
         <tr>
           <th>Placa</th>
-          <th>Año</th>
           <th>Marca</th>
-          <th>Modelo</th>
+          <th>Kilometraje</th>
           <th>VIN</th>
           <th>Acciones</th>
         </tr>
@@ -16,9 +15,8 @@
       <tbody>
         <tr v-for="v in vehiculos" :key="v.id">
           <td>{{ v.placa }}</td>
-          <td>{{ v.anio }}</td>
           <td>{{ v.marca }}</td>
-          <td>{{ v.modelo }}</td>
+          <td>{{ v.kilometraje }}</td>
           <td>{{ v.vin }}</td>
           <td>
             <router-link :to="{ name: 'VehiculoView', params: { id: v.id } }">
@@ -26,7 +24,7 @@
             </router-link>
             |
             <router-link :to="{ name: 'VehiculoEdit', params: { id: v.id } }">
-              Editar
+              Actualizar Kilometraje
             </router-link>
           </td>
         </tr>

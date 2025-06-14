@@ -1,11 +1,11 @@
 import { computed } from "vue";
 import { useIdGenerator } from "./useIdGenerator.js";
 
-export function useServicio(formData) {
+export function useServicio(formDataRef) {
     const { generateId } = useIdGenerator();
 
     const addServicioRow = () => {
-        formData.servicios.push({
+        formDataRef.value.servicios.push({
             id: generateId(),
             descripcion_item: '',
             costo_servicio: null,
@@ -13,12 +13,12 @@ export function useServicio(formData) {
     };
 
     const removeServicioRow = (id) => {
-        formData.servicios = formData.servicios.filter(item => item.id !== id);
+        formDataRef.value.servicios = formDataRef.value.servicios.filter(item => item.id !== id);
     };
 
     const costoTotalServicio = computed(() => {
         return parseFloat(
-            formData.servicios.reduce((sum, c) => sum + (c.costo_servicio || 0), 0).toFixed(2)
+            formDataRef.value.servicios.reduce((sum, c) => sum + (c.costo_servicio || 0), 0).toFixed(2)
         );
     });
 

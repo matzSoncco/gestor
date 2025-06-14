@@ -13,7 +13,7 @@
         <div class="form-group">
           <label for="numero_documento">N° de Factura o Documento:</label>
           <input
-            type="number"
+            type="text"
             id="numero_documento"
             v-model="formData.numero_documento"
             placeholder="Ingrese número de documento"
@@ -23,11 +23,11 @@
         <div class="form-group">
           <label for="ruc_proveedor">RUC del Proveedor:</label>
           <input
-            type="number"
+            type="text"
             id="ruc_proveedor"
             v-model="formData.ruc_proveedor"
             placeholder="Ingrese RUC"
-            max="99999999999"
+            maxlength="11"
             required
           />
         </div>
@@ -380,8 +380,6 @@ onMounted(async () => {
 const {
   formData,
   loading,
-  mensaje,
-  tipoMensaje,
 
   addCombustibleRow,
   removeCombustibleRow,

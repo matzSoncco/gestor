@@ -13,8 +13,8 @@ SERVICIOS = [
 
 COMBUSTIBLE_CHOICES = [
     ('GASOLINA', 'Gasolina'),
-    ('DIESEL',   'Diésel'),
-    ('ELECTRICO','Eléctrico'),
+    ('DIÉSEL',   'Diésel'),
+    ('ELÉCTRICO','Eléctrico'),
 ]
 
 TIPO_OPERACION = [
@@ -102,7 +102,7 @@ class Vehiculo(models.Model):
         max_digits=7, decimal_places=3, default=Decimal('0.000'),
         validators=[MinValueValidator(0)]
     )
-    cilindrada = models.DecimalField(default=Decimal('0.000'),
+    cilindrada = models.DecimalField(max_digits=7, decimal_places=3, default=Decimal('0.000'),
         validators=[MinValueValidator(0)])
     cilindros  = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
     altura     = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))
@@ -118,6 +118,8 @@ class Vehiculo(models.Model):
         return f"{self.placa} ({self.marca} {self.modelo})"
 
     def save(self, *args, **kwargs):
+        self.placa = self.placa.upper()
+        self.vin = self.vin.upper()
         super().save(*args, **kwargs)
 
 
