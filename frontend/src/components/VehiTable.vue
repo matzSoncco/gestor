@@ -1,4 +1,3 @@
-<!-- src/components/VehiculosTable.vue -->
 <template>
   <div class="vehiculos-table">
     <h2>Listado de Vehículos</h2>
@@ -23,39 +22,75 @@
               Ver
             </router-link>
             |
-            <router-link :to="{ name: 'VehiculoEdit', params: { id: v.id } }">
-              Actualizar Kilometraje
-            </router-link>
+            <button
+              @click="openModal(v.id)"
+              class="text-blue-600 hover:underline"
+            >Actualizar Kilometraje</button>
           </td>
         </tr>
-        <tr v-if="vehiculos.length === 0">
-          <td colspan="6">No hay vehículos registrados.</td>
+        <tr v-if="!loading && vehiculos.length === 0">
+          <td colspan="5">No hay vehículos registrados.</td>
         </tr>
       </tbody>
     </table>
+
     <div v-if="error" class="error">
       Error al cargar vehículos: {{ error.message || error }}
     </div>
+    <div v-if="loading" class="mt-2">
+      Cargando vehículos...
+    </div>
+
+    <!-- Modal de actualización -->
+    <ActualizarKmModal
+      v-if="modalVisible"
+      :visible="modalVisible"
+      :vehicle-id="selectedId"
+      @close="closeModal"
+      @saved="onKmActualizado"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import api from '../services/api.js';
+import { ref, onMounted } from 'vue'
+import { useVehiculos } from '../composables/useVehiculo.js'
+import ActualizarKmModal from './ActualizarKmModal.vue'
 
+const { vehiculos, error, loading, fetchVehiculos } = useVehiculos()
 
-const vehiculos = ref([]);
-const error     = ref(null);
+const modalVisible = ref(false)
+const selectedId = ref(null)
 
-onMounted(async () => {
-  try {
-    const { data } = await api.get('vehiculos/');
-    vehiculos.value = data;
-  } catch (err) {
-    console.error('Error al obtener vehículos:', err);
-    error.value = err;
+onMounted(() => {
+  fetchVehiculos()
+})
+
+const openModal = (id) => {
+  selectedId.value = id
+  modalVisible.value = true
+}
+
+const closeModal = () => {
+  modalVisible.value = false
+  selectedId.value = null
+}
+
+// Cuando el modal emite saved con el objeto actualizado,
+// actualizamos la lista localmente sin volver a fetch completo
+const onKmActualizado = (updatedVehiculo) => {
+  // Buscar en vehiculos por id y actualizar el campo kilometraje (y otros si quieres)
+  const idx = vehiculos.value.findIndex(v => v.id === updatedVehiculo.id)
+  if (idx !== -1) {
+    // Reemplazar todo el objeto o solo el campo necesario:
+    vehiculos.value[idx] = {
+      ...vehiculos.value[idx],
+      kilometraje: updatedVehiculo.kilometraje
+      // si hay otros campos devueltos que quieras actualizar, añádelos
+    }
   }
-});
+  closeModal()
+}
 </script>
 
 <style scoped>
@@ -75,11 +110,15 @@ onMounted(async () => {
 .vehiculos-table th {
   background-color: #ca6565;
 }
-.vehiculos-table a {
+.vehiculos-table a,
+.vehiculos-table button {
   color: #42b983;
-  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
-.vehiculos-table a:hover {
+.vehiculos-table button:hover {
   text-decoration: underline;
 }
 .error {

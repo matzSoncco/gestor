@@ -65,11 +65,11 @@ const routes = [
     name: 'Vehiculos',
     component: VehiculosView
   },
-  // {
-  //   path: '/vehiculos/:id',
-  //   name: 'VehiculoView',
-  //   component: VehiculoDetailView
-  // },
+  {
+    path: '/vehiculos/:id',
+    name: 'VehiculoView',
+    component: VehiculoDetailView
+  },
   {
     path: '/vehiculos/:id/edit',
     name: 'VehiculoEdit',
