@@ -17,12 +17,6 @@ COMBUSTIBLE_CHOICES = [
     ('ELECTRICO','Eléctrico'),
 ]
 
-FORMA_RODANTE_CHOICES = [
-    ('NEUMATICA', 'Neumática'),
-    ('ACERO',     'Acero'),
-    ('MIXTA',     'Mixta'),
-]
-
 TIPO_OPERACION = [
     ('combustible', 'Combustible'),
     ('mantenimiento', 'Mantenimiento'),
@@ -83,11 +77,7 @@ class Vehiculo(models.Model):
         choices=COMBUSTIBLE_CHOICES,
         default='GASOLINA'
     )
-    forma_rodante = models.CharField(
-        max_length=20,
-        choices=FORMA_RODANTE_CHOICES,
-        default='NEUMATICA'
-    )
+    forma_rodante = models.CharField(max_length=50, default='')
     vin = models.CharField(
         max_length=17,
         unique=True,
@@ -112,7 +102,8 @@ class Vehiculo(models.Model):
         max_digits=7, decimal_places=3, default=Decimal('0.000'),
         validators=[MinValueValidator(0)]
     )
-    cilindrada = models.PositiveIntegerField(default=0)
+    cilindrada = models.DecimalField(default=Decimal('0.000'),
+        validators=[MinValueValidator(0)])
     cilindros  = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
     altura     = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))
     ancho      = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))

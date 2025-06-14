@@ -1,45 +1,66 @@
-import { ref } from 'vue';
 import api from '../services/api.js';
 
-export function useVehiculos() {
-  const vehiculos = ref([]);
-  const loading   = ref(false);
-  const error     = ref(null);
+import { useFormActions } from './useFormActions';
+import useMensajeGlobal from './useMensajeGlobal';
 
-  const fetchVehiculos = async () => {
-    loading.value = true;
+export function useVehiculos () {
+  const defaults = {
+    placa: '',
+    anio: null,
+    kilometraje: 0,
+    costo: 0,
+    modelo: '',
+    ubicacion: '',
+    categoria: '',
+    marca: '',
+    modelo: '',
+    version: '',
+    color: '',
+    anio_fabricacion: null,
+    anio_modelo: null,
+    motor: '',
+    combustible: '',
+    forma_rodante: '',
+    vin: '',
+    serie_chasis: '',
+    ejes: 0,
+    ruedas: 0,
+    pasajeros: 0,
+    carroceria: '',
+    peso_neto: 0,
+    peso_bruto: 0,
+    carga_util: 0,
+    cilindradada: 0,
+    cilindros: 0,
+    altura: 0,
+    ancho: 0,
+    longitud: 0,
+  };
+
+  const { mostrarMensaje } = useMensajeGlobal();
+
+  const onSubmitService = async (payload) => {
     try {
-      const { data } = await api.get('vehiculos/');
-      vehiculos.value = data;
-    } catch (e) {
-      error.value = e;
-    } finally {
-      loading.value = false;
+      await api.post('vehiculos/', payload);
+      mostrarMensaje('Vehículo guardado exitosamente', 'success');
+      resetForm();
+    } catch (error) {
+      console.error('Error al guardar vehículo:', error);
+      mostrarMensaje('Error al guardar vehículo', 'error');
     }
   };
 
-  const createVehiculo = async payload => {
-    await api.post('vehiculos/', payload);
-    await fetchVehiculos();
-  };
-
-  const updateVehiculo = async (id, payload) => {
-    await api.put(`vehiculos/${id}/`, payload);
-    await fetchVehiculos();
-  };
-
-  const deleteVehiculo = async id => {
-    await api.delete(`vehiculos/${id}/`);
-    await fetchVehiculos();
-  };
+  const {
+    formData,
+    loading,
+    resetForm,
+    submitForm,
+  } = useFormActions({defaults, onSubmitService, extraComputed: {} });
 
   return {
-    vehiculos,
+    formData,
     loading,
-    error,
-    fetchVehiculos,
-    createVehiculo,
-    updateVehiculo,
-    deleteVehiculo,
+    resetForm,
+    submitForm,
   };
 }

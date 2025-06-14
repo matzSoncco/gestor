@@ -106,11 +106,7 @@ export function useOpForm() {
     } = useServicio(formDataRefAcciones.value);
 
     const {
-        mensajeGlobal,
-        tipoMensajeGlobal,
-        modalVisible,
         mostrarMensaje,
-        cerrarMensaje
     } = useMensajeGlobal();
 
     watch(

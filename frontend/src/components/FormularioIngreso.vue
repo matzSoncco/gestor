@@ -6,7 +6,7 @@
       :tipo="tipoMensajeGlobal"
       @close="mensajeGlobal = ''"
     />
-    <form @submit.prevent="enviarFormulario" class="formulario-registro">
+    <form @submit.prevent="submitForm" class="formulario-registro">
       <h3 class="form-title">Registro de Operacion</h3>
 
       <div class="form-grid">
@@ -336,10 +336,6 @@
         </div>
       </transition>
 
-      <div v-if="mensaje" :class="['mensaje', tipoMensaje]">
-        {{ mensaje }}
-      </div>
-
       <div class="form-actions">
         <button
           type="submit"
@@ -368,7 +364,6 @@ import { useOpForm } from '../composables/useOpForm.js';
 import ModalGlobal from './ModalGlobal.vue';
 import useMensajeGlobal from '../composables/useMensajeGlobal.js';
 
-const emits = defineEmits(['datos-enviados']);
 const listaVehiculos = ref([]);
 const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 
@@ -408,21 +403,6 @@ const {
   resetForm,
   submitForm 
 } = useOpForm();
-
-async function enviarFormulario() {
-  loading.value = true;
-  try {
-    const response = await submitForm();
-    mensaje.value = 'Operación registrada exitosamente.';
-    tipoMensaje.value = 'success';
-    emits('datos-enviados', formData);
-  } catch (error) {
-    mensaje.value = 'Error al registrar la operación. Intente nuevamente.';
-    tipoMensaje.value = 'error';
-  } finally {
-    loading.value = false;
-  }
-}
 </script>
 
 <style scoped src="../assets/styles/FormularioOperacion.css"></style>

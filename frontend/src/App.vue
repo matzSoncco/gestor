@@ -2,7 +2,7 @@
   <div id="app-container">
     <header v-if="!authStore.isAuthenticated"> <!-- cambiamos solamente para prueba del usuario -->
       <nav>
-        <!-- router-link to="/">Inicio</router-link > |-->
+        <router-link to="/">Inicio</router-link> |
         <router-link to="/ingreso-datos">Registro de Operaciones</router-link> |
         <router-link to="/registro-vehiculos">Registrar Vehiculos</router-link> |
         <router-link to="/operaciones">Operaciones</router-link> |
