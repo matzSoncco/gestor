@@ -40,7 +40,7 @@ CORS_ALLOWED_ORIGINS = [
     # "http://127.0.0.1:8080",
     # "http://localhost:5173", # Ejemplo para Vite
     # "http://127.0.0.1:5173",
-    os.environ.get('FRONTEND_URL')
+    os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 ]
 # O, para desarrollo y menos restrictivo (no recomendado para producción):
 # CORS_ALLOW_ALL_ORIGINS = True
