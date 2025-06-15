@@ -20,6 +20,7 @@ const api = axios.create({
     'X-CSRFToken': getCookie('csrftoken'), // Incluye el token CSRF en los encabezados
   },
 });
+console.log('API baseURL:', api.defaults.baseURL);
 
 //exportamos la api
 export default api;
