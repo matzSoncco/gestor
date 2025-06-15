@@ -42,11 +42,9 @@ else:
         # Opcional: lanzar error o dejar vacío para fallar cerrado
         ALLOWED_HOSTS = []
 
-# CORS_ORIGIN_WHITELIST = [
-#     'http://localhost:8080',
-# ]
 CORS_ALLOW_CREDENTIALS = True
 
+raw_frontend = os.environ.get('FRONTEND_URL', '').rstrip('/')
 if DEBUG:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:8080",
