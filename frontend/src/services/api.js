@@ -10,7 +10,7 @@ function getCookie(name) {
 }
 
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'https://localhost:8000/api/',
+  baseURL: process.env.VUE_APP_API_BASE_URL,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',

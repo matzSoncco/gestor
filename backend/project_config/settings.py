@@ -22,28 +22,45 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6+%!r(r_fy39!#cxi+tu^9px4ct#ggqoa*l$yy(1dq^j=!14a6'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1','true','yes')
 
-ALLOWED_HOSTS = ['mi-proyecto-backend-6o01.onrender.com']
+if DEBUG:
+    SECRET_KEY = 'dev-secret-key-cambia-esto-si-alguien-lo-ve'
+else:
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    if not SECRET_KEY:
+        raise RuntimeError("En producción, debe definirse SECRET_KEY en variables de entorno")
 
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:8080',
-]
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+else:
+    hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+    if hosts_env:
+        ALLOWED_HOSTS = [h.strip() for h in hosts_env.split(',') if h.strip()]
+    else:
+        # Opcional: lanzar error o dejar vacío para fallar cerrado
+        ALLOWED_HOSTS = []
+
+# CORS_ORIGIN_WHITELIST = [
+#     'http://localhost:8080',
+# ]
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:8080", # Ejemplo para Vue CLI
-    # "http://127.0.0.1:8080",
-    # "http://localhost:5173", # Ejemplo para Vite
-    # "http://127.0.0.1:5173",
-    os.environ.get('FRONTEND_URL', 'http://localhost:5173')
-]
-# O, para desarrollo y menos restrictivo (no recomendado para producción):
-# CORS_ALLOW_ALL_ORIGINS = True
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+    if raw_frontend:
+        CORS_ALLOWED_ORIGINS.append(raw_frontend)
+else:
+    if raw_frontend:
+        CORS_ALLOWED_ORIGINS = [raw_frontend]
+    else:
+        CORS_ALLOWED_ORIGINS = []
 
 
 # Application definition
@@ -114,13 +131,18 @@ WSGI_APPLICATION = 'project_config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
-}
-
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600, ssl_require=not DEBUG)
+    }
+else:
+    # Desarrollo local: SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
