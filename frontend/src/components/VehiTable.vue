@@ -1,6 +1,14 @@
 <template>
   <div class="vehiculos-table">
     <h2>Listado de Vehículos</h2>
+
+    <!-- Búsqueda por placa -->
+    <input
+      v-model="searchPlaca"
+      placeholder="Buscar por placa"
+      class="search-input"
+    />
+
     <table>
       <thead>
         <tr>
@@ -12,7 +20,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="v in vehiculos" :key="v.id">
+        <!-- Ahora iteramos sobre vehiculosFiltrados y aplicamos .warning -->
+        <tr
+          v-for="v in vehiculosFiltrados"
+          :key="v.id"
+          :class="{ warning: v.kilometraje >= threshold }"
+        >
           <td>{{ v.placa }}</td>
           <td>{{ v.marca }}</td>
           <td>{{ v.kilometraje }}</td>
@@ -25,7 +38,9 @@
             <button
               @click="openModal(v.id)"
               class="text-blue-600 hover:underline"
-            >Actualizar Kilometraje</button>
+            >
+              Actualizar Kilometraje
+            </button>
           </td>
         </tr>
         <tr v-if="!loading && vehiculos.length === 0">
@@ -53,39 +68,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useVehiculos } from '../composables/useVehiculo.js'
 import ActualizarKmModal from './ActualizarKmModal.vue'
 
 const { vehiculos, error, loading, fetchVehiculos } = useVehiculos()
 
+// Umbral configurable (podrás traerlo luego desde el backend)
+const threshold = ref(300)
+
+// Estado del modal
 const modalVisible = ref(false)
 const selectedId = ref(null)
 
-onMounted(() => {
-  fetchVehiculos()
-})
+// Búsqueda
+const searchPlaca = ref('')
 
-const openModal = (id) => {
+// Al montar, traemos los datos
+onMounted(fetchVehiculos)
+
+// Computed que aplica el filtro por placa
+const vehiculosFiltrados = computed(() =>
+  vehiculos.value.filter(v =>
+    v.placa.toLowerCase().includes(searchPlaca.value.toLowerCase())
+  )
+)
+
+// Métodos para el modal
+function openModal(id) {
   selectedId.value = id
   modalVisible.value = true
 }
-
-const closeModal = () => {
+function closeModal() {
   modalVisible.value = false
   selectedId.value = null
 }
-
-// Cuando el modal emite saved con el objeto actualizado,
-// actualizamos la lista localmente sin volver a fetch completo
-const onKmActualizado = (updatedVehiculo) => {
+function onKmActualizado(updatedVehiculo) {
   const idx = vehiculos.value.findIndex(v => v.id === updatedVehiculo.id)
   if (idx !== -1) {
-    vehiculos.value[idx] = {
-      ...vehiculos.value[idx],
-      kilometraje: updatedVehiculo.kilometraje
-      // si hay otros campos devueltos que quieras actualizar, añádelos
-    }
+    vehiculos.value[idx].kilometraje = updatedVehiculo.kilometraje
   }
   closeModal()
 }
@@ -95,13 +116,28 @@ const onKmActualizado = (updatedVehiculo) => {
 .vehiculos-table {
   padding: 1rem;
 }
+
+.search-input {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background-color: #1e1e1e;
+  color: #fff;
+  width: 100%;
+}
+
+.warning {
+  background-color: rgba(255, 102, 102, 0.4); /* rojo claro semitransparente */
+}
+
 .vehiculos-table table {
   width: 100%;
   border-collapse: collapse;
 }
 .vehiculos-table th,
 .vehiculos-table td {
-  border: 1px solid #ddd;
+  border: 1px solid #444;
   padding: 0.5rem;
   text-align: left;
 }
