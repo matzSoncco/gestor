@@ -21,7 +21,7 @@
           <td>{{ op.tipo_operacion }}</td>
           <td>{{ op.fecha }}</td>
           <td>
-            <router-link :to="{ name: 'OpView', params: { id: op.id } }">
+            <router-link :to="{ name: 'OpDetails', params: { id: op.id } }">
               Detalle
             </router-link>
           </td>
@@ -31,6 +31,13 @@
         </tr>
       </tbody>
     </table>
+
+    <div v-if="error" class="error">
+      Error al cargar operaciones: {{ error.message || error }}
+    </div>
+    <div v-if="loading" class="mt-2">
+      Cargando operaciones registradas...
+    </div>
   </div>
 </template>
 
@@ -82,5 +89,9 @@ onMounted(async () => {
 
 .operations-table a:hover {
   text-decoration: underline;
+}
+.error {
+  margin-top: 1rem;
+  color: #e74c3c;
 }
 </style>

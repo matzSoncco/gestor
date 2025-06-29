@@ -18,7 +18,7 @@
           <td>{{ v.kilometraje }}</td>
           <td>{{ v.vin }}</td>
           <td>
-            <router-link :to="{ name: 'VehiculoView', params: { id: v.id } }">
+            <router-link :to="{ name: 'VehiculoDetails', params: { id: v.id } }">
               Ver
             </router-link>
             |

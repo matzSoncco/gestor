@@ -5,13 +5,14 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 
 import IngresoDatosView from '../views/IngresoDatosView.vue'
-import OpTable from '../components/OpTable.vue'
-import OpView from '../components/OpView.vue'
+import OpView from '../views/OpView.vue'
+import OpDetails from '../components/OpDetails.vue'
 
 import ReportesView from '../views/ReportesView.vue'
+
 import FormularioVehiculo from '../components/FormularioVehiculo.vue'
 import VehiculosView from '../views/VehiculosView.vue'
-import VehiculoDetailView from '../views/VehiculoDetailView.vue'
+import VehiculoDetails from '../components/VehiculoDetails.vue'
 import RegistroVehiView from '../views/RegistroVehiView.vue'
 
 const routes = [
@@ -46,13 +47,13 @@ const routes = [
   },
   {
     path: '/operaciones',
-    name: 'OpTable',
-    component: OpTable
+    name: 'OpView',
+    component: OpView
   },
   {
     path: '/operaciones/:id',
-    name: 'OpView',
-    component: OpView,
+    name: 'OpDetails',
+    component: OpDetails,
     props: true
   },
   {
@@ -67,8 +68,8 @@ const routes = [
   },
   {
     path: '/vehiculos/:id',
-    name: 'VehiculoView',
-    component: VehiculoDetailView
+    name: 'VehiculoDetails',
+    component: VehiculoDetails
   },
   {
     path: '/vehiculos/:id/edit',
