@@ -79,10 +79,8 @@ const closeModal = () => {
 // Cuando el modal emite saved con el objeto actualizado,
 // actualizamos la lista localmente sin volver a fetch completo
 const onKmActualizado = (updatedVehiculo) => {
-  // Buscar en vehiculos por id y actualizar el campo kilometraje (y otros si quieres)
   const idx = vehiculos.value.findIndex(v => v.id === updatedVehiculo.id)
   if (idx !== -1) {
-    // Reemplazar todo el objeto o solo el campo necesario:
     vehiculos.value[idx] = {
       ...vehiculos.value[idx],
       kilometraje: updatedVehiculo.kilometraje
