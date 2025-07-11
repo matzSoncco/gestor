@@ -15,8 +15,8 @@
 </template>
 
 <script setup>
-import FormularioVehiculo from '../components/FormularioVehiculo.vue';
-import { useVehiculos } from '../composables/useVehiculo';
+import FormularioVehiculo from '../components/vehiculos/FormularioVehiculo.vue';
+import { useVehiculos } from '../composables/vehiculos/useVehiculo';
 
 const { mensajeGlobal, tipoMensajeGlobal, handleSave, handleCancel } = useVehiculos();
 </script>

@@ -5,5 +5,5 @@
 </template>
 
 <script setup>
-import VehiculosTable from '../components/VehiTable.vue';
+import VehiculosTable from '../components/vehiculos/VehiculoTable.vue';
 </script>

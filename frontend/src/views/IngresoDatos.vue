@@ -22,9 +22,9 @@
 </template>
 
 <script setup>
-import FormularioIngreso from '../components/FormularioIngreso.vue'
+import FormularioIngreso from '../components/operaciones/FormularioIngreso.vue'
 import CargaCSV from '../components/CargaCSV.vue'
-import useIngresoDatos from '../composables/useIngresoDatos';
+import useIngresoDatos from '../composables/operaciones/useIngresoDatos';
 import '../assets/styles/IngresoDatos.css'
 
 const { mensajeGlobal, tipoMensajeGlobal, handleDatosEnviados, handleCsvCargado } = useIngresoDatos();

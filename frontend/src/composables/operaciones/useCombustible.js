@@ -1,5 +1,5 @@
 import { watch, computed } from "vue";
-import { useIdGenerator } from "./useIdGenerator.js";
+import { useIdGenerator } from "../global/useIdGenerator";
 
 export function useCombustible(formDataRef) {
     const { generateId } = useIdGenerator();

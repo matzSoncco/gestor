@@ -1,4 +1,3 @@
-<!-- src/components/ActualizarKmModal.vue -->
 <template>
   <div v-if="visible" class="modal-overlay">
     <div class="modal-container">
@@ -68,7 +67,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import { useVehiculoDetalle } from '../composables/useVehiculoDetalle.js'
+import { useVehiculoDetalle } from '../../composables/vehiculos/useVehiculoDetalle'
 
 const props = defineProps({
   visible: Boolean,

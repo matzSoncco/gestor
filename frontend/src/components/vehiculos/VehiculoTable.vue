@@ -69,8 +69,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useVehiculos } from '../composables/useVehiculo.js'
-import ActualizarKmModal from './ActualizarKmModal.vue'
+import { useVehiculos } from '../../composables/vehiculos/useVehiculo'
+import ActualizarKmModal from '../../components/modals/ActualizarKmModal.vue'
 
 const { vehiculos, error, loading, fetchVehiculos } = useVehiculos()
 

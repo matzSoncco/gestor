@@ -1,11 +1,11 @@
 import { ref, watch, nextTick } from 'vue';
-import api from '../services/api.js';
+import api from '../../services/api.js';
 
-import { useCombustible } from './useCombustible.js';
-import { useMantenimiento } from './useMantenimiento.js';
-import { useServicio } from './useServicio.js';
-import { useFormActions } from './useFormActions.js';
-import useMensajeGlobal from './useMensajeGlobal.js';
+import { useCombustible } from '../operaciones/useCombustible.js';
+import { useMantenimiento } from '../operaciones/useMantenimiento.js';
+import { useServicio } from '../operaciones/useServicio.js';
+import { useFormActions } from '../global/useFormActions.js';
+import useMensajeGlobal from '../global/useMensajeGlobal.js';
 
 export function useOpForm() {
     const isResetting = ref(false);

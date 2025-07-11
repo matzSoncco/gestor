@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { useIdGenerator } from "./useIdGenerator.js";
+import { useIdGenerator } from "../global/useIdGenerator";
 
 export function useServicio(formDataRef) {
     const { generateId } = useIdGenerator();

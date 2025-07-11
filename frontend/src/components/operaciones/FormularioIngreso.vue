@@ -358,11 +358,11 @@
 </template>
 
 <script setup>
-import api from '../services/api.js';
+import api from '../../services/api';
 import { onMounted, ref } from 'vue';
-import { useOpForm } from '../composables/useOpForm.js';
-import ModalGlobal from './ModalGlobal.vue';
-import useMensajeGlobal from '../composables/useMensajeGlobal.js';
+import { useOpForm } from '../../composables/operaciones/useOpForm';
+import ModalGlobal from '../../components/modals/ModalGlobal.vue';
+import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 const listaVehiculos = ref([]);
 const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
@@ -403,4 +403,4 @@ const {
 } = useOpForm();
 </script>
 
-<style scoped src="../assets/styles/FormularioOperacion.css"></style>
+<style scoped src="../../assets/styles/FormularioOperacion.css"></style>

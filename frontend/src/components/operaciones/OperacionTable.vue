@@ -62,7 +62,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import api from '../services/api.js'
+import api from '../../services/api'
 
 // Datos
 const operaciones = ref([])

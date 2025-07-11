@@ -1,7 +1,7 @@
 import { ref } from 'vue';
-import api from '../services/api.js';
-import { useFormActions } from './useFormActions';
-import useMensajeGlobal from './useMensajeGlobal';
+import api from '../../services/api';
+import { useFormActions } from '../../composables/global/useFormActions';
+import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 export function useVehiculos() {
   const defaults = {

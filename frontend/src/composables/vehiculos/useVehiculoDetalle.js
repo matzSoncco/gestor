@@ -1,6 +1,6 @@
 import { ref } from 'vue';
-import api from '../services/api.js';
-import useMensajeGlobal from './useMensajeGlobal';
+import api from '../../services/api';
+import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 export function useVehiculoDetalle() {
   const { mostrarExito, mostrarError } = useMensajeGlobal();

@@ -124,7 +124,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '../services/api.js'
+import api from '../../services/api.js'
 
 const route = useRoute()
 const router = useRouter()

@@ -1,4 +1,4 @@
-import useMensajeGlobal from './useMensajeGlobal.js';
+import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 export default function useIngresoDatos() {
   const { mensajeGlobal, tipoMensajeGlobal, mostrarMensaje } = useMensajeGlobal();

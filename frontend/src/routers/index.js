@@ -1,19 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/auth' // Importar el store
 
-import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
+import HomeView from '../views/Home.vue'
+import LoginView from '../views/Login.vue'
 
-import IngresoDatosView from '../views/IngresoDatosView.vue'
-import OpView from '../views/OpView.vue'
-import OpDetails from '../components/OpDetails.vue'
+import IngresoDatosView from '../views/IngresoDatos.vue'
+import OpView from '../views/Operacion.vue'
+import OpDetails from '../components/operaciones/OperacionDetails.vue'
 
-import ReportesView from '../views/ReportesView.vue'
+import ReportesView from '../views/Reportes.vue'
 
-import FormularioVehiculo from '../components/FormularioVehiculo.vue'
-import VehiculosView from '../views/VehiculosView.vue'
-import VehiculoDetails from '../components/VehiculoDetails.vue'
-import RegistroVehiView from '../views/RegistroVehiView.vue'
+import FormularioVehiculo from '../components/vehiculos/FormularioVehiculo.vue'
+import VehiculosView from '../views/Vehiculos.vue'
+import VehiculoDetails from '../components/vehiculos/VehiculoDetails.vue'
+import RegistroVehiView from '../views/RegistroVehiculo.vue'
 
 const routes = [
   {

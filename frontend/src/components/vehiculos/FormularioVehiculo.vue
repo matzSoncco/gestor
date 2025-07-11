@@ -225,9 +225,9 @@
 </template>
 
 <script setup>
-import { useVehiculos } from '../composables/useVehiculo.js';
-import ModalGlobal from './ModalGlobal.vue'
-import useMensajeGlobal from '../composables/useMensajeGlobal.js';
+import { useVehiculos } from '../../composables/vehiculos/useVehiculo';
+import ModalGlobal from '../../components/modals/ModalGlobal.vue'
+import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 const {
@@ -238,4 +238,4 @@ const {
 } = useVehiculos();
 </script>
 
-<style scoped src="../assets/styles/FormularioOperacion.css"></style>
+<style scoped src="../../assets/styles/FormularioOperacion.css"></style>
