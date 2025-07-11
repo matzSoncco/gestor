@@ -2,41 +2,12 @@ import { ref } from 'vue';
 import api from '../../services/api';
 import { useFormActions } from '../../composables/global/useFormActions';
 import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
+import { makeVehiculoDefaults } from '../../types/vehiculo';
 
 export function useVehiculos() {
-  const defaults = {
-    placa: '',
-    anio: 2024,
-    kilometraje: 0,
-    costo: 0,
-    ubicacion: '',
-    categoria: '',
-    marca: '',
-    modelo: '',
-    version: '',
-    color: '',
-    anio_fabricacion: 2024,
-    anio_modelo: 2024,
-    motor: '',
-    combustible: '',
-    forma_rodante: '',
-    vin: '',
-    serie_chasis: '',
-    ejes: 0,
-    ruedas: 0,
-    pasajeros: 0,
-    carroceria: '',
-    peso_neto: 0,
-    peso_bruto: 0,
-    carga_util: 0,
-    cilindrada: 0,
-    cilindros: 0,
-    altura: 0,
-    ancho: 0,
-    longitud: 0,
-  };
+  const defaults = makeVehiculoDefaults();
 
-  const { mostrarExito, mostrarError, mostrarInfo, mostrarAdvertencia } = useMensajeGlobal();
+  const { mostrarExito, mostrarError, mostrarInfo } = useMensajeGlobal();
 
   // Estados para la lista de vehículos
   const vehiculos = ref([]);

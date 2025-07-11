@@ -62,13 +62,20 @@ export function useMantenimiento (formDataRef) {
     }
 
     const updateSubtotal = () => {
-        formDataRef.value.mantenimientos.forEach((item) => {
+        const mantenimientos = formDataRef.value?.mantenimientos;
+        if (!Array.isArray(mantenimientos)) return;
+
+        mantenimientos.forEach((item) => {
             const cantidad = parseFloat(item.cantidad) || 0;
             const costo = parseFloat(item.costo_unitario) || 0;
             item.subtotal = parseFloat((cantidad * costo).toFixed(2));
         });
     };
-    watch(() => formDataRef.value.mantenimientos, updateSubtotal, { deep: true });
+    watch(
+        () => formDataRef.value?.mantenimientos ?? [],
+        updateSubtotal,
+        { deep: true }
+    );
 
     const costoTotal = computed(() => {
         return parseFloat(

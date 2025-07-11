@@ -6,22 +6,11 @@ import { useMantenimiento } from '../operaciones/useMantenimiento.js';
 import { useServicio } from '../operaciones/useServicio.js';
 import { useFormActions } from '../global/useFormActions.js';
 import useMensajeGlobal from '../global/useMensajeGlobal.js';
+import { makeOperacionDefaults } from '../../types/operacion.js';
 
 export function useOpForm() {
     const isResetting = ref(false);
-
-    const defaults = {
-        numero_documento: '',
-        ruc_proveedor: '',
-        nombre_proveedor: '',
-        tipo_operacion: '',
-        fecha: '',
-        descripcion: '',
-        costo_total: 0,
-        combustibles: [],
-        mantenimientos: [],
-        servicios: [],
-    };
+    const defaults = makeOperacionDefaults();
 
     const { mostrarExito, mostrarError, mostrarInfo, mostrarAdvertencia } = useMensajeGlobal();
 
@@ -116,7 +105,7 @@ export function useOpForm() {
     } = useServicio(formDataRefAcciones);
 
     watch(
-        () => formDataRefAcciones.value.tipo_operacion,
+        () => formDataRefAcciones.value?.tipo_operacion ?? [],
         (nuevoTipo, viejoTipo) => {
         console.log('Watch ejecutado:', { nuevoTipo, viejoTipo, isResetting: isResetting.value });
 
