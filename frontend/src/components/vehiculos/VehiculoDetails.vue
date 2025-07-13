@@ -200,9 +200,13 @@
                   <div class="text-xs font-medium text-blue-600 mb-1">Forma Rodante</div>
                   <div class="text-sm font-semibold text-gray-800">{{ vehiculo.forma_rodante }}</div>
                 </div>
-                <div class="bg-blue-50 p-3 rounded-lg">
+                <div class="bg-blue-50 p-3 rounded-lg overflow-x-auto">
                   <div class="text-xs font-medium text-blue-600 mb-1">VIN</div>
-                  <div class="text-sm font-semibold text-gray-800 font-mono">{{ vehiculo.vin }}</div>
+                  <div
+                    class="text-sm font-semibold text-gray-800 font-mono break-words break-all whitespace-break-spaces"
+                  >
+                    {{ vehiculo.vin }}
+                  </div>
                 </div>
                 <div class="bg-blue-50 p-3 rounded-lg">
                   <div class="text-xs font-medium text-blue-600 mb-1">Serie Chasis</div>
