@@ -28,7 +28,7 @@ export function makeOperacionDefaults(): Operacion {
     ruc_proveedor    : '',
     nombre_proveedor : '',
     tipo_operacion   : '',
-    fecha            : '',
+    fecha            : new Date().toISOString().split('T')[0], // ← aquí está el fix
     descripcion      : '',
     costo_total      : 0,
     combustibles     : [],

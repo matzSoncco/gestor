@@ -1,22 +1,15 @@
 <template>
-    <div class="ingreso-datos-view">
-        <h1>Registro de Vehículos</h1>
-        <p>Utiliza el formulario a continuación para registrar un vehículo.</p>
-
-        <section class="form-section">
-            <h2>Formulario de Registro de Vehículo</h2>
-            <FormularioVehiculo @save="handleSave" @cancel="handleCancel" />
-        </section>
-
-        <div v-if="mensajeGlobal" :class="['mensaje-global', tipoMensajeGlobal]">
-            {{ mensajeGlobal }}
-        </div>
-    </div>
+  <div class="space-y-8 p-6">
+    <!-- Formulario -->
+    <section class="bg-white light:bg-neutral-900 rounded-lg shadow p-6 space-y-4">
+      <FormularioVehiculo @save="handleSave" @cancel="handleCancel" />
+    </section>
+  </div>
 </template>
 
 <script setup>
 import FormularioVehiculo from '../components/vehiculos/FormularioVehiculo.vue';
 import { useVehiculos } from '../composables/vehiculos/useVehiculo';
 
-const { mensajeGlobal, tipoMensajeGlobal, handleSave, handleCancel } = useVehiculos();
+const { handleSave, handleCancel } = useVehiculos();
 </script>

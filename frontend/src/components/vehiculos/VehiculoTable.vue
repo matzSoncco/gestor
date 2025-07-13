@@ -1,37 +1,65 @@
 <template>
-  <div>
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">Listado de Vehículos</h2>
-      <n-input
-        v-model:value="searchPlaca"
-        placeholder="Buscar por placa"
-        clearable
-        style="max-width: 250px"
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+    <div class="max-w-6x1 mx-auto space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Listado de Vehículos</h1>
+            <p class="text-gray-500">Consulta y gestiona vehículos registrados</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+          <n-button
+            type="primary"
+            @click="$router.push({ name: 'RegistroVehiculos' })"
+            class="w-full md:w-auto"
+          >
+            Registrar Vehículo
+          </n-button>
+          
+          <n-input
+            v-model:value="searchPlaca"
+            placeholder="Buscar por placa"
+            clearable
+            class="w-full md:w-64"
+          />
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <n-data-table
+          :columns="columns"
+          :data="vehiculosFiltrados"
+          :loading="loading"
+          :bordered="false"
+          :pagination="false"
+          row-class-name="getRowClass"
+        >
+          <template #empty>
+            <div class="text-center text-gray-500">No se encontraron vehículos</div>
+          </template>
+        </n-data-table>
+
+        <div v-if="error" class="mt-4 text-red-600">
+          Error al cargar los vehículos: {{ error.message || error }}
+        </div>
+
+      <ActualizarKmModal
+        v-if="modalVisible"
+        :visible="modalVisible"
+        :vehicle-id="selectedId"
+        @close="closeModal"
+        @saved="onKmActualizado"
       />
+      </div>
     </div>
-
-    <n-data-table
-      :columns="columns"
-      :data="vehiculosFiltrados"
-      :loading="loading"
-      :bordered="false"
-      :pagination="false"
-      :row-class-name="getRowClass"
-    />
-
-    <ActualizarKmModal
-      v-if="modalVisible"
-      :visible="modalVisible"
-      :vehicle-id="selectedId"
-      @close="closeModal"
-      @saved="onKmActualizado"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { NButton, NInput, NDataTable } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
 import ActualizarKmModal from '@/components/modals/ActualizarKmModal.vue'
 import { useRouter } from 'vue-router'
