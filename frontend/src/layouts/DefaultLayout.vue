@@ -4,30 +4,32 @@
       <n-notification-provider>
         <n-message-provider>
           <n-layout has-sider class="h-screen">
-            <!-- Sidebar -->
+            <!-- SIDEBAR -->
             <n-layout-sider
               bordered
               :width="220"
-              collapse-mode="width"
+              :collapsed-width="64"
               show-trigger="bar"
-              content-style="padding: 0"
-              class="bg-white border-r"
+              collapse-mode="width"
+              :collapsed="collapsed"
+              @update:collapsed="collapsed = $event"
+              class="bg-white light:bg-neutral-900 border-r dark:border-neutral-700 transition-width"
             >
-              <Sidebar />
+              <Sidebar :collapsed="collapsed" />
             </n-layout-sider>
 
-            <!-- Contenido principal -->
+            <!-- MAIN -->
             <n-layout class="flex flex-col">
-              <!-- Header -->
               <n-layout-header
                 bordered
-                class="h-14 px-6 flex items-center bg-gray-50 shadow-sm"
+                class="h-14 px-6 flex items-center bg-gray-50 light:bg-neutral-800 shadow-sm"
               >
-                <h1 class="text-lg font-semibold text-gray-800">Gestor de Flota</h1>
+                <h1 class="text-lg font-semibold text-gray-800 dark:text-dark">
+                  Gestor de Flota de Vehículos | ALTEMEC
+                </h1>
               </n-layout-header>
 
-              <!-- Contenido dinámico -->
-              <n-layout-content class="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <n-layout-content class="flex-1 overflow-y-auto p-6 bg-gray-50 light:bg-neutral-800">
                 <router-view />
               </n-layout-content>
             </n-layout>
@@ -39,8 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
-
 import {
   NConfigProvider,
   NLayout,
@@ -51,4 +53,7 @@ import {
   NNotificationProvider,
   NMessageProvider
 } from 'naive-ui'
+
+/* estado global de colapso */
+const collapsed = ref(false)
 </script>

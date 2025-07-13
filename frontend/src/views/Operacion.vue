@@ -1,8 +1,6 @@
 <template>
-    <div>
-        <OpTable />
-    </div>
+  <OpTable />
 </template>
 <script setup>
-import OpTable from '../components/operaciones/OperacionTable.vue'
+import OpTable from '@/components/operaciones/OperacionTable.vue'
 </script>

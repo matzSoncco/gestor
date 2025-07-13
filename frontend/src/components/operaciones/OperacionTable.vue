@@ -1,68 +1,60 @@
 <template>
-  <div class="operations-table">
-    <h2>Listado de Operaciones</h2>
+  <div class="space-y-4">
+    <n-page-header title="Listado de Operaciones" subtitle="Consulta y gestiona operaciones registradas" />
 
     <!-- Filtros -->
-    <div class="filters">
-      <input
-        v-model="searchDoc"
+    <div class="flex flex-col md:flex-row gap-3">
+      <n-input
+        v-model:value="searchDoc"
         placeholder="Buscar por número de documento"
-        class="filter-input"
+        clearable
+        class="w-full md:w-1/3"
       />
-      <input
+      <n-date-picker
+        v-model:formatted-value="fechaInicio"
         type="date"
-        v-model="fechaInicio"
-        class="filter-input date-input"
+        placeholder="Fecha inicio"
+        class="w-full md:w-1/4"
+        clearable
       />
-      <input
+      <n-date-picker
+        v-model:formatted-value="fechaFin"
         type="date"
-        v-model="fechaFin"
-        class="filter-input date-input"
+        placeholder="Fecha fin"
+        class="w-full md:w-1/4"
+        clearable
       />
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Número Documento</th>
-          <th>RUC Proveedor</th>
-          <th>Nombre Proveedor</th>
-          <th>Tipo Operación</th>
-          <th>Fecha</th>
-          <th>Ver Detalle</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="op in operacionesFiltradas" :key="op.id">
-          <td>{{ op.numero_documento }}</td>
-          <td>{{ op.ruc_proveedor }}</td>
-          <td>{{ op.nombre_proveedor }}</td>
-          <td>{{ op.tipo_operacion }}</td>
-          <td>{{ op.fecha }}</td>
-          <td>
-            <router-link :to="{ name: 'OpDetails', params: { id: op.id } }">
-              Detalle
-            </router-link>
-          </td>
-        </tr>
-        <tr v-if="!loading && operaciones.length === 0">
-          <td colspan="6">No hay operaciones registradas.</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Tabla de operaciones -->
+    <n-data-table
+      :columns="columns"
+      :data="operacionesFiltradas"
+      :loading="loading"
+      :bordered="false"
+      :pagination="false"
+      class="mt-4"
+    />
 
-    <div v-if="error" class="error">
-      Error al cargar operaciones: {{ error.message || error }}
-    </div>
-    <div v-if="loading" class="mt-2">
-      Cargando operaciones registradas...
-    </div>
+    <n-alert v-if="error" type="error" :title="'Error al cargar'" :description="error.message || error" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import api from '../../services/api'
+import { ref, computed, onMounted, h } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/services/api'
+
+import {
+  NInput,
+  NDatePicker,
+  NDataTable,
+  NAlert,
+  NButton,
+  NPageHeader
+} from 'naive-ui'
+
+const router = useRouter()
 
 // Datos
 const operaciones = ref([])
@@ -71,14 +63,14 @@ const loading = ref(true)
 
 // Filtros
 const searchDoc = ref('')
-const fechaInicio = ref('')
-const fechaFin = ref('')
+const fechaInicio = ref(null)
+const fechaFin = ref(null)
 
-// Fetch inicial
+// Obtener operaciones
 onMounted(async () => {
   try {
-    const resp = await api.get('operaciones/')
-    operaciones.value = resp.data
+    const { data } = await api.get('operaciones/')
+    operaciones.value = data
   } catch (err) {
     error.value = err
   } finally {
@@ -86,76 +78,40 @@ onMounted(async () => {
   }
 })
 
-// Computed que filtra por documento y rango de fecha
+// Columnas de la tabla
+const columns = [
+  { title: 'N° Documento', key: 'numero_documento' },
+  { title: 'RUC Proveedor', key: 'ruc_proveedor' },
+  { title: 'Nombre Proveedor', key: 'nombre_proveedor' },
+  { title: 'Tipo Operación', key: 'tipo_operacion' },
+  { title: 'Fecha', key: 'fecha' },
+  {
+    title: 'Detalle',
+    key: 'actions',
+    render(row) {
+      return h(
+        NButton,
+        {
+          type: 'primary',
+          size: 'small',
+          tertiary: true,
+          onClick: () => router.push({ name: 'OpDetails', params: { id: row.id } })
+        },
+        { default: () => 'Ver' }
+      )
+    }
+  }
+]
+
+// Filtro reactivo
 const operacionesFiltradas = computed(() =>
   operaciones.value.filter(op => {
-    // Filtrado por número de documento
-    const matchDoc = op.numero_documento
-      .toLowerCase()
-      .includes(searchDoc.value.toLowerCase())
-
-    // Filtrado por rango de fecha
+    const matchDoc = op.numero_documento.toLowerCase().includes(searchDoc.value.toLowerCase())
     const fechaOp = new Date(op.fecha)
     const ini = fechaInicio.value ? new Date(fechaInicio.value) : null
     const fin = fechaFin.value ? new Date(fechaFin.value) : null
-    const matchFecha =
-      (!ini || fechaOp >= ini) && (!fin || fechaOp <= fin)
-
+    const matchFecha = (!ini || fechaOp >= ini) && (!fin || fechaOp <= fin)
     return matchDoc && matchFecha
   })
 )
 </script>
-
-<style scoped>
-.operations-table {
-  padding: 1rem;
-}
-
-.filters {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.filter-input {
-  padding: 0.4rem;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background: #1e1e1e;
-  color: #fff;
-}
-
-.date-input {
-  width: 150px;
-}
-
-.operations-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.operations-table th,
-.operations-table td {
-  border: 1px solid #444;
-  padding: 0.5rem;
-  text-align: left;
-}
-
-.operations-table th {
-  background-color: #ca6565;
-}
-
-.operations-table a {
-  color: #42b983;
-  text-decoration: none;
-}
-
-.operations-table a:hover {
-  text-decoration: underline;
-}
-
-.error {
-  margin-top: 1rem;
-  color: #e74c3c;
-}
-</style>

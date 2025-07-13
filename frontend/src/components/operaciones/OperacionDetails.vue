@@ -1,128 +1,112 @@
 <template>
-  <div class="operation-detail">
-    <button @click="goBack">← Volver</button>
-    <h2>Detalle de Operación #{{ id }}</h2>
-    <div v-if="loading">Cargando...</div>
-    <div v-else-if="error">
+  <div class="px-6 py-4">
+    <!-- Botón de regreso -->
+    <button
+      @click="goBack"
+      class="mb-4 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded shadow"
+    >
+      ← Volver
+    </button>
+
+    <h2 class="text-xl font-semibold mb-4">Detalle de Operación #{{ id }}</h2>
+
+    <div v-if="loading" class="text-gray-500 italic">Cargando...</div>
+
+    <div v-else-if="error" class="text-red-500">
       <p>Error al cargar la operación: {{ errorMessage }}</p>
     </div>
-    <div v-else>
-      <!-- Información general de la operación -->
-      <div class="operation-info">
-        <h3>Información General</h3>
-        <table class="info-table">
-          <tr>
-            <th>Número Documento</th>
-            <td>{{ operacion.numero_documento }}</td>
-          </tr>
-          <tr>
-            <th>RUC Proveedor</th>
-            <td>{{ operacion.ruc_proveedor }}</td>
-          </tr>
-          <tr>
-            <th>Nombre Proveedor</th>
-            <td>{{ operacion.nombre_proveedor }}</td>
-          </tr>
-          <tr>
-            <th>Tipo Operación</th>
-            <td class="tipo-operacion">{{ operacion.tipo_operacion }}</td>
-          </tr>
-          <tr>
-            <th>Fecha</th>
-            <td>{{ formatDate(operacion.fecha) }}</td>
-          </tr>
-          <tr>
-            <th>Descripción</th>
-            <td>{{ operacion.descripcion || 'Sin descripción' }}</td>
-          </tr>
-          <tr>
-            <th>Costo Total</th>
-            <td class="costo-total">S/. {{ operacion.costo_total }}</td>
-          </tr>
-        </table>
-      </div>
 
-      <!-- Detalle de Combustible -->
-      <div v-if="operacion.tipo_operacion === 'combustible'" class="detail-section">
-        <h3>Detalle de Combustible</h3>
-        <div v-if="!operacion.combustible_detalle || operacion.combustible_detalle.length === 0">
-          <p class="no-data">No hay registros de combustible para esta operación.</p>
-        </div>
-        <table v-else class="detail-table">
-          <thead>
-            <tr>
-              <th>Cantidad Galones</th>
-              <th>Costo por Galón</th>
-              <th>Placa Vehículo</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
+    <div v-else class="space-y-8">
+      <!-- Información General -->
+      <section>
+        <h3 class="text-lg font-semibold mb-2">Información General</h3>
+        <table class="w-full border border-gray-300 text-sm">
           <tbody>
-            <tr v-for="c in operacion.combustible_detalle" :key="c.id">
-              <td>{{ c.cantidad_galones }}</td>
-              <td>S/. {{ c.costo_por_galon }}</td>
-              <td>{{ getPlacaVehiculo(c.placa_vehiculo) }}</td>
-              <td class="subtotal">S/. {{ c.subtotal }}</td>
+            <tr v-for="(value, label) in generalInfo" :key="label">
+              <th class="bg-gray-100 px-3 py-2 text-left w-1/3">{{ label }}</th>
+              <td class="px-3 py-2" :class="{ 'text-red-500 font-medium': label === 'Costo Total' }">
+                {{ value }}
+              </td>
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
 
-      <!-- Detalle de Mantenimiento -->
-      <div v-if="operacion.tipo_operacion === 'mantenimiento'" class="detail-section">
-        <h3>Detalle de Mantenimiento</h3>
-        <div v-if="!operacion.mantenimiento_detalle || operacion.mantenimiento_detalle.length === 0">
-          <p class="no-data">No hay registros de mantenimiento para esta operación.</p>
-        </div>
-        <table v-else class="detail-table">
-          <thead>
+      <!-- Combustible -->
+      <section v-if="operacion.tipo_operacion === 'combustible'">
+        <h3 class="text-lg font-semibold mb-2">Detalle de Combustible</h3>
+        <div v-if="!operacion.combustible_detalle?.length" class="text-gray-400">No hay registros.</div>
+        <table v-else class="w-full border border-gray-300 text-sm">
+          <thead class="bg-gray-100">
             <tr>
-              <th>Descripción</th>
-              <th>Cantidad</th>
-              <th>Costo Unitario</th>
-              <th>Placa Vehículo</th>
-              <th>Subtotal</th>
+              <th class="px-3 py-2">Cantidad Galones</th>
+              <th class="px-3 py-2">Costo por Galón</th>
+              <th class="px-3 py-2">Placa</th>
+              <th class="px-3 py-2">Subtotal</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="m in operacion.mantenimiento_detalle" :key="m.id">
-              <td>{{ m.descripcion_item }}</td>
-              <td>{{ m.cantidad }}</td>
-              <td>S/. {{ m.costo_unitario }}</td>
-              <td>{{ getPlacaVehiculo(m.placa_vehiculo) }}</td>
-              <td class="subtotal">S/. {{ m.subtotal }}</td>
+            <tr v-for="c in operacion.combustible_detalle" :key="c.id" class="border-t">
+              <td class="px-3 py-2">{{ c.cantidad_galones }}</td>
+              <td class="px-3 py-2">S/. {{ c.costo_por_galon }}</td>
+              <td class="px-3 py-2">{{ getPlacaVehiculo(c.placa_vehiculo) }}</td>
+              <td class="px-3 py-2 font-semibold text-green-600">S/. {{ c.subtotal }}</td>
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
 
-      <!-- Detalle de Servicio -->
-      <div v-if="operacion.tipo_operacion === 'servicio'" class="detail-section">
-        <h3>Detalle de Servicio</h3>
-        <div v-if="!operacion.servicio_detalle || operacion.servicio_detalle.length === 0">
-          <p class="no-data">No hay registros de servicio para esta operación.</p>
-        </div>
-        <table v-else class="detail-table">
-          <thead>
+      <!-- Mantenimiento -->
+      <section v-if="operacion.tipo_operacion === 'mantenimiento'">
+        <h3 class="text-lg font-semibold mb-2">Detalle de Mantenimiento</h3>
+        <div v-if="!operacion.mantenimiento_detalle?.length" class="text-gray-400">No hay registros.</div>
+        <table v-else class="w-full border border-gray-300 text-sm">
+          <thead class="bg-gray-100">
             <tr>
-              <th>Descripción</th>
-              <th>Costo Servicio</th>
+              <th class="px-3 py-2">Descripción</th>
+              <th class="px-3 py-2">Cantidad</th>
+              <th class="px-3 py-2">Costo Unitario</th>
+              <th class="px-3 py-2">Placa</th>
+              <th class="px-3 py-2">Subtotal</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="s in operacion.servicio_detalle" :key="s.id">
-              <td>{{ s.descripcion_item }}</td>
-              <td class="subtotal">S/. {{ s.costo_servicio }}</td>
+            <tr v-for="m in operacion.mantenimiento_detalle" :key="m.id" class="border-t">
+              <td class="px-3 py-2">{{ m.descripcion_item }}</td>
+              <td class="px-3 py-2">{{ m.cantidad }}</td>
+              <td class="px-3 py-2">S/. {{ m.costo_unitario }}</td>
+              <td class="px-3 py-2">{{ getPlacaVehiculo(m.placa_vehiculo) }}</td>
+              <td class="px-3 py-2 font-semibold text-green-600">S/. {{ m.subtotal }}</td>
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
+
+      <!-- Servicio -->
+      <section v-if="operacion.tipo_operacion === 'servicio'">
+        <h3 class="text-lg font-semibold mb-2">Detalle de Servicio</h3>
+        <div v-if="!operacion.servicio_detalle?.length" class="text-gray-400">No hay registros.</div>
+        <table v-else class="w-full border border-gray-300 text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-3 py-2">Descripción</th>
+              <th class="px-3 py-2">Costo Servicio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="s in operacion.servicio_detalle" :key="s.id" class="border-t">
+              <td class="px-3 py-2">{{ s.descripcion_item }}</td>
+              <td class="px-3 py-2 font-semibold text-green-600">S/. {{ s.costo_servicio }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../../services/api.js'
 
@@ -131,97 +115,55 @@ const router = useRouter()
 const id = route.params.id
 
 const operacion = ref(null)
+const vehiculos = ref([])
 const loading = ref(true)
 const error = ref(false)
 const errorMessage = ref('')
-const vehiculos = ref([])
 
-const goBack = () => {
-  router.back()
+// Ir atrás
+const goBack = () => router.back()
+
+// Formatear fecha
+const formatDate = (date) => {
+  if (!date) return 'No especificada'
+  const d = new Date(date)
+  return d.toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-// Función para formatear fecha
-const formatDate = (dateString) => {
-  if (!dateString) return 'No especificada'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('es-PE', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+// Obtener placa del vehículo por ID
+const getPlacaVehiculo = (id) => {
+  const v = vehiculos.value.find(v => v.id === id)
+  return v ? v.placa : `ID: ${id}`
 }
 
-// Función para obtener la placa del vehículo
-const getPlacaVehiculo = (vehiculoId) => {
-  if (!vehiculoId) return 'No especificado'
-  const vehiculo = vehiculos.value.find(v => v.id === vehiculoId)
-  return vehiculo ? vehiculo.placa : `ID: ${vehiculoId}`
-}
-
-// Cargar lista de vehículos para mostrar las placas
-const cargarVehiculos = async () => {
-  try {
-    const response = await api.get('vehiculos/')
-    vehiculos.value = response.data
-  } catch (err) {
-    console.warn('No se pudieron cargar los vehículos:', err)
+// Propiedad computada para mostrar en la tabla general
+const generalInfo = computed(() => {
+  if (!operacion.value) return {}
+  return {
+    'Número Documento': operacion.value.numero_documento,
+    'RUC Proveedor': operacion.value.ruc_proveedor,
+    'Nombre Proveedor': operacion.value.nombre_proveedor,
+    'Tipo Operación': operacion.value.tipo_operacion,
+    'Fecha': formatDate(operacion.value.fecha),
+    'Descripción': operacion.value.descripcion || 'Sin descripción',
+    'Costo Total': `S/. ${operacion.value.costo_total}`
   }
-}
+})
 
+// Fetch de datos
 onMounted(async () => {
   try {
-    // Cargar vehículos primero
-    await cargarVehiculos()
-    
-    // Luego cargar la operación
-    const response = await api.get(`operaciones/${id}/`)
-    operacion.value = response.data
+    const [v, o] = await Promise.all([
+      api.get('vehiculos/'),
+      api.get(`operaciones/${id}/`)
+    ])
+    vehiculos.value = v.data
+    operacion.value = o.data
   } catch (err) {
-    console.error('Error al cargar la operación:', err)
     error.value = true
-    if (err.response && err.response.data) {
-      errorMessage.value = JSON.stringify(err.response.data)
-    } else {
-      errorMessage.value = 'Error de red o servidor.'
-    }
+    errorMessage.value = err.response?.data || 'Error desconocido'
   } finally {
     loading.value = false
   }
 })
 </script>
-
-<style scoped>
-.operation-detail {
-  padding: 1rem;
-}
-
-.operation-detail button {
-  margin-bottom: 1rem;
-  padding: 0.3rem 0.6rem;
-  background-color: #c24d4d;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.operation-detail button:hover {
-  background-color: #da5858;
-}
-
-.operation-detail table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1.5rem;
-}
-
-.operation-detail th,
-.operation-detail td {
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-  text-align: left;
-}
-
-.operation-detail th {
-  background-color: #d15656;
-}
-</style>

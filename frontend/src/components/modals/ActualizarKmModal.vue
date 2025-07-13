@@ -1,60 +1,85 @@
 <template>
-  <div v-if="visible" class="modal-overlay">
-    <div class="modal-container">
-      <!-- HEADER -->
-      <header class="modal-header">
-        <h3 class="modal-title">Actualizar Kilometraje</h3>
-        <button class="modal-close" @click="close">×</button>
-      </header>
+  <div v-if="visible" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
+    <div class="bg-white dark:bg-neutral-900 w-full max-w-lg rounded-xl shadow-xl overflow-hidden animate-fade-in ring-1 ring-black/10 dark:ring-white/10">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Actualizar Kilometraje</h2>
+        <button
+          @click="close"
+          class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white transition text-xl"
+        >
+          &times;
+        </button>
+      </div>
 
-      <!-- BODY -->
-      <section class="modal-body">
-        <div v-if="loading" class="modal-loading">
-          <p>Cargando datos…</p>
+      <!-- Body -->
+      <div class="px-6 py-5">
+        <div v-if="loading" class="text-center text-gray-500 dark:text-gray-400">
+          <span class="italic">Cargando datos…</span>
         </div>
 
-        <div v-else-if="error" class="modal-error">
-          <p>Error: {{ errorMessage }}</p>
-          <button @click="loadVehicle" class="btn-secondary small-btn">Reintentar</button>
+        <div v-else-if="error" class="text-center text-red-600 dark:text-red-400 space-y-2">
+          <p>{{ errorMessage }}</p>
+          <button @click="loadVehicle" class="text-blue-600 hover:underline text-sm">
+            Reintentar
+          </button>
         </div>
 
-        <div v-else-if="vehiculo">
-          <!-- Datos vehículo -->
-          <p class="field-info">Placa: <strong>{{ vehiculo.placa }}</strong></p>
-          <p class="field-info">Kilometraje actual: {{ vehiculo.kilometraje }} km</p>
+        <div v-else-if="vehiculo" class="space-y-6">
+          <!-- Info vehículo -->
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            <p><strong class="text-gray-900 dark:text-white">Placa:</strong> {{ vehiculo.placa }}</p>
+            <p><strong class="text-gray-900 dark:text-white">Kilometraje actual:</strong> {{ vehiculo.kilometraje }} km</p>
+          </div>
 
-          <!-- FORM -->
-          <form @submit.prevent="submit" class="modal-form">
-            <div class="form-group">
-              <label for="inputKm" class="form-label">Nuevo kilometraje (km):</label>
+          <!-- Formulario -->
+          <form @submit.prevent="submit" class="space-y-4">
+            <div>
+              <label for="inputKm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nuevo kilometraje (km)
+              </label>
               <input
                 id="inputKm"
                 type="number"
                 v-model.number="nuevoKilometraje"
                 :min="Number(vehiculo.kilometraje)"
-                class="input-field"
+                class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
+              <p v-if="errorKilometraje" class="text-red-500 text-sm mt-1">
+                {{ errorKilometraje }}
+              </p>
             </div>
-            <div v-if="errorKilometraje" class="error-text">{{ errorKilometraje }}</div>
 
-            <!-- FOOTER -->
-            <footer class="modal-footer">
-              <button type="button" class="btn-secondary" :disabled="submitting" @click="close">
+            <!-- Botones -->
+            <div class="flex justify-end gap-2 pt-4">
+              <button
+                type="button"
+                class="px-4 py-2 text-sm font-medium rounded-md bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                :disabled="submitting"
+                @click="close"
+              >
                 Cancelar
               </button>
-              <button type="submit" class="btn-primary" :disabled="submitting">
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="submitting"
+              >
                 {{ submitting ? 'Guardando…' : 'Guardar' }}
               </button>
-            </footer>
+            </div>
           </form>
         </div>
 
-        <div v-else class="modal-error">
+        <div v-else class="text-center text-sm text-gray-500 dark:text-gray-400">
           <p>No se encontró el vehículo.</p>
-          <button @click="loadVehicle" class="btn-secondary small-btn">Cargar datos</button>
+          <button @click="loadVehicle" class="text-blue-600 hover:underline text-xs mt-1">
+            Cargar datos
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   </div>
 </template>
@@ -144,174 +169,12 @@ watch(
 </script>
 
 <style scoped>
-/* Overlay semitransparente */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Contenedor del modal */
-.modal-container {
-  background-color: #ffffff;
-  border-radius: 0.5rem; /* 8px */
-  width: 20rem; /* 320px */
-  max-width: 90%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: slideDown 0.3s ease-out;
-}
-
-/* Cabecera */
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-title {
-  font-size: 1.125rem; /* 18px */
-  font-weight: 600;
-  margin: 0;
-}
-
-.modal-close {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0 0.25rem;
-  transition: color 0.2s;
-}
-.modal-close:hover {
-  color: #111827;
-}
-
-/* Cuerpo */
-.modal-body {
-  padding: 1rem;
-}
-
-.modal-loading,
-.modal-error {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.field-info {
-  margin-bottom: 0.5rem;
-  color: #374151;
-}
-
-/* Formulario */
-.modal-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group {
-  margin-bottom: 0.75rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-  color: #4b5563;
-}
-
-.input-field {
-  width: 70%;
-  background-color: #d1d5db;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  color: #01060f;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.input-field:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-.error-text {
-  color: #b91c1c;
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
-}
-
-/* Pie del modal */
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-/* Botones */
-.btn-primary {
-  background-color: #3b82f6;
-  color: #ffffff;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.btn-primary:hover:not(:disabled) {
-  background-color: #2563eb;
-}
-
-.btn-secondary {
-  background-color: #e5e7eb;
-  color: #374151;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.btn-secondary:hover {
-  background-color: #d1d5db;
-}
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Botón pequeño para reintentar */
-.small-btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-}
-
-/* Animaciones */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes slideDown {
-  from { transform: translateY(-10%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
 </style>
