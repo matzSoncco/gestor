@@ -1,4 +1,3 @@
-// composables/useActualizarKilometraje.ts
 import { ref, computed } from 'vue';
 
 export function useActualizarKilometraje() {

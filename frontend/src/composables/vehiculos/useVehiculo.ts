@@ -2,7 +2,7 @@ import { ref, Ref } from 'vue';
 import api from '@/services/api';
 
 import { useFormActions }   from '@/composables/global/useFormActions';
-import { useNotification } from 'naive-ui';
+import { useNotify } from '@/composables/global/useNotify';
 import {
   makeVehiculoDefaults,
   type Vehiculo,
@@ -11,23 +11,19 @@ import {
 export function useVehiculos() {
   /* ---- defaults y estados de lista ---- */
   const defaults: Vehiculo = makeVehiculoDefaults();
-  const notification = useNotification();
+  const { success, error, info} = useNotify();
 
   const vehiculos: Ref<Vehiculo[]> = ref([]);
   const loading   = ref(false);
-  const error     = ref<unknown>(null);
 
   /* -------- fetch lista desde backend -------- */
   const fetchVehiculos = async () => {
     loading.value = true;
-    error.value   = null;
     try {
       const { data } = await api.get<Vehiculo[]>('vehiculos/');
       vehiculos.value = data;
     } catch (err) {
-      console.error('[useVehiculos] fetch error:', err);
-      error.value = err;
-      notification.error({title: 'Error', description: 'No se pudieron cargar los vehículos'});
+      error('Error al cargar vehículos');
     } finally {
       loading.value = false;
     }
@@ -36,7 +32,7 @@ export function useVehiculos() {
   /* ------------- crear vehículo --------------- */
   const onSubmitService = async (payload: Partial<Vehiculo>) => {
     const { data } = await api.post<Vehiculo>('vehiculos/', payload);
-    notification.success({title: 'Éxito', description: 'Vehículo creado correctamente'});
+    success('Vehículo creado correctamente');
     return data; // se usa en onSubmitCallback si lo deseas
   };
 
@@ -52,7 +48,7 @@ export function useVehiculos() {
 
   const resetForm = async () => {
     await baseReset();
-    notification.info({title: 'Formulario', description: 'Formulario limpiado correctamente'});
+    info('Formulario reiniciado');
   };
 
   /* ------------- API pública ------------------- */

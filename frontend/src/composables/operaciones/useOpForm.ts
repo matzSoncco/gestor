@@ -5,7 +5,7 @@ import { useCombustible }   from '@/composables/operaciones/useCombustible';
 import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio }      from '@/composables/operaciones/useServicio';
 import { useFormActions }   from '@/composables/global/useFormActions';
-import { useNotification } from 'naive-ui';
+import { useNotify } from '@/composables/global/useNotify';
 import {
   makeOperacionDefaults,
   type Operacion,
@@ -15,7 +15,7 @@ export function useOpForm() {
   /* ---------------- estado base ---------------- */
   const isResetting = ref(false);
   const defaults: Operacion = makeOperacionDefaults();
-  const notification = useNotification();
+  const { success, error, info } = useNotify();
 
   /* ----------- submit → backend ---------------- */
   const onSubmitService = async (payload: Partial<Operacion>) => {
@@ -39,7 +39,7 @@ export function useOpForm() {
 
     try {
       await api.post('operaciones/', dto);
-      notification.success({title: 'Bien', description: 'Operación registrada con éxito'});
+      success('Operación registrada correctamente');
       resetForm();
       nextTick(() => { isResetting.value = false; });
     } catch (err: any) {
@@ -47,7 +47,7 @@ export function useOpForm() {
         ? JSON.stringify(err.response.data)
         : 'Ocurrió un error inesperado.';
       console.error('[useOpForm] submit error', err);
-      notification.error({title: 'Error', description: msg});
+      error(msg || 'Error al registrar operación');
     }
   };
 
@@ -64,7 +64,7 @@ export function useOpForm() {
 
   const resetForm = async () => {
     await baseReset();
-    notification.info({title: 'Formulario', description: 'Formulario limpiado correctamente'});
+    info('Formulario reiniciado');
   };
 
   /* ------ sub-composables por sección ---------- */
@@ -89,7 +89,7 @@ export function useOpForm() {
         if (fd[campo].length) {
           // @ts-ignore
           fd[campo] = [];
-          notification.info({title: 'Cambios', description: msg});
+          info(msg || `${campo} descartado`);
         }
       };
 
