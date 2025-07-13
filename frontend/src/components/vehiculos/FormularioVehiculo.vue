@@ -146,5 +146,3 @@ const {
   submitForm
 } = useVehiculos();
 </script>
-
-<style scoped src="../../assets/styles/FormularioOperacion.css"></style>

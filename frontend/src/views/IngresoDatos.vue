@@ -29,6 +29,4 @@ import CargaCSV from '../components/CargaCSV.vue';
 
 import { useIngresoDatos } from '../composables/operaciones/useIngresoDatos';
 const { handleDatosEnviados, handleCsvCargado } = useIngresoDatos();
-
-import '../assets/styles/IngresoDatos.css';
 </script>

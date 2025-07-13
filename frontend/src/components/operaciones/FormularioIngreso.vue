@@ -488,5 +488,3 @@ const {
   submitForm 
 } = useOpForm();
 </script>
-
-<style scoped src="../../assets/styles/FormularioOperacion.css"></style>
