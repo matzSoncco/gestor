@@ -5,7 +5,7 @@
 
     <section class="form-section">
       <h2>Formulario de Registro para Operaciones</h2>
-      <FormularioIngreso @datos-enviados="handleDatosEnviados"/>
+      <FormularioIngreso @datos-enviados="handleDatosEnviados" />
     </section>
 
     <hr class="section-divider" />
@@ -14,18 +14,15 @@
       <h2>Carga de Archivo CSV</h2>
       <CargaCSV @csv-cargado="handleCsvCargado" />
     </section>
-
-    <div v-if="mensajeGlobal" :class="['mensaje-global', tipoMensajeGlobal]">
-      {{ mensajeGlobal }}
-    </div>
   </div>
 </template>
 
 <script setup>
-import FormularioIngreso from '../components/operaciones/FormularioIngreso.vue'
-import CargaCSV from '../components/CargaCSV.vue'
-import useIngresoDatos from '../composables/operaciones/useIngresoDatos';
-import '../assets/styles/IngresoDatos.css'
+import FormularioIngreso from '../components/operaciones/FormularioIngreso.vue';
+import CargaCSV from '../components/CargaCSV.vue';
 
-const { mensajeGlobal, tipoMensajeGlobal, handleDatosEnviados, handleCsvCargado } = useIngresoDatos();
+import { useIngresoDatos } from '../composables/operaciones/useIngresoDatos';
+const { handleDatosEnviados, handleCsvCargado } = useIngresoDatos();
+
+import '../assets/styles/IngresoDatos.css';
 </script>

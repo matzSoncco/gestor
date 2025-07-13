@@ -227,7 +227,6 @@
 <script setup>
 import { useVehiculos } from '../../composables/vehiculos/useVehiculo';
 import ModalGlobal from '../../components/modals/ModalGlobal.vue'
-import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 const {

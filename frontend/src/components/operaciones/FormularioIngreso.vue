@@ -1,11 +1,5 @@
 <template>
   <div class="formulario-container">
-    <ModalGlobal
-      :show="mensajeGlobal !== ''"
-      :mensaje="mensajeGlobal"
-      :tipo="tipoMensajeGlobal"
-      @close="mensajeGlobal = ''"
-    />
     <form @submit.prevent="submitForm" class="formulario-registro">
       <h3 class="form-title">Registro de Operacion</h3>
 
@@ -362,10 +356,8 @@ import api from '../../services/api';
 import { onMounted, ref } from 'vue';
 import { useOpForm } from '../../composables/operaciones/useOpForm';
 import ModalGlobal from '../../components/modals/ModalGlobal.vue';
-import useMensajeGlobal from '../../composables/global/useMensajeGlobal';
 
 const listaVehiculos = ref([]);
-const { mensajeGlobal, tipoMensajeGlobal } = useMensajeGlobal();
 
 onMounted(async () => {
   try {

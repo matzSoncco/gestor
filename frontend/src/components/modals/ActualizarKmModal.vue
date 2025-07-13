@@ -1,54 +1,50 @@
 <template>
   <div v-if="visible" class="modal-overlay">
     <div class="modal-container">
+      <!-- HEADER -->
       <header class="modal-header">
         <h3 class="modal-title">Actualizar Kilometraje</h3>
-        <button type="button" class="modal-close" @click="onClose" aria-label="Cerrar modal">×</button>
+        <button class="modal-close" @click="close">×</button>
       </header>
 
+      <!-- BODY -->
       <section class="modal-body">
         <div v-if="loading" class="modal-loading">
-          <p>Cargando datos...</p>
+          <p>Cargando datos…</p>
         </div>
 
         <div v-else-if="error" class="modal-error">
-          <p>Error: {{ error.message || error }}</p>
-          <button @click="loadVehicle" class="btn-secondary small-btn">
-            Reintentar
-          </button>
+          <p>Error: {{ errorMessage }}</p>
+          <button @click="loadVehicle" class="btn-secondary small-btn">Reintentar</button>
         </div>
 
         <div v-else-if="vehiculo">
+          <!-- Datos vehículo -->
           <p class="field-info">Placa: <strong>{{ vehiculo.placa }}</strong></p>
           <p class="field-info">Kilometraje actual: {{ vehiculo.kilometraje }} km</p>
 
-          <form @submit.prevent="onSubmit" class="modal-form">
+          <!-- FORM -->
+          <form @submit.prevent="submit" class="modal-form">
             <div class="form-group">
               <label for="inputKm" class="form-label">Nuevo kilometraje (km):</label>
               <input
                 id="inputKm"
                 type="number"
-                v-model.number="nuevoKm"
-                :min="parseFloat(vehiculo.kilometraje)"
+                v-model.number="nuevoKilometraje"
+                :min="Number(vehiculo.kilometraje)"
                 class="input-field"
                 required
               />
             </div>
-            <div v-if="errorMsg" class="error-text">{{ errorMsg }}</div>
+            <div v-if="errorKilometraje" class="error-text">{{ errorKilometraje }}</div>
 
+            <!-- FOOTER -->
             <footer class="modal-footer">
-              <button
-                type="button"
-                @click="onClose"
-                :disabled="loadingSubmit"
-                class="btn-secondary"
-              >Cancelar</button>
-              <button
-                type="submit"
-                :disabled="loadingSubmit"
-                class="btn-primary"
-              >
-                {{ loadingSubmit ? 'Guardando...' : 'Guardar' }}
+              <button type="button" class="btn-secondary" :disabled="submitting" @click="close">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" :disabled="submitting">
+                {{ submitting ? 'Guardando…' : 'Guardar' }}
               </button>
             </footer>
           </form>
@@ -56,86 +52,95 @@
 
         <div v-else class="modal-error">
           <p>No se encontró el vehículo.</p>
-          <button @click="loadVehicle" class="btn-secondary small-btn">
-            Cargar datos
-          </button>
+          <button @click="loadVehicle" class="btn-secondary small-btn">Cargar datos</button>
         </div>
       </section>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, watch, nextTick } from 'vue'
-import { useVehiculoDetalle } from '../../composables/vehiculos/useVehiculoDetalle'
+<script setup lang="ts">
+import { watch, nextTick, computed, ref } from 'vue';
+import { useVehiculoDetalle } from '@/composables/vehiculos/useVehiculoDetalle';
+import { useActualizarKilometraje } from '@/composables/vehiculos/useActualizarKilometraje';
 
-const props = defineProps({
-  visible: Boolean,
-  vehicleId: {
-    type: [String, Number],
-    required: true
-  }
-})
-const emit = defineEmits(['close', 'saved'])
+const props = defineProps<{
+  visible: boolean;
+  vehicleId: string | number | null;
+}>();
 
-const { vehiculo, loading, error, fetchVehiculo, updateKilometraje, resetVehiculo } = useVehiculoDetalle()
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'saved', v: unknown): void;
+}>();
 
-const nuevoKm = ref(null)
-const errorMsg = ref(null)
-const loadingSubmit = ref(false)
+/* --- composables --- */
+const {
+  vehiculo,
+  loading,
+  error,
+  fetchVehiculo,
+  updateKilometraje,
+  resetVehiculo,
+} = useVehiculoDetalle();
 
-const loadVehicle = async () => {
-  if (!props.vehicleId) return
-  errorMsg.value = null
-  resetVehiculo()
+const {
+  nuevoKilometraje,
+  errorKilometraje,
+  validarKilometraje,
+  reset,
+} = useActualizarKilometraje();
+
+/* estado local extra */
+const submitting = ref(false);
+const errorMessage = computed(() => (error.value as any)?.message ?? error.value);
+
+/* --- helpers --- */
+async function loadVehicle() {
+  if (!props.vehicleId) return;
+  resetVehiculo();
   try {
-    await fetchVehiculo(props.vehicleId)
-    nuevoKm.value = vehiculo.value ? parseFloat(vehiculo.value.kilometraje) : null
-  } catch (err) {
-    console.error('Error loading vehicle:', err)
+    await fetchVehiculo(props.vehicleId);
+    nuevoKilometraje.value = Number(vehiculo.value!.kilometraje);
+  } catch {
+    /* error ya manejado en composable */
   }
 }
 
+async function submit() {
+  if (!vehiculo.value) {
+    errorKilometraje.value = 'Vehículo no cargado.';
+    return;
+  }
+  if (!validarKilometraje()) return;
+
+  submitting.value = true;
+  try {
+    const updated = await updateKilometraje(props.vehicleId!, nuevoKilometraje.value);
+    emit('saved', updated);
+    close();
+  } finally {
+    submitting.value = false;
+  }
+}
+
+function close() {
+  emit('close');
+  resetVehiculo();
+  reset();
+}
+
+/* --- watches --- */
 watch(
   [() => props.visible, () => props.vehicleId],
-  async ([visible, vehicleId]) => {
-    if (visible && vehicleId) {
-      await nextTick()
-      await loadVehicle()
+  async ([vis, id]) => {
+    if (vis && id) {
+      await nextTick();
+      await loadVehicle();
     }
   },
-  { immediate: true }
-)
-
-const onSubmit = async () => {
-  errorMsg.value = null
-  if (!vehiculo.value) {
-    errorMsg.value = 'Vehículo no cargado.'
-    return
-  }
-  const currentKm = parseFloat(vehiculo.value.kilometraje)
-  if (nuevoKm.value < currentKm) {
-    errorMsg.value = `Debe ser ≥ ${currentKm}`
-    return
-  }
-  loadingSubmit.value = true
-  try {
-    const updated = await updateKilometraje(props.vehicleId, nuevoKm.value)
-    emit('saved', updated)
-    onClose()
-  } catch (err) {
-    console.error('Error updating kilometraje:', err)
-    errorMsg.value = 'No se pudo actualizar el kilometraje'
-  } finally {
-    loadingSubmit.value = false
-  }
-}
-
-const onClose = () => {
-  emit('close')
-  errorMsg.value = null
-  resetVehiculo()
-}
+  { immediate: true },
+);
 </script>
 
 <style scoped>

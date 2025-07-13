@@ -1,54 +1,48 @@
-<template>
-  <div class="home-view">
-    <!--
-    <h1>Bienvenido a la Aplicación</h1>
-    <p>
-      Esta es la página principal. Desde aquí puedes navegar a las diferentes
-      secciones de la aplicación utilizando el menú superior.
-    </p>
-    <section class="quick-links">
-      <h2>Accesos Rápidos</h2>
-      <ul>
-        <li>
-          <router-link :to="{ name: 'IngresoDatos' }">Ingresar Nuevos Datos</router-link>
-        </li>
-        <li>
-          <router-link :to="{ name: 'Reportes' }">Generar Reportes</router-link>
-        </li>
-      </ul>
-    </section>
-    -->
-    <h1>PAGINA DE INICIO EN CONSTRUCCIÓN 🙌</h1> <!-- mensaje para muestra para el usuario -->
+<!-- <template>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Bienvenido, {{ usuarioNombre }}</h1>
+      <p class="text-gray-600">Este es el panel de control principal del sistema.</p>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <n-card title="Registrar Operaciones" hoverable @click="goTo('IngresoDatos')" class="cursor-pointer">
+        <template #footer>Ir a formulario de operaciones</template>
+      </n-card>
+
+      <n-card title="Vehículos" hoverable @click="goTo('Vehiculos')" class="cursor-pointer">
+        <template #footer>Ver vehículos registrados</template>
+      </n-card>
+
+      <n-card title="Reportes" hoverable @click="goTo('Reportes')" class="cursor-pointer">
+        <template #footer>Generar reportes</template>
+      </n-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-// No se necesita lógica específica aquí por ahora
-</script>
+import { useRouter } from 'vue-router'
+import { NCard } from 'naive-ui'
+import { useAuthStore } from '@/store/auth'
 
-<style scoped>
-.home-view {
-  text-align: center;
+const router = useRouter()
+const authStore = useAuthStore()
+const usuarioNombre = authStore.currentUser?.email || 'Usuario'
+
+const goTo = (ruta) => {
+  router.push({ name: ruta })
 }
-.quick-links {
-  margin-top: 30px;
-}
-.quick-links ul {
-  list-style: none;
-  padding: 0;
-}
-.quick-links li {
-  margin: 10px 0;
-}
-.quick-links a {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-}
-.quick-links a:hover {
-  background-color: #0056b3;
-}
-</style>
+</script> -->
+<template>
+  <div class="flex flex-col items-center justify-center h-full text-center px-4 py-20">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">🚧 Página de Inicio en Construcción</h1>
+    <p class="text-gray-600 text-lg">
+      Estamos trabajando en esta sección. Mientras tanto, puedes usar el menú lateral para acceder a otras funciones del sistema.
+    </p>
+  </div>
+</template>
+
+<script setup>
+// No se necesita lógica por ahora
+</script>
