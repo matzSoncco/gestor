@@ -28,30 +28,50 @@
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <n-data-table
-          :columns="columns"
-          :data="vehiculosFiltrados"
-          :loading="loading"
-          :bordered="false"
-          :pagination="false"
-          row-class-name="getRowClass"
+        <template v-if="!loadError">
+          <n-data-table
+            :columns="columns"
+            :data="vehiculosFiltrados"
+            :loading="loading"
+            :bordered="false"
+            :pagination="false"
+            row-class-name="getRowClass"
+          >
+            <template #empty>
+              <div class="text-center text-gray-500">
+                No se encontraron vehículos
+              </div>
+            </template>
+          </n-data-table>
+
+          <ActualizarKmModal
+            v-if="modalVisible"
+            :visible="modalVisible"
+            :vehicle-id="selectedId"
+            @close="closeModal"
+            @saved="onKmActualizado"
+          />
+        </template>
+
+        <!-- Mostrar sólo si hubo error al cargar -->
+        <n-result
+          v-else
+          status="error"
+          class="mt-6"
+          title="Error al cargar los vehículos"
+          description="No se pudo conectar con el servidor. Verifica tu conexión o intenta nuevamente."
         >
-          <template #empty>
-            <div class="text-center text-gray-500">No se encontraron vehículos</div>
+          <template #footer>
+            <n-button @click="reintentarCarga" type="primary">Reintentar</n-button>
           </template>
-        </n-data-table>
-
-        <div v-if="error" class="mt-4 text-red-600">
-          Error al cargar los vehículos: {{ error.message || error }}
-        </div>
-
-      <ActualizarKmModal
-        v-if="modalVisible"
-        :visible="modalVisible"
-        :vehicle-id="selectedId"
-        @close="closeModal"
-        @saved="onKmActualizado"
-      />
+        </n-result>
+        <ActualizarKmModal
+              v-if="modalVisible"
+              :visible="modalVisible"
+              :vehicle-id="selectedId"
+              @close="closeModal"
+              @saved="onKmActualizado"
+            />
       </div>
     </div>
   </div>
@@ -71,8 +91,25 @@ const threshold = ref(300)
 const modalVisible = ref(false)
 const selectedId = ref(null)
 const searchPlaca = ref('')
+const loadError = ref(false)
 
-onMounted(fetchVehiculos)
+onMounted(async () => {
+  try {
+    await fetchVehiculos()
+    loadError.value = false
+  } catch {
+    loadError.value = true
+  }
+})
+
+const reintentarCarga = async () => {
+  loadError.value = false
+  try {
+    await fetchVehiculos()
+  } catch {
+    loadError.value = true
+  }
+}
 
 const vehiculosFiltrados = computed(() =>
   vehiculos.value.filter(v =>

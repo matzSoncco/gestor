@@ -22,8 +22,10 @@ export function useVehiculos() {
     try {
       const { data } = await api.get<Vehiculo[]>('vehiculos/');
       vehiculos.value = data;
+      return true;
     } catch (err) {
       error('Error al cargar vehículos');
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -56,7 +58,6 @@ export function useVehiculos() {
     // lista
     vehiculos,
     loading,
-    error,
     fetchVehiculos,
 
     // crear
