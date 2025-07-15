@@ -7,6 +7,7 @@ import { useServicio }      from '@/composables/operaciones/useServicio';
 import { useFormActions }   from '@/composables/global/useFormActions';
 import { useNotify }        from '@/composables/global/useNotify';
 import { stripTempIds }     from '@/utils/payload';
+import { validateRequired } from '@/utils/validateRequired';
 
 import {
   makeOperacionDefaults,
@@ -34,26 +35,7 @@ function validateOperacion(p: Partial<Operacion>): string | null {
     'tipo_operacion',
   ];
 
-  for (const campo of required) {
-    if (!p[campo] || (typeof p[campo] === 'string' && !(p[campo] as string).trim())) {
-      return `El campo "${String(campo)}" es obligatorio.`;
-    }
-  }
-
-  const tipo = p.tipo_operacion as TipoOperacion;
-  if (!['combustible', 'mantenimiento', 'servicio'].includes(tipo)) {
-    return 'Tipo de operación inválido.';
-  }
-
-  const hasDetail =
-    (tipo === 'combustible'   && (p.combustibles?.length ?? 0)   > 0) ||
-    (tipo === 'mantenimiento' && (p.mantenimientos?.length ?? 0) > 0) ||
-    (tipo === 'servicio'      && (p.servicios?.length ?? 0)      > 0);
-
-  if (!hasDetail) {
-    return `Debes añadir al menos un detalle de ${tipo}.`;
-  }
-  return null;
+  return validateRequired(p, required);
 }
 
 export function useOpForm() {

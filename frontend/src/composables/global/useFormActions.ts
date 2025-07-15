@@ -1,4 +1,4 @@
-import { ref, Ref } from 'vue';
+import { ref, Ref, nextTick } from 'vue';
 import { deepClone } from '@/utils/clone';
 import { omitEmpty } from '@/utils/omit';
 
@@ -41,6 +41,8 @@ export function useFormActions<T extends object>({
     loading.value = true;
 
     try {
+      await nextTick(); // <-- 🔁 Espera a que el input reactive esté actualizado
+
       const payload = omitEmpty(deepClone(formData.value)) as Partial<T>;
       const result  = await onSubmitService(payload);
       if (onSubmitCallback) await onSubmitCallback(result);
