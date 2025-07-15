@@ -1,70 +1,107 @@
-import { ref, watch, nextTick, Ref } from 'vue';
+import { ref, watch, Ref, nextTick } from 'vue';
 import api from '@/services/api';
 
 import { useCombustible }   from '@/composables/operaciones/useCombustible';
 import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio }      from '@/composables/operaciones/useServicio';
 import { useFormActions }   from '@/composables/global/useFormActions';
-import { useNotify } from '@/composables/global/useNotify';
+import { useNotify }        from '@/composables/global/useNotify';
+import { stripTempIds }     from '@/utils/payload';
+
 import {
   makeOperacionDefaults,
   type Operacion,
+  type TipoOperacion,
 } from '@/types/operacion';
+
+/* ------------ Tipo auxiliar DTO sin campos temporales ------------ */
+type OpDTO = Omit<
+  Operacion,
+  'combustibles' | 'mantenimientos' | 'servicios' | 'costo_total'
+> & {
+  combustible_detalle: any[];
+  mantenimiento_detalle: any[];
+  servicio_detalle: any[];
+};
+
+/* ----------------- Función de VALIDACIÓN ----------------- */
+function validateOperacion(p: Partial<Operacion>): string | null {
+  const required: (keyof Operacion)[] = [
+    'numero_documento',
+    'ruc_proveedor',
+    'nombre_proveedor',
+    'fecha',
+    'tipo_operacion',
+  ];
+
+  for (const campo of required) {
+    if (!p[campo] || (typeof p[campo] === 'string' && !(p[campo] as string).trim())) {
+      return `El campo "${String(campo)}" es obligatorio.`;
+    }
+  }
+
+  const tipo = p.tipo_operacion as TipoOperacion;
+  if (!['combustible', 'mantenimiento', 'servicio'].includes(tipo)) {
+    return 'Tipo de operación inválido.';
+  }
+
+  const hasDetail =
+    (tipo === 'combustible'   && (p.combustibles?.length ?? 0)   > 0) ||
+    (tipo === 'mantenimiento' && (p.mantenimientos?.length ?? 0) > 0) ||
+    (tipo === 'servicio'      && (p.servicios?.length ?? 0)      > 0);
+
+  if (!hasDetail) {
+    return `Debes añadir al menos un detalle de ${tipo}.`;
+  }
+  return null;
+}
 
 export function useOpForm() {
   /* ---------------- estado base ---------------- */
   const isResetting = ref(false);
-  const defaults: Operacion = makeOperacionDefaults();
+  const defaults = makeOperacionDefaults();
   const { success, error, info } = useNotify();
 
   /* ----------- submit → backend ---------------- */
   const onSubmitService = async (payload: Partial<Operacion>) => {
-    /* limpia ids temporales */
-    const limpiarArray = <T extends { id?: unknown }>(arr: T[]) =>
-      arr.map(({ id, ...rest }) =>
-        typeof id === 'number' && id > 0 ? ({ id, ...rest }) : rest,
-      );
+    /* --- VALIDACIÓN --- */
+    const validationMsg = validateOperacion(payload);
+    if (validationMsg) {
+      error(validationMsg);
+      throw new Error(validationMsg); // para que useFormActions capture el error y no ejecute reset
+    }
 
-    const dto = {
-      ...payload,
-      combustible_detalle   : limpiarArray(payload.combustibles     ?? []),
-      mantenimiento_detalle : limpiarArray(payload.mantenimientos   ?? []),
-      servicio_detalle      : limpiarArray(payload.servicios        ?? []),
+    const full = payload as Operacion;
+
+    /* --- CONSTRUCCIÓN DTO --- */
+    const dto: OpDTO = {
+      ...full,
+      combustible_detalle   : stripTempIds(full.combustibles),
+      mantenimiento_detalle : stripTempIds(full.mantenimientos),
+      servicio_detalle      : stripTempIds(full.servicios),
     };
 
-    delete (dto as any).combustibles;
-    delete (dto as any).mantenimientos;
-    delete (dto as any).servicios;
-    delete (dto as any).costo_total;
-
-    try {
-      await api.post('operaciones/', dto);
-      success('Operación registrada correctamente');
-      resetForm();
-      nextTick(() => { isResetting.value = false; });
-    } catch (err: any) {
-      const msg = err?.response?.data
-        ? JSON.stringify(err.response.data)
-        : 'Ocurrió un error inesperado.';
-      console.error('[useOpForm] submit error', err);
-      error(msg || 'Error al registrar operación');
-    }
+    await api.post('operaciones/', dto);
+    success('Operación registrada correctamente');
   };
 
   /* ------------ acciones genéricas ------------- */
   const {
-    formData,        // Ref<Operacion>
+    formData,
     loading,
     resetForm: baseReset,
     submitForm,
   } = useFormActions<Operacion>({
     defaults,
     onSubmitService,
+    onResetCallback: () => info('Formulario reiniciado'),
   });
 
   const resetForm = async () => {
+    isResetting.value = true;
     await baseReset();
-    info('Formulario reiniciado');
+    await nextTick();
+    isResetting.value = false;
   };
 
   /* ------ sub-composables por sección ---------- */
@@ -85,11 +122,11 @@ export function useOpForm() {
       const fd = formData.value;
 
       const descartar = (campo: keyof Operacion, msg: string) => {
-        // @ts-ignore - campos de arrays
-        if (fd[campo].length) {
+        // @ts-ignore
+        if (fd[campo]?.length) {
           // @ts-ignore
           fd[campo] = [];
-          info(msg || `${campo} descartado`);
+          info(msg);
         }
       };
 
@@ -113,7 +150,7 @@ export function useOpForm() {
 
     addMantenimientoRow,
     removeMantenimientoRow,
-    ...mant, // sugerencias, inputActivo, etc.
+    ...mant,
 
     addServicioRow,
     removeServicioRow,
