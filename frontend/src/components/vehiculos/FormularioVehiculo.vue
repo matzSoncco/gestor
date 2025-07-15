@@ -128,7 +128,7 @@
       <!-- Acciones -->
       <div class="flex justify-end gap-4 pt-4">
         <n-button type="tertiary" @click="resetForm" :disabled="loading">Limpiar</n-button>
-        <n-button type="primary" attr-type="submit" :loading="loading">
+        <n-button type="primary" @click="submitForm" :loading="loading">
           {{ loading ? 'Enviando...' : 'Registrar Vehículo' }}
         </n-button>
       </div>

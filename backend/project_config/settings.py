@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from decouple import config, Csv
 import os
 import dj_database_url
 from pathlib import Path
@@ -19,44 +20,29 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+DEBUG = config('DJANGO_DEBUG', default='True').lower() in ('1', 'true', 'yes')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1','true','yes')
+SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-cambia-esto-si-alguien-lo-ve')
+if not DEBUG and SECRET_KEY == 'dev-secret-key-cambia-esto-si-alguien-lo-ve':
+    raise RuntimeError("En producción, SECRET_KEY debe estar definida en variables de entorno")
 
-if DEBUG:
-    SECRET_KEY = 'dev-secret-key-cambia-esto-si-alguien-lo-ve'
-else:
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-    if not SECRET_KEY:
-        raise RuntimeError("En producción, debe definirse SECRET_KEY en variables de entorno")
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
-if DEBUG:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-else:
-    hosts_env = os.environ.get('ALLOWED_HOSTS', '')
-    if hosts_env:
-        ALLOWED_HOSTS = [h.strip() for h in hosts_env.split(',') if h.strip()]
-    else:
-        # Opcional: lanzar error o dejar vacío para fallar cerrado
-        ALLOWED_HOSTS = []
+raw_frontend = config('FRONTEND_URL', default='http://localhost:5173').rstrip('/')
+
+CSRF_TRUSTED_ORIGINS = [
+    raw_frontend,
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
-raw_frontend = os.environ.get('FRONTEND_URL', '').rstrip('/')
+CORS_ALLOWED_ORIGINS = [raw_frontend]
 if DEBUG:
-    CORS_ALLOWED_ORIGINS = [
+    # También aceptamos explícitamente localhost en desarrollo
+    CORS_ALLOWED_ORIGINS += [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
-    if raw_frontend:
-        CORS_ALLOWED_ORIGINS.append(raw_frontend)
-else:
-    if raw_frontend:
-        CORS_ALLOWED_ORIGINS = [raw_frontend]
-    else:
-        CORS_ALLOWED_ORIGINS = []
 
 
 # Application definition
@@ -94,13 +80,15 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 }
-from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('ACCESS_TOKEN_LIFETIME_MINUTES', default=60, cast=int)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=config('REFRESH_TOKEN_LIFETIME_DAYS', default=1, cast=int)),
 }
 
 ROOT_URLCONF = 'project_config.urls'
@@ -129,7 +117,11 @@ WSGI_APPLICATION = 'project_config.wsgi.application'
 
 if 'DATABASE_URL' in os.environ:
     DATABASES = {
-        'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600, ssl_require=not DEBUG)
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=not DEBUG
+            )
     }
 else:
     # Desarrollo local: SQLite

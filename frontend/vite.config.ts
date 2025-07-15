@@ -18,7 +18,6 @@ export default defineConfig({
       // Como TODOS tus archivos (components, composables, services…) están en la raíz
       // del proyecto, apunta el alias "@" a la carpeta actual ('.'):
       '@': resolve(__dirname, './src'),
-      // Si algún día creas /src, cambia a './src'
     },
   },
 });
