@@ -25,7 +25,7 @@ type OpDTO = Omit<
   servicio_detalle: any[];
 };
 
-/* ----------------- Función de VALIDACIÓN ----------------- */
+/* ----------------- VALIDACIÓN ----------------- */
 function validateOperacion(p: Partial<Operacion>): string | null {
   const required: (keyof Operacion)[] = [
     'numero_documento',
@@ -35,6 +35,7 @@ function validateOperacion(p: Partial<Operacion>): string | null {
     'tipo_operacion',
   ];
 
+  // Mensaje global genérico
   return validateRequired(p, required);
 }
 
@@ -50,18 +51,28 @@ export function useOpForm() {
     const validationMsg = validateOperacion(payload);
     if (validationMsg) {
       error(validationMsg);
-      throw new Error(validationMsg); // para que useFormActions capture el error y no ejecute reset
+      throw new Error(validationMsg);          // evita reset en caso de fallo
     }
 
-    const full = payload as Operacion;
+    /**
+     * Aseguramos valores por defecto (arrays vacíos) con merge.
+     * Esto evita undefined en stripTempIds
+     */
+    const merged: Operacion = { ...defaults, ...payload };
 
     /* --- CONSTRUCCIÓN DTO --- */
     const dto: OpDTO = {
-      ...full,
-      combustible_detalle   : stripTempIds(full.combustibles),
-      mantenimiento_detalle : stripTempIds(full.mantenimientos),
-      servicio_detalle      : stripTempIds(full.servicios),
+      ...merged,
+      combustible_detalle   : stripTempIds(merged.combustibles),
+      mantenimiento_detalle : stripTempIds(merged.mantenimientos),
+      servicio_detalle      : stripTempIds(merged.servicios),
     };
+
+    // Eliminamos arrays originales y costo_total
+    delete (dto as any).combustibles;
+    delete (dto as any).mantenimientos;
+    delete (dto as any).servicios;
+    delete (dto as any).costo_total;
 
     await api.post('operaciones/', dto);
     success('Operación registrada correctamente');
@@ -76,7 +87,7 @@ export function useOpForm() {
   } = useFormActions<Operacion>({
     defaults,
     onSubmitService,
-    onResetCallback: () => info('Formulario reiniciado'),
+    onResetCallback: () => info('Formulario limpiado'),
   });
 
   const resetForm = async () => {
@@ -96,7 +107,7 @@ export function useOpForm() {
   const { addServicioRow, removeServicioRow, costoTotalServicio } =
     useServicio(formData as Ref<Operacion>);
 
-  /* ------------- watcher de tipo --------------- */
+  /* ------------- watcher de tipo_operacion --------------- */
   watch(
     () => formData.value.tipo_operacion,
     (nuevo, viejo) => {
@@ -104,10 +115,9 @@ export function useOpForm() {
       const fd = formData.value;
 
       const descartar = (campo: keyof Operacion, msg: string) => {
-        // @ts-ignore
-        if (fd[campo]?.length) {
-          // @ts-ignore
-          fd[campo] = [];
+        const arr = fd[campo] as unknown[];
+        if (Array.isArray(arr) && arr.length) {
+          (fd as any)[campo] = [];
           info(msg);
         }
       };

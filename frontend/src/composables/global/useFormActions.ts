@@ -19,7 +19,7 @@ export interface UseFormActionsReturn<T> {
   [key: string]: unknown;
 }
 
-/* ------------------------- Implementación principal ------------------------ */
+/* -------------------- Implementación principal -------------------- */
 export function useFormActions<T extends object>({
   defaults,
   onSubmitService,
@@ -41,14 +41,19 @@ export function useFormActions<T extends object>({
     loading.value = true;
 
     try {
-      await nextTick(); // <-- 🔁 Espera a que el input reactive esté actualizado
+      await nextTick(); // asegura que v-models estén actualizados
 
+      // 1) Validación específica (si existe) se realiza en onSubmitService
+      // 2) Limpiamos campos vacíos antes de enviar:
       const payload = omitEmpty(deepClone(formData.value)) as Partial<T>;
-      const result  = await onSubmitService(payload);
+
+      const result = await onSubmitService(payload);
+
       if (onSubmitCallback) await onSubmitCallback(result);
       await resetForm();
     } catch (err) {
-      
+      // Pasas el error hacia arriba si quieres manejarlo en el componente
+      console.error('[useFormActions] submit error:', err);
     } finally {
       loading.value = false;
     }
