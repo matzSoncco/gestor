@@ -87,7 +87,7 @@ import { useRouter } from 'vue-router'
 import { Vehiculo } from '@/types/vehiculo'
 
 const router = useRouter()
-const { vehiculos, loading, fetchVehiculos } = useVehiculos()
+const { vehiculos, loading, load } = useVehiculos()
 
 const threshold = ref<number>(300)
 const modalVisible = ref<boolean>(false)
@@ -97,7 +97,7 @@ const loadError = ref<boolean>(false)
 
 onMounted(async () => {
   try {
-    await fetchVehiculos()
+    await load()
     loadError.value = false
   } catch {
     loadError.value = true
@@ -107,7 +107,7 @@ onMounted(async () => {
 const reintentarCarga = async () => {
   loadError.value = false
   try {
-    await fetchVehiculos()
+    await load()
   } catch {
     loadError.value = true
   }

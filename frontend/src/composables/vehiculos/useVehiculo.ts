@@ -1,94 +1,98 @@
-// composables/vehiculos/useVehiculos.ts
-import { ref, Ref, nextTick } from 'vue';
-import api from '@/services/api';
+// src/composables/useVehiculos.ts
+import { ref, nextTick, type Ref } from 'vue'
+import { useNotify }   from '@/composables/global/useNotify'
+import { useFormActions } from '@/composables/global/useFormActions'
+import { validateRequired } from '@/utils/validateRequired'
+import { makeVehiculoDefaults, type Vehiculo } from '@/types/vehiculo'
 
-import { useFormActions }   from '@/composables/global/useFormActions';
-import { useNotify }        from '@/composables/global/useNotify';
-import { validateRequired } from '@/utils/validateRequired';
-
+/* ⬇️ importa las funciones HTTP recién creadas */
 import {
-  makeVehiculoDefaults,
-  type Vehiculo,
-} from '@/types/vehiculo';
+  fetchVehiculos,
+  createVehiculo,
+  updateVehiculo,
+  deleteVehiculo
+} from '@/api/vehiculo'
 
-/* ----------------- VALIDACIÓN ----------------- */
-function validateVehiculo(p: Partial<Vehiculo>): string | null {
-  // Campos que aparecerán marcados con * en el formulario
-  const required: (keyof Vehiculo)[] = ['placa', 'marca', 'modelo'];
-  return validateRequired(p, required); // mensaje global genérico
+function validateVehiculo (p: Partial<Vehiculo>): string | null {
+  const required: (keyof Vehiculo)[] = ['placa', 'marca', 'modelo']
+  return validateRequired(p, required)
 }
 
-export function useVehiculos() {
-  /* ---- defaults y estados de lista ---- */
-  const isResetting = ref(false);
-  const defaults: Vehiculo = makeVehiculoDefaults();
-  const { success, error, info } = useNotify();
+export function useVehiculos () {
+  /* -------- estado -------- */
+  const vehiculos: Ref<Vehiculo[]> = ref([])
+  const loading  = ref(false)
+  const { success, error, info } = useNotify()
 
-  const vehiculos: Ref<Vehiculo[]> = ref([]);
-  const loading = ref(false);
-
-  /* -------- fetch lista desde backend -------- */
-  const fetchVehiculos = async () => {
-    loading.value = true;
+  /* -------- cargar lista -------- */
+  const load = async () => {
+    loading.value = true
     try {
-      const { data } = await api.get<Vehiculo[]>('vehiculos/');
-      vehiculos.value = data;
-      return true;
-    } catch (err) {
-      error('Error al cargar vehículos');
-      throw err;
+      const { data } = await fetchVehiculos()
+      vehiculos.value = data
+    } catch (e) {
+      error('Error al cargar vehículos')
+      throw e
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
 
-  /* ------------- crear vehículo --------------- */
+  /* -------- crear -------- */
   const onSubmitService = async (payload: Partial<Vehiculo>) => {
-    /* Validación global antes de enviar */
-    const msg = validateVehiculo(payload);
-    if (msg) {
-      error(msg);
-      throw new Error(msg); // evita que useFormActions haga reset
-    }
+    const msg = validateVehiculo(payload)
+    if (msg) { error(msg); throw new Error(msg) }
 
-    const { data } = await api.post<Vehiculo>('vehiculos/', payload);
-    success('Vehículo creado correctamente');
-    // Podrías refrescar la lista automáticamente:
-    // await fetchVehiculos();
-    return data;
-  };
+    const { data } = await createVehiculo(payload)
+    success('Vehículo creado')
+    vehiculos.value.unshift(data)     // opcional (optimista)
+    return data
+  }
 
-  /* ------------ acciones genéricas ------------- */
+  /* -------- editar -------- */
+  const update = async (id: number, payload: Partial<Vehiculo>) => {
+    const { data } = await updateVehiculo(id, payload)
+    const idx = vehiculos.value.findIndex(v => v.id === id)
+    if (idx !== -1) vehiculos.value[idx] = data
+    success('Vehículo actualizado')
+    return data
+  }
+
+  /* -------- eliminar -------- */
+  const remove = async (id: number) => {
+    await deleteVehiculo(id)
+    vehiculos.value = vehiculos.value.filter(v => v.id !== id)
+    success('Vehículo eliminado')
+  }
+
+  /* -------- formulario reusable -------- */
   const {
     formData,
     loading: formLoading,
     resetForm: baseReset,
-    submitForm,
+    submitForm
   } = useFormActions<Vehiculo>({
-    defaults,
+    defaults: makeVehiculoDefaults(),
     onSubmitService,
     onResetCallback: () => info('Formulario reiniciado'),
-    onSubmitCallback: () => { void fetchVehiculos(); } // recarga lista tras crear
-  });
+  })
 
   const resetForm = async () => {
-    isResetting.value = true;
-    await baseReset();
-    await nextTick();
-    isResetting.value = false;
-  };
+    await baseReset()
+    await nextTick()
+  }
 
-  /* ------------- API pública ------------------- */
+  /* -------- API pública del composable -------- */
   return {
-    // lista
     vehiculos,
     loading,
-    fetchVehiculos,
-
-    // creación
+    load,          // listar
+    create: submitForm,
+    update,
+    remove,
+    // helpers de formulario
     formData,
     formLoading,
-    resetForm,
-    submitForm,
-  };
+    resetForm
+  }
 }
