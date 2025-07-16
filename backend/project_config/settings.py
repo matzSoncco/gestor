@@ -44,6 +44,8 @@ if DEBUG:
         "http://127.0.0.1:5173",
     ]
 
+# Custom user model
+AUTH_USER_MODEL = 'core_app.CustomUser'
 
 # Application definition
 

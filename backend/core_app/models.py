@@ -5,11 +5,7 @@ from decimal import Decimal
 from django.core.validators import (
     MinValueValidator, MaxValueValidator, RegexValidator
 )
-
-SERVICIOS = [
-    ('SERV1', 'SERVICIO 1'),
-    ('SERV2', 'SERVICIO 2'),
-]
+from django.contrib.auth.models import AbstractUser
 
 COMBUSTIBLE_CHOICES = [
     ('GASOLINA', 'Gasolina'),
@@ -23,7 +19,19 @@ TIPO_OPERACION = [
     ('servicio', 'Servicio'),
 ]
 
+
+class Empresa(models.Model):
+    ruc = models.CharField(max_length=11, unique=True, validators=[RegexValidator(r'^\d{11}$', 'RUC debe tener 11 dígitos.')])
+    razon_social = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+
+    def __str__(self):
+        return self.razon_social
+
 class Vehiculo(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="vehiculos")
     placa = models.CharField(
         max_length=6,
         unique=True,
@@ -124,6 +132,7 @@ class Vehiculo(models.Model):
 
 
 class Operaciones(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="operaciones")
     numero_documento = models.CharField(max_length=20, blank=True, null=True)
     ruc_proveedor = models.CharField(max_length=11, blank=True, null=True)
     nombre_proveedor = models.CharField(max_length=100, blank=True, null=True)
@@ -138,8 +147,8 @@ class Operaciones(models.Model):
         verbose_name_plural = 'Operaciones'
     
     def __str__(self):
-        # Eliminamos referencias a campos inexistentes (vehiculo, fecha_operacion)
-        return f"{self.get_tipo_operacion_display()} - {self.fecha.strftime('%Y-%m-%d')}"
+        fecha_str = self.fecha.strftime('%Y-%m-%d') if self.fecha else 'Sin fecha'
+        return f"{self.get_tipo_operacion_display()} - {fecha_str}"
     
     def save(self, *args, **kwargs):
         # Aquí puedes agregar lógica adicional antes de guardar
@@ -147,16 +156,19 @@ class Operaciones(models.Model):
 
 
 class Repuesto(models.Model):
-    idRepuesto = models.IntegerField(null=False)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="repuestos")
     nombre = models.CharField(max_length=100, default="")
-    
+
     def __str__(self):
-        return f"Repuesto {self.idRepuesto} - {self.nombre}"
+        return self.nombre
 
 class Servicio(models.Model):
     # Relación con Operaciones
     operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_detalle')
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_vehiculo')
+
+    # Relación con Empresa
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="servicios")
 
     # Campos específicos del servicio
     descripcion_item = models.CharField(max_length=100, default="")
@@ -171,6 +183,9 @@ class Mantenimiento(models.Model):
     # Relación con Operaciones
     operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_detalle')
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_vehiculo')
+
+    # Relación con Empresa
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="mantenimientos")
 
     # Campos específicos del mantenimiento
     descripcion_item = models.CharField(max_length=100, default="")
@@ -187,6 +202,9 @@ class Combustible(models.Model):
     operacion = models.ForeignKey(Operaciones, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_detalle')
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_vehiculo')
 
+    # Relación con Empresa
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="combustibles")
+
     # Campos específicos del combustible
     cantidad_galones = models.IntegerField(null=False, default=0)
     costo_por_galon = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
@@ -195,3 +213,9 @@ class Combustible(models.Model):
     def save(self, *args, **kwargs):
         self.subtotal = Decimal(self.cantidad_galones) * self.costo_por_galon
         super().save(*args, **kwargs)
+    
+class CustomUser(AbstractUser):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, null=True, blank=True, related_name='usuarios')
+
+    def __str__(self):
+        return f"{self.username} ({self.empresa.razon_social if self.empresa else 'Sin empresa'})"

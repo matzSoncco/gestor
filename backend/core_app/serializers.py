@@ -7,12 +7,16 @@ from .models import (
     Operaciones,
     Servicio,
     Mantenimiento,
-    Combustible
+    Combustible,
+    Repuesto
 )
 
-# ------------------------
-# 3) Serializer para Servicio
-# ---------------------------
+
+class RepuestoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repuesto
+        fields = ['id', 'nombre']
+
 class ServicioSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     class Meta:
