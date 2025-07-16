@@ -12,7 +12,7 @@
       <!-- Información básica -->
       <n-card title="Información del Documento" class="shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <n-form-item label="N° de Factura o Documento">
+          <n-form-item label="N° de Factura o Documento (*)">
             <n-input
               v-model:value="formData.numero_documento"
               placeholder="Ingrese número de documento"
@@ -20,7 +20,7 @@
             />
           </n-form-item>
           
-          <n-form-item label="RUC del Proveedor">
+          <n-form-item label="RUC del Proveedor (*)">
             <n-input
               v-model:value="formData.ruc_proveedor"
               placeholder="Ingrese RUC (11 dígitos)"
@@ -30,7 +30,7 @@
           </n-form-item>
         </div>
         
-        <n-form-item label="Nombre del Proveedor">
+        <n-form-item label="Nombre del Proveedor (*)">
           <n-input
             v-model:value="formData.nombre_proveedor"
             placeholder="Aquí se mostrará el nombre del proveedor"
@@ -43,7 +43,7 @@
       <!-- Información de la operación -->
       <n-card title="Detalles de la Operación" class="shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <n-form-item label="Tipo de Operación">
+          <n-form-item label="Tipo de Operación (*)">
             <n-select
               v-model:value="formData.tipo_operacion"
               placeholder="Seleccione un tipo"
@@ -55,7 +55,7 @@
             />
           </n-form-item>
           
-          <n-form-item label="Fecha">
+          <n-form-item label="Fecha (*)">
             <n-date-picker
               v-model:formatted-value="formData.fecha"
               type="date"
@@ -103,7 +103,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <n-form-item label="Cantidad (Galones)">
+                  <n-form-item label="Cantidad (Galones) (*)">
                     <n-input-number
                       v-model:value="comb.cantidad_galones"
                       placeholder="0.00"
@@ -114,7 +114,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo por Galón (S/)">
+                  <n-form-item label="Costo por Galón (S/) (*)">
                     <n-input-number
                       v-model:value="comb.costo_por_galon"
                       placeholder="0.00"
@@ -125,7 +125,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Subtotal (S/)">
+                  <n-form-item label="Subtotal (S/) (*)">
                     <n-input
                       :value="comb.subtotal?.toFixed(2) || '0.00'"
                       readonly
@@ -133,7 +133,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Vehículo">
+                  <n-form-item label="Vehículo (*)">
                     <n-select
                       v-model:value="comb.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -208,7 +208,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <n-form-item label="Item/Servicio" class="relative">
+                  <n-form-item label="Item/Servicio (*)" class="relative">
                     <n-input
                       v-model:value="mant.descripcion_item"
                       placeholder="Escriba o seleccione item"
@@ -232,7 +232,7 @@
                     </div>
                   </n-form-item>
                   
-                  <n-form-item label="Cantidad">
+                  <n-form-item label="Cantidad (*)">
                     <n-input-number
                       v-model:value="mant.cantidad"
                       placeholder="1"
@@ -241,7 +241,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo Unit. (S/)">
+                  <n-form-item label="Costo Unit. (S/) (*)">
                     <n-input-number
                       v-model:value="mant.costo_unitario"
                       placeholder="0.00"
@@ -252,7 +252,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Subtotal (S/)">
+                  <n-form-item label="Subtotal (S/) (*)">
                     <n-input
                       :value="mant.subtotal?.toFixed(2) || '0.00'"
                       readonly
@@ -261,7 +261,7 @@
                   </n-form-item>
                 </div>
                 
-                <n-form-item label="Vehículo">
+                <n-form-item label="Vehículo (*)">
                   <n-select
                     v-model:value="mant.placa_vehiculo"
                     placeholder="Seleccione vehículo"
@@ -334,7 +334,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <n-form-item label="Descripción del Servicio">
+                  <n-form-item label="Descripción del Servicio (*)">
                     <n-input
                       v-model:value="serv.descripcion_item"
                       placeholder="Especifique el servicio"
@@ -342,7 +342,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo (S/)">
+                  <n-form-item label="Costo (S/) (*)">
                     <n-input-number
                       v-model:value="serv.costo_servicio"
                       placeholder="0.00"
@@ -354,7 +354,7 @@
                   </n-form-item>
                 </div>
                 
-                <n-form-item label="Vehículo">
+                <n-form-item label="Vehículo (*)">
                   <n-select
                     v-model:value="serv.placa_vehiculo"
                     placeholder="Seleccione vehículo"
@@ -395,7 +395,7 @@
 
           <!-- Descripción adicional -->
           <n-card title="Información Adicional" class="shadow-sm">
-            <n-form-item label="Descripción Adicional (Opcional)">
+            <n-form-item label="Descripción Adicional">
               <n-input
                 v-model:value="formData.descripcion"
                 type="textarea"
