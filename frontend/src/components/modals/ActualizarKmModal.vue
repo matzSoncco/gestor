@@ -88,6 +88,7 @@
 import { watch, nextTick, computed, ref } from 'vue';
 import { useVehiculoDetalle } from '@/composables/vehiculos/useVehiculoDetalle';
 import { useActualizarKilometraje } from '@/composables/vehiculos/useActualizarKilometraje';
+import { Vehiculo } from '@/types/vehiculo';
 
 const props = defineProps<{
   visible: boolean;
@@ -96,7 +97,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'saved', v: unknown): void;
+  (e: 'saved', v: Vehiculo): void;
 }>();
 
 /* --- composables --- */

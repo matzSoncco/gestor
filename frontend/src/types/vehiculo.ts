@@ -1,7 +1,8 @@
 export interface Vehiculo {
+  id: number;
   placa: string;
   anio: number;
-  kilometraje: number;
+  kilometraje: number | string;
   costo: number;
   ubicacion: string;
   categoria: string;
@@ -35,6 +36,7 @@ export interface Vehiculo {
  */
 export function makeVehiculoDefaults(): Vehiculo {
   return {
+    id: 0,
     placa: '',
     anio: 2024,
     kilometraje: 0,

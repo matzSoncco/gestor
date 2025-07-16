@@ -35,7 +35,7 @@
             :loading="loading"
             :bordered="false"
             :pagination="false"
-            row-class-name="getRowClass"
+            :row-class-name="getRowClassName"
           >
             <template #empty>
               <div class="text-center text-gray-500">
@@ -66,32 +66,34 @@
           </template>
         </n-result>
         <ActualizarKmModal
-              v-if="modalVisible"
-              :visible="modalVisible"
-              :vehicle-id="selectedId"
-              @close="closeModal"
-              @saved="onKmActualizado"
-            />
+          v-if="modalVisible"
+          :visible="modalVisible"
+          :vehicle-id="selectedId"
+          @close="closeModal"
+          @saved="onKmActualizado"
+        />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
 import { NButton } from 'naive-ui'
 import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
+
 import ActualizarKmModal from '@/components/modals/ActualizarKmModal.vue'
 import { useRouter } from 'vue-router'
+import { Vehiculo } from '@/types/vehiculo'
 
 const router = useRouter()
-const { vehiculos, error, loading, fetchVehiculos } = useVehiculos()
+const { vehiculos, loading, fetchVehiculos } = useVehiculos()
 
-const threshold = ref(300)
-const modalVisible = ref(false)
-const selectedId = ref(null)
-const searchPlaca = ref('')
-const loadError = ref(false)
+const threshold = ref<number>(300)
+const modalVisible = ref<boolean>(false)
+const selectedId = ref<number | null>(null)
+const searchPlaca = ref<string>('')
+const loadError = ref<boolean>(false)
 
 onMounted(async () => {
   try {
@@ -117,7 +119,7 @@ const vehiculosFiltrados = computed(() =>
   )
 )
 
-function openModal(id) {
+function openModal(id: number) {
   selectedId.value = id
   modalVisible.value = true
 }
@@ -127,8 +129,9 @@ function closeModal() {
   selectedId.value = null
 }
 
-function onKmActualizado(updatedVehiculo) {
-  const idx = vehiculos.value.findIndex(v => v.id === updatedVehiculo.id)
+const onKmActualizado = (payload: Vehiculo) => {
+  const updatedVehiculo = payload as Vehiculo
+  const idx = vehiculos.value.findIndex((v) => v.id === updatedVehiculo.id)
   if (idx !== -1) {
     vehiculos.value[idx].kilometraje = updatedVehiculo.kilometraje
   }
@@ -156,7 +159,7 @@ const columns = [
   {
     title: 'Acciones',
     key: 'acciones',
-    render(row) {
+    render(row: Vehiculo) {
       return h('div', { class: 'flex gap-2' }, [
         h(
           NButton,
@@ -184,7 +187,17 @@ const columns = [
 ]
 
 // Resaltar filas según kilometraje
-function getRowClass(row) {
-  return row.kilometraje >= threshold.value ? 'bg-red-100' : ''
+// Reemplaza la función getRowClass con row-props
+const getRowClassName = (row: Vehiculo) => {
+  const km = Number(row.kilometraje)
+  return !isNaN(km) && km >= threshold.value ? 'row-km-alto' : ''
 }
 </script>
+
+<style scoped>
+:deep(.row-km-alto td) {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  font-weight: 600;
+}
+</style>
