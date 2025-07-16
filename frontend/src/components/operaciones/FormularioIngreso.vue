@@ -447,7 +447,7 @@
 </template>
 
 <script setup>
-import api from '../../services/api';
+import api from '../../services/authService';
 import { onMounted, ref } from 'vue';
 import { useOpForm } from '../../composables/operaciones/useOpForm';
 

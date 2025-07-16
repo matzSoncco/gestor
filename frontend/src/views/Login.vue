@@ -1,93 +1,41 @@
+<!-- views/Login.vue -->
 <template>
-  <!--div class="login-container">
-    <h2>Iniciar Sesión</h2>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="username">Nombre de usuario:</label>
-        <input type="text" id="username" v-model="username" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Contraseña:</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
-      <div v-if="authStore.loginError" class="error-message">
-        {{ authStore.loginError }}
-      </div>
-      <button type="submit" :disabled="loading">
-        {{ loading ? 'Ingresando...' : 'Ingresar' }}
-      </button>
+  <div class="max-w-sm mx-auto mt-20">
+    <h1 class="text-xl font-bold mb-4">Iniciar Sesión</h1>
+    <form @submit.prevent="handleLogin">
+      <input v-model="username" placeholder="Usuario" class="input" />
+      <input v-model="password" type="password" placeholder="Contraseña" class="input mt-2" />
+      <button type="submit" class="btn mt-4">Ingresar</button>
     </form>
-  </div-->
-  <h1>LOGIN EN CONSTRUCCIÓN 👀, PRUEBE CON REGISTROS</h1>
+    <p v-if="error" class="text-red-500 mt-2">Credenciales incorrectas</p>
+  </div>
 </template>
 
-<script setup>
-    import { ref } from 'vue'
-    import { useAuthStore } from '../stores/auth'
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { login } from '@/api/login'
+import { useAuthStore } from '@/stores/auth'
 
-    const authStore = useAuthStore()
-    const username = ref('')
-    const password = ref('')
-    const loading = ref(false)
+const username = ref('')
+const password = ref('')
+const error = ref(false)
+const router = useRouter()
+const auth = useAuthStore()
 
-    const handleSubmit = async () => {
-      loading.value = true;
-      //console.log('▶️ Valores antes de login:', {
-      //  username: username.value,
-      //  password: password.value
-      //});
-      try {
-        await authStore.login({
-          username: username.value,
-          password: password.value
-        });
-      } finally {
-        loading.value = false;
-      }
-    };
+const handleLogin = async () => {
+  if (!username.value || !password.value) {
+    error.value = true
+    return
+  }
+
+  const res = await login(username.value, password.value)
+
+  if (res.success) {
+    res;
+    router.push('/')
+  } else {
+    error.value = true
+  }
+}
 </script>
-
-<style scoped>
-.login-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-button {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-}
-button:disabled {
-  background-color: #aaa;
-}
-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-.error-message {
-  color: red;
-  margin-bottom: 15px;
-  text-align: center;
-}
-</style>

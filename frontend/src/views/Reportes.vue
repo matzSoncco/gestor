@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import apiService from '../services/api';
+import apiService from '../services/authService';
 
 const loadingExcel = ref(false);
 const loadingPdf = ref(false);

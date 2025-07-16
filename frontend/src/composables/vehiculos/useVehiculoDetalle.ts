@@ -1,5 +1,5 @@
 import { ref, Ref } from 'vue';
-import api from '@/services/api';
+import api from '@/services/authService';
 import { useNotification } from 'naive-ui';
 import type { Vehiculo } from '@/types/vehiculo';
 

@@ -9,6 +9,8 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+import { LogoutOutlined as LogoutIcon } from '@vicons/antd' // icono para logout
 import { h, watch, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { NMenu, MenuOption } from 'naive-ui'
@@ -29,7 +31,8 @@ const menuOptions: MenuOption[] = [
   { label: 'Inicio',       key: '/',            icon: () => h(HomeIcon) },
   { label: 'Vehículos',    key: '/vehiculos',   icon: () => h(CarIcon) },
   { label: 'Operaciones',  key: '/operaciones', icon: () => h(OperacionesIcon) },
-  { label: 'Reportes',     key: '/reportes',    icon: () => h(ReportesIcon) }
+  { label: 'Reportes',     key: '/reportes',    icon: () => h(ReportesIcon) },
+  { label: 'Cerrar sesión', key: 'logout', icon: () => h(LogoutIcon) }
 ]
 
 watch(
@@ -40,6 +43,13 @@ watch(
 
 function handleSelect(key: string) {
   selected.value = key
-  router.push(key)
+
+  if (key === 'logout') {
+    const auth = useAuthStore()
+    auth.logout()
+    router.push('/login')
+  } else {
+    router.push(key)
+  }
 }
 </script>

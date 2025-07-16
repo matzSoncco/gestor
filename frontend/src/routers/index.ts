@@ -20,16 +20,16 @@ const routes = [
     path: '/',
     component: DefaultLayout,
     children: [
-      { path: '',               name: 'Home',             component: HomeView,           meta: { requiresAuth: false } },
-      { path: 'ingreso-datos',  name: 'IngresoDatos',     component: IngresoDatosView,   meta: { requiresAuth: false } },
-      { path: 'reportes',       name: 'Reportes',         component: ReportesView,       meta: { requiresAuth: false } },
-      { path: 'registro-vehiculos', name: 'RegistroVehiculos', component: RegistroVehiView, meta: { requiresAuth: false } },
-      { path: 'operaciones',         name: 'OpView',        component: OpView },
-      { path: 'operaciones/:id',     name: 'OpDetails',     component: OpDetails,         props: true },
+      { path: '',               name: 'Home',             component: HomeView,           meta: { requiresAuth: true } },
+      { path: 'ingreso-datos',  name: 'IngresoDatos',     component: IngresoDatosView,   meta: { requiresAuth: true } },
+      { path: 'reportes',       name: 'Reportes',         component: ReportesView,       meta: { requiresAuth: true } },
+      { path: 'registro-vehiculos', name: 'RegistroVehiculos', component: RegistroVehiView, meta: { requiresAuth: true } },
+      { path: 'operaciones',         name: 'OpView',        component: OpView, meta: { requiresAuth: true }},
+      { path: 'operaciones/:id',     name: 'OpDetails',     component: OpDetails, meta: { requiresAuth: true }, props: true },
       { path: 'vehiculo/new',        name: 'VehiculoNew',   component: FormularioVehiculo },
-      { path: 'vehiculos',           name: 'Vehiculos',     component: VehiculosView },
-      { path: 'vehiculos/:id',       name: 'VehiculoDetails', component: VehiculoDetails },
-      { path: 'vehiculos/:id/edit',  name: 'VehiculoEdit',  component: RegistroVehiView }
+      { path: 'vehiculos',           name: 'Vehiculos',     component: VehiculosView, meta: { requiresAuth: true } },
+      { path: 'vehiculos/:id',       name: 'VehiculoDetails', component: VehiculoDetails, meta: { requiresAuth: true } },
+      { path: 'vehiculos/:id/edit',  name: 'VehiculoEdit',  component: RegistroVehiView, meta: { requiresAuth: true } }
     ]
   }
 ]

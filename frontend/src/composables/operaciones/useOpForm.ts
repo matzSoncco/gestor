@@ -1,5 +1,5 @@
 import { ref, watch, Ref, nextTick } from 'vue';
-import api from '@/services/api';
+import api from '@/services/authService';
 
 import { useCombustible }   from '@/composables/operaciones/useCombustible';
 import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';

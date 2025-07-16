@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto
+from core_app.models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser, Empresa
 
 class ServicioInline(admin.TabularInline):
     """
@@ -33,6 +33,20 @@ class CombustibleInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['cantidad_galones', 'costo_por_galon', 'subtotal', 'placa_vehiculo']
     # Quita 'readonly_fields' si quieres permitir edición en el inline.
+
+@admin.register(Empresa)
+class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'razon_social', 'ruc']
+    search_fields = ['razon_social', 'ruc']
+    ordering = ['razon_social']
+    list_filter = ['razon_social']
+
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ['id', 'username', 'email', 'first_name', 'last_name', 'empresa']
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering = ['username']
+    list_filter = ['empresa']
 
 @admin.register(Repuesto)
 class RepuestoAdmin(admin.ModelAdmin):
