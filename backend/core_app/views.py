@@ -15,7 +15,7 @@ from .serializers import (
     ServicioSerializer, 
     MantenimientoSerializer, 
     CombustibleSerializer,
-    OperacionesDetalladaSerializer
+    OperacionSerializer
 )
 
 class VehiculoViewSet(ModelViewSet):
@@ -42,7 +42,7 @@ class CombustibleViewSet(ModelViewSet):
 
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
-    serializer_class = OperacionesDetalladaSerializer
+    serializer_class = OperacionSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
@@ -50,6 +50,7 @@ class OperacionesViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 # Endpoints adicionales
 @api_view(['POST'])
@@ -68,173 +69,6 @@ def form_submit(request):
         "message": "Datos recibidos correctamente",
         "data": data
     }, status=status.HTTP_201_CREATED)
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def csv_upload(request):
-    """Endpoint para recibir y procesar archivos CSV"""
-    if 'file' not in request.FILES:
-        return Response({"detail": "No se envió ningún archivo"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    csv_file = request.FILES['file']
-    
-    # Validar que sea un archivo CSV
-    if not csv_file.name.endswith('.csv'):
-        return Response({"detail": "El archivo debe ser CSV"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Procesar el archivo CSV
-    try:
-        # Leer el archivo como DataFrame de pandas
-        data = pd.read_csv(csv_file)
-        
-        # Aquí puedes procesar los datos según tus necesidades
-        # Por ejemplo, guardarlos en la base de datos
-        
-        # Retornar un resumen del procesamiento
-        return Response({
-            "message": "Archivo CSV procesado correctamente",
-            "rows_processed": len(data),
-            "columns": list(data.columns)
-        }, status=status.HTTP_201_CREATED)
-        
-    except Exception as e:
-        return Response({"detail": f"Error al procesar el archivo: {str(e)}"}, 
-                      status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def report_generate(request):
-    """Endpoint para generar reportes en diferentes formatos"""
-    format_type = request.query_params.get('format', 'excel')
-    reporte_tipo = request.query_params.get('tipo', 'operaciones')
-    
-    if reporte_tipo == 'operaciones':
-        # Obtener datos de operaciones
-        operaciones = Operaciones.objects.select_related('vehiculo').all()
-        
-        data = []
-        for op in operaciones:
-            data.append({
-                'ID': op.id,
-                'Vehículo': op.vehiculo.placa,
-                'Tipo Operación': op.get_tipo_operacion_display(),
-                'Fecha': op.fecha_operacion.strftime('%Y-%m-%d %H:%M'),
-                'Costo Total': op.costo_total,
-                'Descripción': op.descripcion or '',
-                'Ubicación': op.ubicacion or ''
-            })
-    
-    elif reporte_tipo == 'vehiculos':
-        # Obtener datos de vehículos con resumen de operaciones
-        vehiculos = Vehiculo.objects.all()
-        
-        data = []
-        for v in vehiculos:
-            total_ops = v.operaciones.count()
-            costo_total = v.operaciones.aggregate(Sum('costo_total'))['costo_total__sum'] or 0
-            
-            data.append({
-                'Placa': v.placa,
-                'Año': v.anio,
-                'Marca': v.marca,
-                'Modelo': v.modelo,
-                'Kilometraje': v.kilometraje,
-                'Ubicación': v.ubicacion,
-                'Total Operaciones': total_ops,
-                'Costo Total Operaciones': costo_total
-            })
-    
-    else:
-        return Response({"detail": f"Tipo de reporte '{reporte_tipo}' no soportado"}, 
-                      status=status.HTTP_400_BAD_REQUEST)
-    
-    df = pd.DataFrame(data)
-    
-    # Generar reporte según formato solicitado
-    if format_type == 'excel':
-        # Crear un buffer en memoria
-        output = io.BytesIO()
-        
-        # Escribir el DataFrame al buffer como Excel
-        df.to_excel(output, index=False, engine='openpyxl')
-        
-        # Preparar la respuesta
-        output.seek(0)
-        response = HttpResponse(
-            output.read(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = f'attachment; filename=reporte_{reporte_tipo}.xlsx'
-        return response
-        
-    elif format_type == 'pdf':
-        # Para PDF necesitarías bibliotecas adicionales como ReportLab o WeasyPrint
-
-        
-        # Crear un buffer en memoria
-        buffer = io.BytesIO()
-        
-        # Crear el PDF con mejor formato
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-        elements = []
-        
-        # Estilos
-        styles = getSampleStyleSheet()
-        title_style = styles['Title']
-        
-        # Título
-        title = Paragraph(f"Reporte de {reporte_tipo.title()}", title_style)
-        elements.append(title)
-        
-        # Crear tabla con los datos
-        if not df.empty:
-            # Preparar datos para la tabla
-            table_data = [df.columns.tolist()]  # Headers
-            for _, row in df.iterrows():
-                table_data.append(row.tolist())
-            
-            # Crear tabla
-            table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black)
-            ]))
-            
-            elements.append(table)
-        else:
-            no_data = Paragraph("No hay datos disponibles", styles['Normal'])
-            elements.append(no_data)
-        
-        # Construir PDF
-        doc.build(elements)
-        
-        # Devolver el PDF
-        buffer.seek(0)
-        response = HttpResponse(buffer, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename=reporte_{reporte_tipo}.pdf'
-        return response
-        
-    elif format_type == 'csv':
-        # Generar CSV
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename=reporte_{reporte_tipo}.csv'
-        
-        df.to_csv(path_or_buf=response, index=False)
-        return response
-        
-    else:
-        return Response({"detail": f"Formato '{format_type}' no soportado"}, 
-                      status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

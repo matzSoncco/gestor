@@ -41,50 +41,6 @@ class CombustibleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'subtotal']
 
 # ---------------------------------------------------
-# 2) Serializer para Operaciones (ENDPOINT: /api/operaciones/)
-# ---------------------------------------------------
-class OperacionesSerializer(serializers.ModelSerializer):
-    combustibles = CombustibleSerializer(many=True, required=False)
-    mantenimientos = MantenimientoSerializer(many=True, required=False)
-    servicios = ServicioSerializer(many=True, required=False)
-
-    class Meta:
-        model = Operaciones
-        fields = [
-            'id',
-            'numero_documento',
-            'ruc_proveedor',
-            'nombre_proveedor',
-            'tipo_operacion',
-            'fecha',
-            'descripcion',
-            'combustibles',
-            'mantenimientos',
-            'servicios',
-            'costo_total'
-        ]
-        read_only_fields = ['costo_total']
-
-    def create(self, validated_data):
-        # 1. Extraemos los datos anidados del diccionario validado
-        combustibles_data = validated_data.pop('combustibles', [])
-        mantenimientos_data = validated_data.pop('mantenimientos', [])
-        servicios_data = validated_data.pop('servicios', [])
-
-        operacion = Operaciones.objects.create(**validated_data)
-
-        for combustible_data in combustibles_data:
-            Combustible.objects.create(operacion=operacion, **combustible_data)
-
-        for mantenimiento_data in mantenimientos_data:
-            Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
-
-        for servicio_data in servicios_data:
-            Servicio.objects.create(operacion=operacion, **servicio_data)
-
-        return operacion
-
-# ---------------------------------------------------
 # 6) Serializer para Vehiculo
 # ---------------------------------------------------
 class VehiculoSerializer(serializers.ModelSerializer):
@@ -133,7 +89,7 @@ class VehiculoSerializer(serializers.ModelSerializer):
     def get_marca_modelo(self, obj):
         return f"{obj.marca} {obj.modelo}"
 
-class OperacionesDetalladaSerializer(serializers.ModelSerializer):
+class OperacionSerializer(serializers.ModelSerializer):
     servicio_detalle = ServicioSerializer(many=True, required=False)
     mantenimiento_detalle = MantenimientoSerializer(many=True, required=False)
     combustible_detalle = CombustibleSerializer(many=True, required=False)
@@ -204,7 +160,10 @@ class OperacionesDetalladaSerializer(serializers.ModelSerializer):
             # Actualizamos los campos simples de la operación
             instance.numero_documento = validated_data.get('numero_documento', instance.numero_documento)
             instance.ruc_proveedor = validated_data.get('ruc_proveedor', instance.ruc_proveedor)
-            # ... (continúa para los otros campos simples)
+            instance.nombre_proveedor = validated_data.get('nombre_proveedor', instance.nombre_proveedor)
+            instance.tipo_operacion = validated_data.get('tipo_operacion', instance.tipo_operacion)
+            instance.fecha = validated_data.get('fecha', instance.fecha)
+            instance.descripcion = validated_data.get('descripcion', instance.descripcion)
             instance.save()
 
             total_operacion = Decimal('0.0')
