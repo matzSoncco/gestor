@@ -32,7 +32,10 @@ const handleLogin = async () => {
   const res = await login(username.value, password.value)
 
   if (res.success) {
-    res;
+    const token = localStorage.getItem('accessToken') || ''
+    const userData = { username: username.value } // podrías traerlo desde un endpoint luego
+    await auth.login(userData, token) // <-- ESTA LÍNEA ES CRUCIAL
+
     router.push('/')
   } else {
     error.value = true

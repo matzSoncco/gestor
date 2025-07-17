@@ -1,15 +1,20 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia' //importamos Pinia
-import '@/assets/tailwind.css' //importamos Tailwind CSS
+import { createPinia } from 'pinia'
+import '@/assets/tailwind.css'
 import App from './App.vue'
-import naive from 'naive-ui';
-import router from '@/routers/index' //importamos el archivo de router
+import naive from 'naive-ui'
+import router from '@/routers/index'
+import { useAuthStore } from '@/stores/auth'
 
-//modificaciones para el uso de las importaciones
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia()) //usamos Pinia
+app.use(pinia)
 app.use(router)
-app.use(naive); //usamos Naive UI
+app.use(naive)
 
 app.mount('#app')
+
+// 🔑 Inicializar estado de sesión
+const auth = useAuthStore()
+auth.initialize()
