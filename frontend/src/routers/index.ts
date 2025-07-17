@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAppLoading } from '@/composables/global/useAppLoading'
 import { useAuthStore } from '@/stores/auth'
 
 import DefaultLayout      from '@/layouts/DefaultLayout.vue'
@@ -14,7 +15,11 @@ import VehiculosView      from '@/views/Vehiculos.vue'
 import VehiculoDetails    from '@/components/vehiculos/VehiculoDetails.vue'
 
 const routes = [
-  { path: '/login', name: 'Login', component: LoginView },
+  { path: '/login',
+    name: 'Login',
+    component: LoginView,
+    meta: { requiresAuth: false }
+  },
 
   {
     path: '/',
@@ -39,15 +44,23 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, _, next) => {
-  const auth = useAuthStore()
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    next({ name: 'Login' })
-  } else if (to.name === 'Login' && auth.isAuthenticated) {
-    next({ name: 'Home' })
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+  const { startLoading, stopLoading } = useAppLoading()
+
+  startLoading() // <- inicia loader al cambiar ruta
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else if (to.name === 'Login' && authStore.isAuthenticated) {
+    next('/')
   } else {
     next()
   }
 })
 
+router.afterEach(() => {
+  const { stopLoading } = useAppLoading()
+  setTimeout(() => stopLoading(), 300) // retrasa levemente para una UX más fluida
+})
 export default router
