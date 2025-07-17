@@ -37,66 +37,73 @@
 
       <!-- Tabla -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <n-data-table
-          :columns="columns"
-          :data="operacionesFiltradas"
-          :loading="loading"
-          :bordered="false"
-          :pagination="false"
-        />
-      </div>
+        <template v-if="!loadError">
+          <n-data-table
+            :columns="columns"
+            :data="operacionesFiltradas"
+            :loading="loading"
+            :bordered="false"
+            :pagination="false"
+          >
+          <template #empty>
+            <div class="text-center text-gray-500">
+              No se encontraron Operaciones Registradas.
+            </div>
+          </template>
+          </n-data-table>
+        </template>
 
-      <!-- Error -->
-      <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-        <div>
-          <h3 class="text-lg font-semibold text-red-800">Error al cargar</h3>
-          <p class="text-red-600">{{ error.message || error }}</p>
-        </div>
+        <n-result
+          v-else
+          status="error"
+          class="mt-6"
+          title="Error al cargar los vehículos"
+          description="No se pudo conectar con el servidor. Verifica tu conexión o intenta nuevamente."
+        >
+          <template #footer>
+            <n-button @click="reintentarCarga" type="primary">Reintentar</n-button>
+          </template>
+        </n-result>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/services/authService'
+import { useOperaciones } from '@/composables/operaciones/useOperaciones'
 
-import {
-  NInput,
-  NDatePicker,
-  NDataTable,
-  NAlert,
-  NButton,
-  NPageHeader
-} from 'naive-ui'
+import { NButton } from 'naive-ui'
+import { Operacion } from '@/types/operacion'
 
 const router = useRouter()
-
-// Datos
-const operaciones = ref([])
-const error = ref(null)
-const loading = ref(true)
+const { operaciones, loading, load } = useOperaciones()
 
 // Filtros
-const searchDoc = ref('')
+const searchDoc = ref<string>('')
 const fechaInicio = ref(null)
 const fechaFin = ref(null)
+const loadError = ref<boolean>(false)
 
 // Obtener operaciones
 onMounted(async () => {
   try {
-    const { data } = await api.get('operaciones/')
-    operaciones.value = data
-  } catch (err) {
-    error.value = err
-  } finally {
-    loading.value = false
+    await load()
+    loadError.value = false
+  } catch {
+    loadError.value = true
   }
 })
+
+const reintentarCarga = async () => {
+  loadError.value = false
+  try {
+    await load()
+  } catch {
+    loadError.value = true
+  }
+}
 
 // Columnas de la tabla
 const columns = [
@@ -108,7 +115,7 @@ const columns = [
   {
     title: 'Detalle',
     key: 'actions',
-    render(row) {
+    render(row: Operacion) {
       return h(
         NButton,
         {

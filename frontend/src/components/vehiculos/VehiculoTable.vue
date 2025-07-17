@@ -39,7 +39,7 @@
           >
             <template #empty>
               <div class="text-center text-gray-500">
-                No se encontraron vehículos
+                No se encontraron Vehículos Registrados.
               </div>
             </template>
           </n-data-table>

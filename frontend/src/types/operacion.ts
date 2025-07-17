@@ -6,6 +6,7 @@
 export type TipoOperacion = 'combustible' | 'mantenimiento' | 'servicio' | '';
 
 export interface Operacion {
+  id?: number
   numero_documento: string;
   ruc_proveedor: string;
   nombre_proveedor: string;
