@@ -19,4 +19,4 @@ app.mount('#app')
 
 // 🔑 Inicializar estado de sesión
 const auth = useAuthStore()
-auth.initialize()
+auth.initializeAuth()

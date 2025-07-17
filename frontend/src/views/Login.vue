@@ -1,44 +1,108 @@
-<!-- views/Login.vue -->
 <template>
-  <div class="max-w-sm mx-auto mt-20">
-    <h1 class="text-xl font-bold mb-4">Iniciar Sesión</h1>
-    <form @submit.prevent="handleLogin">
-      <input v-model="username" placeholder="Usuario" class="input" />
-      <input v-model="password" type="password" placeholder="Contraseña" class="input mt-2" />
-      <button type="submit" class="btn mt-4">Ingresar</button>
-    </form>
-    <p v-if="error" class="text-red-500 mt-2">Credenciales incorrectas</p>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <n-card
+      class="w-full max-w-md shadow-xl border border-gray-200 transition-all duration-300"
+      header-style="text-align: center"
+    >
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Bienvenido de nuevo</h1>
+          <p class="text-sm text-gray-500">Ingresa tus credenciales para continuar</p>
+        </div>
+      </template>
+
+      <form @submit.prevent="handleLogin" class="mt-4">
+        <div class="space-y-4">
+          <n-input
+            v-model:value="username"
+            placeholder="Usuario"
+            size="large"
+            :status="error ? 'error' : undefined"
+            :disabled="loading"
+            clearable
+          >
+            <template #prefix>
+              <n-icon><UserIcon /></n-icon>
+            </template>
+          </n-input>
+
+          <n-input
+            v-model:value="password"
+            type="password"
+            placeholder="Contraseña"
+            size="large"
+            :status="error ? 'error' : undefined"
+            :disabled="loading"
+            show-password-on="mousedown"
+            clearable
+          >
+            <template #prefix>
+              <n-icon><LockIcon /></n-icon>
+            </template>
+          </n-input>
+
+          <n-button
+            type="primary"
+            size="large"
+            block
+            :loading="loading"
+            :disabled="!username || !password"
+            attr-type="submit"
+          >
+            <template #icon>
+              <n-icon><LoginIcon /></n-icon>
+            </template>
+            Ingresar
+          </n-button>
+        </div>
+      </form>
+    </n-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { NInput, NButton, NCard, NIcon } from 'naive-ui'
+import { Lock as LockIcon, User as UserIcon, LogIn as LoginIcon } from 'lucide-vue-next'
 import { login } from '@/api/login'
 import { useAuthStore } from '@/stores/auth'
+import { useNotify } from '@/composables/global/useNotify'
 
 const username = ref('')
 const password = ref('')
+const loading = ref(false)
 const error = ref(false)
+
 const router = useRouter()
 const auth = useAuthStore()
+const { error: notifyError, success: notifySuccess } = useNotify()
+
 
 const handleLogin = async () => {
-  if (!username.value || !password.value) {
+  error.value = false
+
+  if (!username.value.trim() || !password.value.trim()) {
     error.value = true
+    notifyError('Debes llenar todos los campos', 'Campos vacíos')
     return
   }
 
+  loading.value = true
+
   const res = await login(username.value, password.value)
+  loading.value = false
 
   if (res.success) {
-    const token = localStorage.getItem('accessToken') || ''
-    const userData = { username: username.value } // podrías traerlo desde un endpoint luego
-    await auth.login(userData, token) // <-- ESTA LÍNEA ES CRUCIAL
+    const token = res.token || localStorage.getItem('accessToken') || ''
+    const userData = { username: username.value } // traer desde backend si es posible
+    await auth.login(userData, token)
 
+    notifySuccess('Sesión iniciada correctamente')
     router.push('/')
   } else {
     error.value = true
+    notifyError('Credenciales incorrectas. Intenta nuevamente.', 'Error de autenticación')
   }
 }
 </script>

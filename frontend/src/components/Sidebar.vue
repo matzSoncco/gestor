@@ -47,6 +47,7 @@ async function handleSelect(key: string) {
   if (key === 'logout') {
     const auth = useAuthStore()
     await auth.logout()
+    router.push('/login')
   } else {
     router.push(key)
   }

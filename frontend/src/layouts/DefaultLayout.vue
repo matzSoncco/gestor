@@ -34,6 +34,7 @@
               </n-layout-content>
             </n-layout>
           </n-layout>
+          <router-view v-else />
         </n-message-provider>
       </n-notification-provider>
     </n-dialog-provider>

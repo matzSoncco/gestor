@@ -1,11 +1,12 @@
 <template>
   <n-config-provider>
     <n-notification-provider>
-      <router-view />
+      <router-view v-if="!auth.isLoading" />
     </n-notification-provider>
   </n-config-provider>
 </template>
 
 <script setup>
-import { NConfigProvider, NNotificationProvider } from 'naive-ui'
+import { useAuthStore } from '@/stores/auth'
+const auth = useAuthStore()
 </script>
