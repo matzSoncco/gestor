@@ -41,13 +41,12 @@ watch(
   { immediate: true }
 )
 
-function handleSelect(key: string) {
+async function handleSelect(key: string) {
   selected.value = key
 
   if (key === 'logout') {
     const auth = useAuthStore()
-    auth.logout()
-    router.push('/login')
+    await auth.logout()
   } else {
     router.push(key)
   }

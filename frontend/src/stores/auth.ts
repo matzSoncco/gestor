@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { logout } from '@/api/logout'
+import router from '@/routers'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -13,16 +14,13 @@ export const useAuthStore = defineStore('auth', {
       this.user = userData
       this.token = token
       this.isAuthenticated = true
-      localStorage.setItem('accessToken', token)
     },
 
     async initialize() {
-      const token = localStorage.getItem('accessToken')
-      if (token) {
-        this.token = token
+      // Con persistencia automática, no necesitas recuperar manualmente
+      if (this.token) {
         this.isAuthenticated = true
-        // Puedes usar una API tipo /me para traer datos reales del usuario
-        this.user = { username: 'UsuarioAutenticado' } // dummy temporal
+        this.user = { username: 'UsuarioAutenticado' } // dummy hasta que uses /me
       }
     },
 
@@ -35,8 +33,9 @@ export const useAuthStore = defineStore('auth', {
         this.user = null
         this.token = null
         this.isAuthenticated = false
-        localStorage.removeItem('accessToken')
+        router.push('/login')
       }
     }
-  }
+  },
+  persist: true
 })

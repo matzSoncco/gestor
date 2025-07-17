@@ -3,7 +3,7 @@
     <n-dialog-provider>
       <n-notification-provider>
         <n-message-provider>
-          <n-layout has-sider class="h-screen">
+          <n-layout v-if="authStore.isAuthenticated" has-sider class="h-screen">
             <!-- SIDEBAR -->
             <n-layout-sider
               bordered
@@ -43,6 +43,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
+import { useAuthStore } from '@/stores/auth'
 import {
   NConfigProvider,
   NLayout,
@@ -56,4 +57,5 @@ import {
 
 /* estado global de colapso */
 const collapsed = ref(false)
+const authStore = useAuthStore()
 </script>
