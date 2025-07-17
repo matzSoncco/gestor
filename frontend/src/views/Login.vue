@@ -65,7 +65,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { NInput, NButton, NCard, NIcon } from 'naive-ui'
 import { Lock as LockIcon, User as UserIcon, LogIn as LoginIcon } from 'lucide-vue-next'
-import { login } from '@/api/login'
 import { useAuthStore } from '@/stores/auth'
 import { useNotify } from '@/composables/global/useNotify'
 
@@ -78,7 +77,6 @@ const router = useRouter()
 const auth = useAuthStore()
 const { error: notifyError, success: notifySuccess } = useNotify()
 
-
 const handleLogin = async () => {
   error.value = false
 
@@ -88,16 +86,9 @@ const handleLogin = async () => {
     return
   }
 
-  loading.value = true
-
-  const res = await login(username.value, password.value)
-  loading.value = false
-
-  if (res.success) {
-    const token = res.token || localStorage.getItem('accessToken') || ''
-    const userData = { username: username.value } // traer desde backend si es posible
-    await auth.login(userData, token)
-
+  const result = await auth.login(username.value, password.value)
+  
+  if (result.success) {
     notifySuccess('Sesión iniciada correctamente')
     router.push('/')
   } else {

@@ -1,16 +1,10 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
-from django.db.models import Sum, Count, Q
-import pandas as pd
-import csv
-import io
-from django.http import HttpResponse
-from datetime import datetime, timedelta
 from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser
 from .serializers import (
     VehiculoSerializer, 
@@ -19,13 +13,20 @@ from .serializers import (
     CombustibleSerializer,
     OperacionSerializer,
     RepuestoSerializer,
-    CustomUserSerializer
+    CustomUserSerializer,
 )
 
+class CurrentUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        serializer = CustomUserSerializer(request.user)
+        return Response(serializer.data)
+    
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Solo usuarios de la empresa del usuario logueado
@@ -37,7 +38,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 class RepuestoViewSet(viewsets.ModelViewSet):
     serializer_class = RepuestoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Solo repuestos de la empresa del usuario logueado
@@ -50,29 +51,29 @@ class RepuestoViewSet(viewsets.ModelViewSet):
 class VehiculoViewSet(ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
 class ServicioViewSet(ModelViewSet):
     queryset = Servicio.objects.all()
     serializer_class = ServicioSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
 
 class MantenimientoViewSet(ModelViewSet):
     queryset = Mantenimiento.objects.all()
     serializer_class = MantenimientoSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
 
 class CombustibleViewSet(ModelViewSet):
     queryset = Combustible.objects.all()
     serializer_class = CombustibleSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
     serializer_class = OperacionSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

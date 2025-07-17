@@ -4,7 +4,7 @@
 
       <!-- Encabezado de bienvenida -->
       <div>
-        <h1 class="text-3xl font-bold text-gray-800">Bienvenido, {{ usuarioNombre }}</h1>
+        <h1 class="text-3xl font-bold text-gray-800">Bienvenido, {{ auth.user?.first_name }} {{ auth.user?.last_name }}</h1>
         <p class="text-gray-600 mt-1 text-base">
           Este es el panel de control principal del sistema. Desde aquí puedes acceder a las funciones más importantes.
         </p>
@@ -55,13 +55,29 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NCard } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import { getCurrentUser } from '@/api/user' // Ajusta la ruta según tu estructura
 
 const router = useRouter()
-const authStore = useAuthStore()
-const usuarioNombre = authStore.currentUser?.email || 'Usuario'
+const auth = useAuthStore()
+
+onMounted(async () => {
+  // Si el usuario no tiene first_name, obtener datos completos
+  if (auth.isAuthenticated && (!auth.user?.first_name)) {
+    try {
+      const userResult = await getCurrentUser()
+      if (userResult.success) {
+        auth.user = userResult.user
+        localStorage.setItem('user', JSON.stringify(userResult.user))
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    }
+  }
+})
 
 const goTo = (ruta) => {
   router.push({ name: ruta })

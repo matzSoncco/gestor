@@ -25,7 +25,7 @@
                 class="h-14 px-6 flex items-center bg-gray-50 light:bg-neutral-800 shadow-sm"
               >
                 <h1 class="text-lg font-semibold text-gray-800 dark:text-dark">
-                  Gestor de Flota de Vehículos | ALTEMEC
+                  Gestor de Flota de Vehículos | {{ auth.user?.empresa?.razon_social }}
                 </h1>
               </n-layout-header>
 
@@ -42,9 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import { useAuthStore } from '@/stores/auth'
+import { getCurrentUser } from '@/api/user'
 import {
   NConfigProvider,
   NLayout,
@@ -55,6 +56,23 @@ import {
   NNotificationProvider,
   NMessageProvider
 } from 'naive-ui'
+
+const auth = useAuthStore()
+
+onMounted(async () => {
+  // Si el usuario no tiene first_name, obtener datos completos
+  if (auth.isAuthenticated && (!auth.user?.first_name)) {
+    try {
+      const userResult = await getCurrentUser()
+      if (userResult.success) {
+        auth.user = userResult.user
+        localStorage.setItem('user', JSON.stringify(userResult.user))
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    }
+  }
+})
 
 /* estado global de colapso */
 const collapsed = ref(false)

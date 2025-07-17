@@ -9,10 +9,17 @@ from .models import (
     Mantenimiento,
     Combustible,
     Repuesto,
-    CustomUser
+    CustomUser,
+    Empresa
 )
 
+class EmpresaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empresa
+        fields = ['id', 'ruc', 'razon_social']
+
 class CustomUserSerializer(serializers.ModelSerializer):
+    empresa = EmpresaSerializer(read_only=True)
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'empresa']

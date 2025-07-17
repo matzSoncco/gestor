@@ -1,12 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCurrentUser } from '@/api/user'
+import { login as loginAPI } from '@/api/login'
+
+interface Empresa {
+  id: number
+  ruc: string
+  razon_social: string
+}
 
 interface User {
   id?: number
   username: string
   email?: string
   role?: string
+  empresa?: Empresa
+  first_name?: string
+  last_name?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -18,22 +29,38 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
-  
+
+  const empresa = computed(() => user.value?.empresa ?? null)
+
   // Actions
-  const login = async (userData: User, token: string) => {
+  const login = async (username: string, password: string) => {
     try {
       isLoading.value = true
-      
-      user.value = userData
-      accessToken.value = token
-      refreshToken.value = localStorage.getItem('refreshToken')
-      
-      // Guardar datos del usuario en localStorage
-      localStorage.setItem('user', JSON.stringify(userData))
-      
+
+      const loginResult = await loginAPI(username, password)
+
+      if (loginResult.success) {
+        accessToken.value = loginResult.access
+        refreshToken.value = loginResult.refresh
+
+        localStorage.setItem('accessToken', loginResult.access)
+        localStorage.setItem('refreshToken', loginResult.refresh)
+
+        const userResult = await getCurrentUser()
+        if (userResult.success) {
+          user.value = userResult.user
+          localStorage.setItem('user', JSON.stringify(userResult.user))
+        } else {
+          throw new Error('No se pudo obtener información del usuario.')
+        }
+
+        return { success: true }
+      } else {
+        throw new Error('Login fallido')
+      }
     } catch (error) {
-      console.error('Error during login:', error)
-      throw error
+      console.error('Error al iniciar sesión:', error)
+      return { success: false, error }
     } finally {
       isLoading.value = false
     }
@@ -48,55 +75,47 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
 
-    // Redireccionar
     if (router) {
       router.push('/login')
     }
   }
 
-  // Inicializar desde localStorage
-  const initializeAuth = () => {
-    const storedToken = localStorage.getItem('accessToken')
-    const storedRefreshToken = localStorage.getItem('refreshToken')
-    const storedUser = localStorage.getItem('user')
-    
-    if (storedToken && storedUser) {
-      try {
-        accessToken.value = storedToken
-        refreshToken.value = storedRefreshToken
-        user.value = JSON.parse(storedUser)
-        
-        // Verificar si el token es válido
-        if (!checkTokenValidity()) {
-          logout()
-        }
-      } catch (error) {
-        console.error('Error parsing stored user data:', error)
-        logout() // Limpiar datos corruptos
-      }
-    }
-  }
-
-  // Función para verificar si el token es válido
   const checkTokenValidity = (): boolean => {
     if (!accessToken.value) return false
-    
+
     try {
-      // Decodificar el JWT para verificar expiración
       const payload = JSON.parse(atob(accessToken.value.split('.')[1]))
       const currentTime = Date.now() / 1000
-      
-      if (payload.exp && payload.exp < currentTime) {
-        return false
-      }
-      
-      return true
+
+      return !payload.exp || payload.exp >= currentTime
     } catch (error) {
+      console.warn('Token inválido o corrupto')
       return false
     }
   }
 
-  // Inicializar automáticamente cuando el store se crea
+  const initializeAuth = () => {
+    try {
+      const storedToken = localStorage.getItem('accessToken')
+      const storedRefreshToken = localStorage.getItem('refreshToken')
+      const storedUser = localStorage.getItem('user')
+
+      if (storedToken && storedUser) {
+        accessToken.value = storedToken
+        refreshToken.value = storedRefreshToken
+        user.value = JSON.parse(storedUser)
+
+        if (!checkTokenValidity()) {
+          logout()
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar datos guardados:', error)
+      logout()
+    }
+  }
+
+  // Inicialización automática en cliente
   if (typeof window !== 'undefined') {
     initializeAuth()
   }
@@ -107,10 +126,11 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken,
     refreshToken,
     isLoading,
-    
+
     // Getters
     isAuthenticated,
-    
+    empresa,
+
     // Actions
     login,
     logout,
