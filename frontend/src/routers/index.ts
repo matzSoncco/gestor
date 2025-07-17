@@ -46,9 +46,11 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  const { startLoading, stopLoading } = useAppLoading()
+  const { startLoading, shouldShowLoader } = useAppLoading()
 
-  startLoading() // <- inicia loader al cambiar ruta
+  if (shouldShowLoader()) {
+    startLoading() // ✅ Solo lo activamos si venimos del login
+  }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
@@ -59,8 +61,9 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
+
 router.afterEach(() => {
   const { stopLoading } = useAppLoading()
-  setTimeout(() => stopLoading(), 300) // retrasa levemente para una UX más fluida
+  setTimeout(() => stopLoading(), 300)
 })
 export default router

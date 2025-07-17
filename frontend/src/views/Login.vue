@@ -97,6 +97,7 @@ import { NInput, NButton, NCard, NIcon } from 'naive-ui'
 import { Lock as LockIcon, User as UserIcon, LogIn as LoginIcon } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useNotify } from '@/composables/global/useNotify'
+import { useAppLoading } from '@/composables/global/useAppLoading'
 
 const username = ref('')
 const password = ref('')
@@ -112,31 +113,41 @@ const clearError = () => {
   showError.value = false;
 }
 
+const { startLoading, markJustLoggedIn } = useAppLoading() // Asegúrate de importarlo
+
 const handleLogin = async () => {
-  showError.value = false;
+  showError.value = false
 
   if (!username.value.trim() || !password.value.trim()) {
-    showError.value = true;
-    notifyError('Por favor, completa todos los campos.');
-    return;
+    showError.value = true
+    notifyError('Por favor, completa todos los campos.')
+    return
   }
 
-  loading.value = true;
+  loading.value = true
+
   try {
-    const result = await auth.login(username.value, password.value);
-    
+    const result = await auth.login(username.value, password.value)
+
     if (result.success) {
-      notifySuccess('¡Bienvenido! Sesión iniciada correctamente.');
-      router.push('/'); 
+      notifySuccess('¡Bienvenido! Sesión iniciada correctamente.')
+
+      markJustLoggedIn() // 🔥 señalamos que este es un login
+      startLoading() // <---- Activa el loader antes de redirigir
+      
+      // Pequeño delay opcional para permitir ver el loader
+      setTimeout(() => {
+        router.push('/')
+      }, 1000)
     } else {
-      showError.value = true;
-      notifyError('Credenciales incorrectas. Por favor, verifica tu usuario y contraseña.');
+      showError.value = true
+      notifyError('Credenciales incorrectas. Por favor, verifica tu usuario y contraseña.')
     }
   } catch (err) {
-    console.error('Error de inicio de sesión:', err);
-    notifyError('Hubo un problema al iniciar sesión. Intenta de nuevo más tarde.');
+    console.error('Error de inicio de sesión:', err)
+    notifyError('Hubo un problema al iniciar sesión. Intenta de nuevo más tarde.')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 </script>
