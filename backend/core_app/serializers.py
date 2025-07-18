@@ -100,7 +100,7 @@ class VehiculoSerializer(serializers.ModelSerializer):
             # Campo derivado
             'marca_modelo',
         ]
-        read_only_fields = ['id', 'marca_modelo']
+        read_only_fields = ['id', 'marca_modelo', 'empresa']
 
     def get_marca_modelo(self, obj):
         return f"{obj.marca} {obj.modelo}"
@@ -146,17 +146,17 @@ class OperacionSerializer(serializers.ModelSerializer):
 
             # Creamos los detalles y vamos sumando sus subtotales
             for servicio_data in servicios_data:
-                servicio = Servicio.objects.create(operacion=operacion, **servicio_data)
+                servicio = Servicio.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **servicio_data)
                 costo_servicio = safe_decimal_conversion(servicio.costo_servicio, "costo_servicio")
                 total_operacion += costo_servicio
 
             for mantenimiento_data in mantenimientos_data:
-                mantenimiento = Mantenimiento.objects.create(operacion=operacion, **mantenimiento_data)
+                mantenimiento = Mantenimiento.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **mantenimiento_data)
                 subtotal_mantenimiento = safe_decimal_conversion(mantenimiento.subtotal, "subtotal_mantenimiento")
                 total_operacion += subtotal_mantenimiento
 
             for combustible_data in combustibles_data:
-                combustible = Combustible.objects.create(operacion=operacion, **combustible_data)
+                combustible = Combustible.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **combustible_data)
                 subtotal_combustible = safe_decimal_conversion(combustible.subtotal, "subtotal_combustible")
                 total_operacion += subtotal_combustible
 
@@ -190,19 +190,19 @@ class OperacionSerializer(serializers.ModelSerializer):
             # Servicios
             instance.servicio_detalle.all().delete()
             for servicio_data in servicios_data:
-                servicio = Servicio.objects.create(operacion=instance, **servicio_data)
+                servicio = Servicio.objects.create(operacion=instance, empresa=self.context["request"].user.empresa, **servicio_data)
                 total_operacion += servicio.costo_servicio
 
             # Mantenimientos
             instance.mantenimiento_detalle.all().delete()
             for mantenimiento_data in mantenimientos_data:
-                mantenimiento = Mantenimiento.objects.create(operacion=instance, **mantenimiento_data)
+                mantenimiento = Mantenimiento.objects.create(operacion=instance, empresa=self.context["request"].user.empresa, **mantenimiento_data)
                 total_operacion += mantenimiento.subtotal
 
             # Combustibles
             instance.combustible_detalle.all().delete()
             for combustible_data in combustibles_data:
-                combustible = Combustible.objects.create(operacion=instance, **combustible_data)
+                combustible = Combustible.objects.create(operacion=instance, empresa=self.context["request"].user.empresa, **combustible_data)
                 total_operacion += combustible.subtotal
 
             # RECALCULAMOS, ASIGNAMOS Y GUARDAMOS EL NUEVO COSTO TOTAL

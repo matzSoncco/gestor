@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
-from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser
+from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser, Empresa
 from .serializers import (
     VehiculoSerializer, 
     ServicioSerializer, 
@@ -14,7 +14,10 @@ from .serializers import (
     OperacionSerializer,
     RepuestoSerializer,
     CustomUserSerializer,
+    EmpresaSerializer
 )
+from django.conf import settings
+import requests
 
 class CurrentUserView(APIView):
     permission_classes = [AllowAny]
@@ -53,33 +56,70 @@ class VehiculoViewSet(ModelViewSet):
     serializer_class = VehiculoSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Filtrar solo los vehículos de la empresa del usuario
+        return Vehiculo.objects.filter(empresa=self.request.user.empresa)
+
+    def perform_create(self, serializer):
+        # Asociar automáticamente a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
+
+class EmpresaViewSet(ModelViewSet):
+    queryset = Empresa.objects.all()
+    serializer_class = EmpresaSerializer
+    permission_classes = [IsAuthenticated]
+
 class ServicioViewSet(ModelViewSet):
     queryset = Servicio.objects.all()
     serializer_class = ServicioSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Filtrar solo los vehículos de la empresa del usuario
+        return Servicio.objects.filter(empresa=self.request.user.empresa)
+
+    def perform_create(self, serializer):
+        # Asociar automáticamente a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
 
 class MantenimientoViewSet(ModelViewSet):
     queryset = Mantenimiento.objects.all()
     serializer_class = MantenimientoSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Filtrar solo los vehículos de la empresa del usuario
+        return Mantenimiento.objects.filter(empresa=self.request.user.empresa)
+
+    def perform_create(self, serializer):
+        # Asociar automáticamente a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
 
 class CombustibleViewSet(ModelViewSet):
     queryset = Combustible.objects.all()
     serializer_class = CombustibleSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Filtrar solo los vehículos de la empresa del usuario
+        return Combustible.objects.filter(empresa=self.request.user.empresa)
+
+    def perform_create(self, serializer):
+        # Asociar automáticamente a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
+
 class OperacionesViewSet(ModelViewSet):
     queryset = Operaciones.objects.all()
     serializer_class = OperacionSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Filtrar solo los vehículos de la empresa del usuario
+        return Operaciones.objects.filter(empresa=self.request.user.empresa)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        # Asociar automáticamente a la empresa del usuario autenticado
+        serializer.save(empresa=self.request.user.empresa)
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -89,3 +129,29 @@ def logout_view(request):
     except Exception:
         pass
     return Response(status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def consultar_ruc(request, ruc):
+    if len(ruc) != 11 or not ruc.isdigit():
+        #return Response({"error": "RUC inválido"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": f"RUC inválido: {ruc}"}, status=400)
+    
+    token = settings.API_NET_PE_TOKEN
+    url = f"https://api.apis.net.pe/v2/sunat/ruc?numero={ruc}" 
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        if "razonSocial" in data:
+            return Response({"nombre": data["razonSocial"]})
+        else:
+            return Response({"error": "No se encontró razón social"}, status=status.HTTP_404_NOT_FOUND)
+
+    except requests.RequestException as e:
+        return Response({"error": "Error al consultar RUC"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -28,6 +28,8 @@ if not DEBUG and SECRET_KEY == 'dev-secret-key-cambia-esto-si-alguien-lo-ve':
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
+API_NET_PE_TOKEN = config('TOKEN_CONSULTA_RUC')
+
 raw_frontend = config('FRONTEND_URL', default='http://localhost:5173').rstrip('/')
 
 CSRF_TRUSTED_ORIGINS = [

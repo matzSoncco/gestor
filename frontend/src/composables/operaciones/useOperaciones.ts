@@ -18,7 +18,6 @@ import { validateRequired } from '@/utils/validateRequired';
 import {
   makeOperacionDefaults,
   type Operacion,
-  type TipoOperacion,
 } from '@/types/operacion';
 
 /* ------------ Tipo auxiliar DTO sin campos temporales ------------ */

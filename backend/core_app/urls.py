@@ -11,6 +11,7 @@ router = DefaultRouter()
 router.register(r'vehiculos', views.VehiculoViewSet, basename='vehiculos')  # /api/vehiculos/
 router.register(r'operaciones', views.OperacionesViewSet, basename='operaciones')  # /api/operaciones/
 router.register(r'repuestos', views.RepuestoViewSet, basename='repuestos')  # /api/repuestos/
+router.register(r'empresas', views.EmpresaViewSet, basename='empresas')
 
 urlpatterns = [
     # REST API routes principales
@@ -19,4 +20,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('logout/', views.logout_view, name='logout'),
     path('user/me/', views.CurrentUserView.as_view(), name='current-user'),
+    path('ruc/<str:ruc>/', views.consultar_ruc, name='consultar_ruc'),
 ]

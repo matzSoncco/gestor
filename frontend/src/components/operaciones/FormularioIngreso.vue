@@ -28,6 +28,8 @@
               clearable
             />
           </n-form-item>
+
+          <n-button @click="consultarNombre">Consultar</n-button>
         </div>
         
         <n-form-item label="Nombre del Proveedor (*)">
@@ -450,8 +452,23 @@
 import api from '@/services/authService';
 import { onMounted, ref } from 'vue';
 import { useOperaciones } from '@/composables/operaciones/useOperaciones';
+import { obtenerNombreProveedor } from '@/services/rucService';
 
 const listaVehiculos = ref([]);
+
+async function consultarNombre() {
+  const ruc = formData.value.ruc_proveedor?.trim()
+
+  console.log('RUC antes de llamar al composable:', ruc)
+
+  if (!ruc || !/^\d{11}$/.test(ruc)) {
+    formData.value.nombre_proveedor = 'RUC inválido'
+    return
+  }
+
+  const nombre = await obtenerNombreProveedor(ruc)
+  formData.value.nombre_proveedor = nombre ?? 'No encontrado'
+}
 
 onMounted(async () => {
   try {
@@ -486,5 +503,5 @@ const {
 
   resetForm,
   submitForm 
-} = useOpForm();
+} = useOperaciones();
 </script>
