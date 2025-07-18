@@ -10,7 +10,8 @@ from .models import (
     Combustible,
     Repuesto,
     CustomUser,
-    Empresa
+    Empresa,
+    MantenimientoHito
 )
 
 class EmpresaSerializer(serializers.ModelSerializer):
@@ -28,6 +29,12 @@ class RepuestoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repuesto
         fields = ['id', 'nombre']
+
+class MantenimientoHitoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MantenimientoHito
+        fields = '__all__'
+        read_only_fields = ['fecha', 'empresa', 'vehiculo']
 
 class ServicioSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
@@ -99,8 +106,11 @@ class VehiculoSerializer(serializers.ModelSerializer):
             'longitud',
             # Campo derivado
             'marca_modelo',
+            'necesita_mantenimiento',
+            'siguiente_hito_mantenimiento',
+            'proximo_hito_mantenimiento'
         ]
-        read_only_fields = ['id', 'marca_modelo', 'empresa']
+        read_only_fields = ['id', 'marca_modelo', 'empresa', 'necesita_mantenimiento', 'siguiente_hito_mantenimiento', 'proximo_hito_mantenimiento']
 
     def get_marca_modelo(self, obj):
         return f"{obj.marca} {obj.modelo}"

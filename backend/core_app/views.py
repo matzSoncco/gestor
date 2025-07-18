@@ -1,11 +1,11 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
-from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser, Empresa
+from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser, Empresa, MantenimientoHito
 from .serializers import (
     VehiculoSerializer, 
     ServicioSerializer, 
@@ -63,6 +63,53 @@ class VehiculoViewSet(ModelViewSet):
     def perform_create(self, serializer):
         # Asociar automáticamente a la empresa del usuario autenticado
         serializer.save(empresa=self.request.user.empresa)
+
+    @action(detail=True, methods=['POST'], url_path='registrar_mantenimiento_hito')
+    def registrar_mantenimiento_hito(self, request, pk=None):
+        vehiculo = self.get_object()
+        empresa = request.user.empresa
+        hito = vehiculo.siguiente_hito_mantenimiento
+
+        if vehiculo.mantenimientos_hito.filter(kilometraje=hito).exists():
+            return Response(
+                {"detail": f"Ya se registró el mantenimiento para {hito} km"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        MantenimientoHito.objects.create(
+            vehiculo=vehiculo,
+            empresa=empresa,
+            kilometraje=hito,
+            observaciones=request.data.get('observaciones', '')
+        )
+
+        vehiculo.refresh_from_db()  # para asegurarte que refleje el cambio
+        serializer = self.get_serializer(vehiculo)
+
+        return Response(
+            {
+                "detail": f"Mantenimiento registrado para {hito} km",
+                "vehiculo": serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=True, methods=['PATCH'], url_path='actualizar_kilometraje')
+    def actualizar_kilometraje(self, request, pk=None):
+        vehiculo = self.get_object()
+        nuevo_kilometraje = request.data.get('kilometraje')
+
+        if nuevo_kilometraje is None:
+            return Response(
+                {"detail": "Debe proporcionar el nuevo kilometraje"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        vehiculo.kilometraje = nuevo_kilometraje
+        vehiculo.save()
+
+        serializer = self.get_serializer(vehiculo)
+        return Response({"vehiculo": serializer.data}, status=status.HTTP_200_OK)
 
 class EmpresaViewSet(ModelViewSet):
     queryset = Empresa.objects.all()

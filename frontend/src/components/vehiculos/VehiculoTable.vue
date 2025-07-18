@@ -43,14 +43,6 @@
               </div>
             </template>
           </n-data-table>
-
-          <ActualizarKmModal
-            v-if="modalVisible"
-            :visible="modalVisible"
-            :vehicle-id="selectedId"
-            @close="closeModal"
-            @saved="onKmActualizado"
-          />
         </template>
 
         <!-- Mostrar sólo si hubo error al cargar -->
@@ -79,17 +71,20 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
-import { NButton } from 'naive-ui'
-import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
+import { NButton, useMessage } from 'naive-ui'
+import { useRouter } from 'vue-router'
 
 import ActualizarKmModal from '@/components/modals/ActualizarKmModal.vue'
-import { useRouter } from 'vue-router'
+import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
+import { registrarMantenimiento } from '@/api/vehiculo'
+import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { Vehiculo } from '@/types/vehiculo'
 
 const router = useRouter()
 const { vehiculos, loading, load } = useVehiculos()
+const vehiculoStore = useVehiculoStore()
+const message = useMessage()
 
-const threshold = ref<number>(300)
 const modalVisible = ref<boolean>(false)
 const selectedId = ref<number | null>(null)
 const searchPlaca = ref<string>('')
@@ -129,16 +124,23 @@ function closeModal() {
   selectedId.value = null
 }
 
+// ⛽️ Callback cuando se actualiza el kilometraje desde el modal
 const onKmActualizado = (payload: Vehiculo) => {
-  const updatedVehiculo = payload as Vehiculo
+  const updatedVehiculo = payload
   const idx = vehiculos.value.findIndex((v) => v.id === updatedVehiculo.id)
+
   if (idx !== -1) {
     vehiculos.value[idx].kilometraje = updatedVehiculo.kilometraje
+    vehiculos.value[idx].necesita_mantenimiento = updatedVehiculo.necesita_mantenimiento
+    vehiculos.value[idx].proximo_hito_mantenimiento = updatedVehiculo.proximo_hito_mantenimiento
+    vehiculos.value[idx].siguiente_hito_mantenimiento = updatedVehiculo.siguiente_hito_mantenimiento
   }
+
+  vehiculoStore.actualizarVehiculo(updatedVehiculo)
   closeModal()
 }
 
-// Columnas para la tabla de Naive UI
+// 🧱 Columnas para la tabla
 const columns = [
   {
     title: 'Placa',
@@ -151,6 +153,16 @@ const columns = [
   {
     title: 'Kilometraje',
     key: 'kilometraje',
+    render(row: Vehiculo) {
+      return h('div', [
+        `${row.kilometraje} km`,
+        row.necesita_mantenimiento
+          ? h('span', {
+              class: 'ml-2 text-red-600 font-bold text-sm',
+            }, '⚠️ Mantenimiento')
+          : ''
+      ])
+    }
   },
   {
     title: 'VIN',
@@ -184,13 +196,50 @@ const columns = [
       ])
     },
   },
+  {
+    title: 'Mantenimiento',
+    key: 'acciones',
+    render(row: Vehiculo) {
+      return h(
+        NButton,
+        {
+          type: row.necesita_mantenimiento ? 'error' : 'success',
+          size: 'small',
+          disabled: !row.necesita_mantenimiento,
+          onClick: () => handleRegistrarMantenimiento(row.id),
+        },
+        {
+          default: () => row.necesita_mantenimiento
+            ? 'Registrar mantenimiento'
+            : 'Ya realizado',
+        }
+      )
+    }
+  }
 ]
 
-// Resaltar filas según kilometraje
-// Reemplaza la función getRowClass con row-props
+// 🎨 Clase para fila resaltada si requiere mantenimiento
 const getRowClassName = (row: Vehiculo) => {
-  const km = Number(row.kilometraje)
-  return !isNaN(km) && km >= threshold.value ? 'row-km-alto' : ''
+  return row.necesita_mantenimiento ? 'row-km-alto' : ''
+}
+
+// 🔧 Acción de registrar mantenimiento
+async function handleRegistrarMantenimiento(vehiculoId: number) {
+  try {
+    const response = await registrarMantenimiento(vehiculoId)
+    const actualizado = response.data.vehiculo
+
+    vehiculoStore.actualizarVehiculo(actualizado)
+
+    // ✅ Notifica éxito
+    message.success(response.data.detail)
+  } catch (error: any) {
+    if (error.response?.data?.detail) {
+      message.error(error.response.data.detail)
+    } else {
+      message.error('Error al registrar mantenimiento')
+    }
+  }
 }
 </script>
 

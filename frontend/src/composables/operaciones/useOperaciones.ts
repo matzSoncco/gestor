@@ -14,6 +14,7 @@ import { useFormActions } from '@/composables/global/useFormActions';
 import { useNotify } from '@/composables/global/useNotify';
 import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
+import { useOperacionStore } from '@/stores/operacionStore';
 
 import {
   makeOperacionDefaults,
@@ -44,6 +45,7 @@ function validateOperacion(p: Partial<Operacion>): string | null {
 }
 
 export function useOperaciones() {
+  const operacionStore = useOperacionStore()
   /* -------- estado base -------- */
   const isResetting = ref(false);
   const defaults = makeOperacionDefaults();
@@ -57,8 +59,9 @@ export function useOperaciones() {
   const load = async () => {
     loading.value = true;
     try {
-      const { data } = await fetchOperaciones();
-      operaciones.value = data;
+      const { data } = await fetchOperaciones()
+      operaciones.value = data
+      operacionStore.setOperaciones(data) // 🆕 sincroniza el store
     } catch (e) {
       error('Error al cargar operaciones');
       throw e;
@@ -100,7 +103,8 @@ export function useOperaciones() {
     try {
       const { data } = await createOperacion(dto);
       success('Operación registrada correctamente');
-      operaciones.value.unshift(data); // Optimistic UI update
+      operaciones.value.unshift(data)
+      operacionStore.agregarOperacion(data) // 🆕
       return data;
     } catch (e) {
       error('Error al registrar la operación');
@@ -121,7 +125,8 @@ export function useOperaciones() {
     try {
       const { data } = await updateOperacion(id, dto);
       const idx = operaciones.value.findIndex((op) => op.id === id);
-      if (idx !== -1) operaciones.value[idx] = data; // Optimistic UI update
+      if (idx !== -1) operaciones.value[idx] = data
+      operacionStore.actualizarOperacion(data) // 🆕
       success('Operación actualizada correctamente');
       return data;
     } catch (e) {
@@ -134,7 +139,8 @@ export function useOperaciones() {
   const remove = async (id: number) => {
     try {
       await deleteOperacion(id);
-      operaciones.value = operaciones.value.filter((op) => op.id !== id); // Optimistic UI update
+      operaciones.value = operaciones.value.filter(op => op.id !== id)
+      operacionStore.eliminarOperacion(id) // 🆕
       success('Operación eliminada correctamente');
     } catch (e) {
       error('Error al eliminar la operación');

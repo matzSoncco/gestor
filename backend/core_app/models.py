@@ -30,6 +30,20 @@ class Empresa(models.Model):
     def __str__(self):
         return self.razon_social
 
+class MantenimientoHito(models.Model):
+    vehiculo = models.ForeignKey('Vehiculo', on_delete=models.CASCADE, related_name='mantenimientos_hito')
+    empresa = models.ForeignKey('Empresa', on_delete=models.CASCADE)
+    kilometraje = models.PositiveIntegerField()
+    fecha = models.DateField(auto_now_add=True)
+    observaciones = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('vehiculo', 'kilometraje')  # Evita duplicados por hito
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"Hito {self.kilometraje} km - {self.vehiculo}"
+
 class Vehiculo(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="vehiculos")
     placa = models.CharField(
@@ -47,7 +61,7 @@ class Vehiculo(models.Model):
     )
     kilometraje = models.DecimalField(
         max_digits=10,
-        decimal_places=1,
+        decimal_places=2,
         default=Decimal('0.0'),
         validators=[MinValueValidator(0)],
         help_text="Kilómetros recorridos, 1 decimal."
@@ -124,6 +138,35 @@ class Vehiculo(models.Model):
 
     def __str__(self):
         return f"{self.placa} ({self.marca} {self.modelo})"
+    
+    @property
+    def necesita_mantenimiento(self):
+        intervalo = 100
+
+        ultimo = self.mantenimientos_hito.order_by('-kilometraje').first()
+        if not ultimo:
+            # Si no hay mantenimientos, calcular el primer hito desde 0
+            proximo = intervalo
+        else:
+            # Calcular el siguiente hito desde el último mantenimiento
+            proximo = ((ultimo.kilometraje // intervalo) + 1) * intervalo
+            print(f"[DEBUG] KM actual: {self.kilometraje}, último: {ultimo.kilometraje if ultimo else 'Ninguno'}, siguiente hito: {proximo}")
+
+        return self.kilometraje >= proximo
+
+    @property
+    def siguiente_hito_mantenimiento(self):
+        intervalo = 100
+
+        ultimo = self.mantenimientos_hito.order_by('-kilometraje').first()
+        if not ultimo:
+            return intervalo
+        return ((ultimo.kilometraje // intervalo) + 1) * intervalo
+
+    @property
+    def proximo_hito_mantenimiento(self):
+        # Este método calcula el siguiente hito, incluso si el actual ya fue superado
+        return self.siguiente_hito_mantenimiento + 100
 
     def save(self, *args, **kwargs):
         self.placa = self.placa.upper()

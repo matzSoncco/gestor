@@ -29,8 +29,15 @@ export interface Vehiculo {
   altura: number;
   ancho: number;
   longitud: number;
+  necesita_mantenimiento: boolean // (bool real del modelo)
+  siguiente_hito_mantenimiento: number // <-- Calculado
+  proximo_hito_mantenimiento: number // <-- Calculado
 }
 
+export interface MantenimientoResponse {
+  detail: string
+  vehiculo: Vehiculo
+}
 /**
  * Devuelve un objeto nuevo con los valores por defecto de un vehículo
  */
@@ -66,5 +73,8 @@ export function makeVehiculoDefaults(): Vehiculo {
     altura: 0,
     ancho: 0,
     longitud: 0,
+    necesita_mantenimiento: false,
+    siguiente_hito_mantenimiento: 0,
+    proximo_hito_mantenimiento: 0
   };
 }

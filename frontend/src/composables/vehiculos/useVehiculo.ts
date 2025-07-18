@@ -1,11 +1,10 @@
-// src/composables/useVehiculos.ts
-import { ref, nextTick, type Ref } from 'vue'
-import { useNotify }   from '@/composables/global/useNotify'
+import { ref, computed, nextTick } from 'vue'
+import { useVehiculoStore } from '@/stores/vehiculoStore'
+import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
 import { validateRequired } from '@/utils/validateRequired'
 import { makeVehiculoDefaults, type Vehiculo } from '@/types/vehiculo'
 
-/* ⬇️ importa las funciones HTTP recién creadas */
 import {
   fetchVehiculos,
   createVehiculo,
@@ -13,23 +12,24 @@ import {
   deleteVehiculo
 } from '@/api/vehiculo'
 
-function validateVehiculo (p: Partial<Vehiculo>): string | null {
+function validateVehiculo(p: Partial<Vehiculo>): string | null {
   const required: (keyof Vehiculo)[] = ['placa', 'marca', 'modelo']
   return validateRequired(p, required)
 }
 
-export function useVehiculos () {
-  /* -------- estado -------- */
-  const vehiculos: Ref<Vehiculo[]> = ref([])
-  const loading  = ref(false)
+export function useVehiculos() {
+  const vehiculoStore = useVehiculoStore()
   const { success, error, info } = useNotify()
+  const loading = ref(false)
+
+  const vehiculos = computed(() => vehiculoStore.vehiculos)
 
   /* -------- cargar lista -------- */
   const load = async () => {
-    loading.value = true
     try {
+      loading.value = true
       const { data } = await fetchVehiculos()
-      vehiculos.value = data
+      vehiculoStore.setVehiculos(data)
     } catch (e) {
       error('Error al cargar vehículos')
       throw e
@@ -41,19 +41,21 @@ export function useVehiculos () {
   /* -------- crear -------- */
   const onSubmitService = async (payload: Partial<Vehiculo>) => {
     const msg = validateVehiculo(payload)
-    if (msg) { error(msg); throw new Error(msg) }
+    if (msg) {
+      error(msg)
+      throw new Error(msg)
+    }
 
     const { data } = await createVehiculo(payload)
+    vehiculoStore.setVehiculos([data, ...vehiculos.value]) // inserta al inicio
     success('Vehículo creado')
-    vehiculos.value.unshift(data)     // opcional (optimista)
     return data
   }
 
   /* -------- editar -------- */
   const update = async (id: number, payload: Partial<Vehiculo>) => {
     const { data } = await updateVehiculo(id, payload)
-    const idx = vehiculos.value.findIndex(v => v.id === id)
-    if (idx !== -1) vehiculos.value[idx] = data
+    vehiculoStore.actualizarVehiculo(data)
     success('Vehículo actualizado')
     return data
   }
@@ -61,7 +63,7 @@ export function useVehiculos () {
   /* -------- eliminar -------- */
   const remove = async (id: number) => {
     await deleteVehiculo(id)
-    vehiculos.value = vehiculos.value.filter(v => v.id !== id)
+    vehiculoStore.setVehiculos(vehiculos.value.filter(v => v.id !== id))
     success('Vehículo eliminado')
   }
 
@@ -86,11 +88,10 @@ export function useVehiculos () {
   return {
     vehiculos,
     loading,
-    load,          // listar
+    load,
     create: submitForm,
     update,
     remove,
-    // helpers de formulario
     formData,
     formLoading,
     resetForm
