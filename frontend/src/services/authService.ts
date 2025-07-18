@@ -1,4 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
+import router from '@/routers/index'
+import { useAuthStore } from '@/stores/auth'
 
 // Aquí puedes extender el header más adelante con el token
 const api: AxiosInstance = axios.create({
@@ -17,7 +19,20 @@ api.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
+)
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      const auth = useAuthStore()
+
+      auth.logout()
+      router.push('/login')
+    }
+    return Promise.reject(error)
+  }
 )
 
 export default api
