@@ -1,10 +1,10 @@
 import { ref, Ref } from 'vue';
 import api from '@/services/authService';
-import { useNotification } from 'naive-ui';
+import { useNotify } from '../global/useNotify';
 import type { Vehiculo } from '@/types/vehiculo';
 
 export function useVehiculoDetalle() {
-  const notification = useNotification();
+  const notification = useNotify();
 
   const vehiculo: Ref<Vehiculo | null> = ref(null);
   const loading = ref(false);
@@ -21,7 +21,7 @@ export function useVehiculoDetalle() {
     } catch (err) {
       console.error('[useVehiculoDetalle] fetch error:', err);
       error.value = err;
-      notification.error({title: 'Error', description: 'No se pudo cargar el vehículo'});
+      notification.error('Error', 'No se pudo cargar el vehículo');
       throw err;
     } finally {
       loading.value = false;
@@ -40,14 +40,14 @@ export function useVehiculoDetalle() {
 
       if (vehiculo.value) vehiculo.value.kilometraje = nuevoKilometraje;
 
-      notification.success({title: 'Éxito', description: 'Kilometraje actualizado correctamente'});
+      notification.success('Kilometraje actualizado correctamente.', 'Éxito');
       return data;
     } catch (err: any) {
       console.error('[useVehiculoDetalle] patch error:', err);
       const msg = err?.response?.data
         ? JSON.stringify(err.response.data)
         : 'Error de conexión';
-      notification.error({title: 'Error', description: msg});
+      notification.error('Error', msg);
       throw err;
     }
   };
