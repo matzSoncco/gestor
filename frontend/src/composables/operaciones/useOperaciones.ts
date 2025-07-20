@@ -65,33 +65,49 @@ export function useOperaciones() {
     pageSize,
     loading,
     load: loadOperaciones,
-    setPage
+    setPage,
+    params
   } = usePagination<Operacion>({
     fetcher: fetchOperaciones,
     pageSize: 6,
   })
 
   const aplicarFiltros = () => {
-    // Verificar si hay algún filtro activo
-    const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
-                      filtros.value.fecha_inicio !== null || 
-                      filtros.value.fecha_fin !== null;
+  const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
+                    filtros.value.fecha_inicio !== null || 
+                    filtros.value.fecha_fin !== null;
 
-    // Solo resetear a página 1 si NO hay filtros activos
-    if (!hayFiltros) {
-      setPage(1);
-    }
+  if (!hayFiltros) {
+    setPage(1);
+  }
 
-    // Limpiar filtros vacíos manteniendo la estructura correcta
-    filtros.value = {
-      numero_documento: filtros.value.numero_documento.trim(),
-      fecha_inicio: filtros.value.fecha_inicio,
-      fecha_fin: filtros.value.fecha_fin
-    };
+  const filtrosParams: Record<string, any> = {};
+  
+  if (filtros.value.numero_documento.trim()) {
+    filtrosParams.numero_documento = filtros.value.numero_documento.trim();
+  }
+  
+  if (filtros.value.fecha_inicio) {
+    console.log('Fecha inicio original:', filtros.value.fecha_inicio);
+    console.log('Tipo de fecha inicio:', typeof filtros.value.fecha_inicio);
+    
+    // Método más directo - enviar tal como viene del input
+    filtrosParams.fecha_inicio = filtros.value.fecha_inicio;
+    
+    console.log('Fecha inicio que se enviará:', filtrosParams.fecha_inicio);
+  }
+  
+  if (filtros.value.fecha_fin) {
+    console.log('Fecha fin original:', filtros.value.fecha_fin);
+    filtrosParams.fecha_fin = filtros.value.fecha_fin;
+    console.log('Fecha fin que se enviará:', filtrosParams.fecha_fin);
+  }
 
-    // Cargar con los parámetros actualizados
-    loadOperaciones();
-  };
+  console.log('Todos los parámetros que se envían:', filtrosParams);
+  
+  params.value = filtrosParams;
+  loadOperaciones();
+};
 
   /* -------- helpers para la construcción del DTO -------- */
   const buildOperacionDTO = (payload: Partial<Operacion>): OpDTO => {
