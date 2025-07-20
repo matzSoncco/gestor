@@ -37,10 +37,7 @@ export function useVehiculos() {
   })
 
   // ✅ Computed que une ambas fuentes cuando sea necesario
-  const vehiculos = computed(() => {
-    // Para la tabla, usar items de usePagination
-    return items.value
-  })
+  const vehiculos = computed(() => items.value || [])
 
   // ✅ Método para sincronizar el store con los datos paginados
   const syncStore = () => {
@@ -121,7 +118,7 @@ export function useVehiculos() {
 
   /* -------- API pública del composable -------- */
   return {
-    vehiculos, // ✅ Computed que devuelve items.value
+    vehiculos: items, // ✅ Computed que devuelve items.value
     loading,
     total,
     currentPage,

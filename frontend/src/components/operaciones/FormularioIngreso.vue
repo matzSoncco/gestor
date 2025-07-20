@@ -473,7 +473,7 @@ async function consultarNombre() {
 onMounted(async () => {
   try {
     const response = await api.get('vehiculos/');
-    listaVehiculos.value = response.data;
+    listaVehiculos.value = response.data.results;
   } catch (error) {
     console.error('Error al cargar vehículos:', error.response || error);
     listaVehiculos.value = [];
