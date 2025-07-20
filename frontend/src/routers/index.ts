@@ -2,39 +2,40 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAppLoading } from '@/composables/global/useAppLoading'
 import { useAuthStore } from '@/stores/auth'
 
-import DefaultLayout      from '@/layouts/DefaultLayout.vue'
-import HomeView           from '@/views/Home.vue'
-import LoginView          from '@/views/Login.vue'
-import IngresoDatosView   from '@/views/IngresoDatos.vue'
-import OpView             from '@/views/Operacion.vue'
-import OpDetails          from '@/components/operaciones/OperacionDetails.vue'
-import ReportesView       from '@/views/Reportes.vue'
-import RegistroVehiView   from '@/views/RegistroVehiculo.vue'
-import FormularioVehiculo from '@/components/vehiculos/FormularioVehiculo.vue'
-import VehiculosView      from '@/views/Vehiculos.vue'
-import VehiculoDetails    from '@/components/vehiculos/VehiculoDetails.vue'
+// ✅ Lazy loaded components
+const DefaultLayout      = () => import('@/layouts/DefaultLayout.vue')
+const HomeView           = () => import('@/views/Home.vue')
+const LoginView          = () => import('@/views/Login.vue')
+const IngresoDatosView   = () => import('@/views/IngresoDatos.vue')
+const OpView             = () => import('@/views/Operacion.vue')
+const OpDetails          = () => import('@/components/operaciones/OperacionDetails.vue')
+const ReportesView       = () => import('@/views/Reportes.vue')
+const RegistroVehiView   = () => import('@/views/RegistroVehiculo.vue')
+const FormularioVehiculo = () => import('@/components/vehiculos/FormularioVehiculo.vue')
+const VehiculosView      = () => import('@/views/Vehiculos.vue')
+const VehiculoDetails    = () => import('@/components/vehiculos/VehiculoDetails.vue')
 
 const routes = [
-  { path: '/login',
+  {
+    path: '/login',
     name: 'Login',
     component: LoginView,
     meta: { requiresAuth: false }
   },
-
   {
     path: '/',
     component: DefaultLayout,
     children: [
-      { path: '',               name: 'Home',             component: HomeView,           meta: { requiresAuth: true } },
-      { path: 'ingreso-datos',  name: 'IngresoDatos',     component: IngresoDatosView,   meta: { requiresAuth: true } },
-      { path: 'reportes',       name: 'Reportes',         component: ReportesView,       meta: { requiresAuth: true } },
+      { path: '', name: 'Home', component: HomeView, meta: { requiresAuth: true } },
+      { path: 'ingreso-datos', name: 'IngresoDatos', component: IngresoDatosView, meta: { requiresAuth: true } },
+      { path: 'reportes', name: 'Reportes', component: ReportesView, meta: { requiresAuth: true } },
       { path: 'registro-vehiculos', name: 'RegistroVehiculos', component: RegistroVehiView, meta: { requiresAuth: true } },
-      { path: 'operaciones',         name: 'OpView',        component: OpView, meta: { requiresAuth: true }},
-      { path: 'operaciones/:id',     name: 'OpDetails',     component: OpDetails, meta: { requiresAuth: true }, props: true },
-      { path: 'vehiculo/new',        name: 'VehiculoNew',   component: FormularioVehiculo },
-      { path: 'vehiculos',           name: 'Vehiculos',     component: VehiculosView, meta: { requiresAuth: true } },
-      { path: 'vehiculos/:id',       name: 'VehiculoDetails', component: VehiculoDetails, meta: { requiresAuth: true } },
-      { path: 'vehiculos/:id/edit',  name: 'VehiculoEdit',  component: RegistroVehiView, meta: { requiresAuth: true } }
+      { path: 'operaciones', name: 'OpView', component: OpView, meta: { requiresAuth: true } },
+      { path: 'operaciones/:id', name: 'OpDetails', component: OpDetails, meta: { requiresAuth: true }, props: true },
+      { path: 'vehiculo/new', name: 'VehiculoNew', component: FormularioVehiculo },
+      { path: 'vehiculos', name: 'Vehiculos', component: VehiculosView, meta: { requiresAuth: true } },
+      { path: 'vehiculos/:id', name: 'VehiculoDetails', component: VehiculoDetails, meta: { requiresAuth: true } },
+      { path: 'vehiculos/:id/edit', name: 'VehiculoEdit', component: RegistroVehiView, meta: { requiresAuth: true } }
     ]
   }
 ]
@@ -49,7 +50,7 @@ router.beforeEach(async (to, from, next) => {
   const { startLoading, shouldShowLoader } = useAppLoading()
 
   if (shouldShowLoader()) {
-    startLoading() // ✅ Solo lo activamos si venimos del login
+    startLoading()
   }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
@@ -61,9 +62,9 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-
 router.afterEach(() => {
   const { stopLoading } = useAppLoading()
   setTimeout(() => stopLoading(), 300)
 })
+
 export default router
