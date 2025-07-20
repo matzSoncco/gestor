@@ -161,8 +161,22 @@ class OperacionesViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        # Filtrar solo los vehículos de la empresa del usuario
-        return Operaciones.objects.filter(empresa=self.request.user.empresa)
+        empresa = self.request.user.empresa
+        queryset = Operaciones.objects.filter(empresa=empresa)
+
+        numero_documento = self.request.query_params.get('numero_documento')
+        if numero_documento:
+            queryset = queryset.filter(numero_documento__icontains=numero_documento)
+
+        fecha_inicio = self.request.query_params.get('fecha_inicio')
+        if fecha_inicio:
+            queryset = queryset.filter(fecha__gte=fecha_inicio)
+
+        fecha_fin = self.request.query_params.get('fecha_fin')
+        if fecha_fin:
+            queryset = queryset.filter(fecha__lte=fecha_fin)
+
+        return queryset.order_by('-fecha')
 
     def perform_create(self, serializer):
         # Asociar automáticamente a la empresa del usuario autenticado

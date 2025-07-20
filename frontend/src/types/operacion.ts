@@ -14,7 +14,6 @@ export interface Operacion {
   fecha: string; // ISO string (yyyy-mm-dd)
   descripcion: string;
   costo_total: number;
-
   combustibles: any[];     // Idealmente: Combustible[]
   mantenimientos: any[];   // Idealmente: Mantenimiento[]
   servicios: any[];        // Idealmente: Servicio[]

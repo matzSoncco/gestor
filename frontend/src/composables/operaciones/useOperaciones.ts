@@ -52,7 +52,11 @@ export function useOperaciones() {
   const defaults = makeOperacionDefaults();
   const { success, error, info } = useNotify();
 
-  // State for list of operations and their loading status
+  const filtros = ref({
+    numero_documento: '',
+    fecha_inicio: null,
+    fecha_fin: null
+  })
 
   const {
     items: operaciones,
@@ -64,8 +68,30 @@ export function useOperaciones() {
     setPage
   } = usePagination<Operacion>({
     fetcher: fetchOperaciones,
-    pageSize: 10
+    pageSize: 6,
   })
+
+  const aplicarFiltros = () => {
+    // Verificar si hay algún filtro activo
+    const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
+                      filtros.value.fecha_inicio !== null || 
+                      filtros.value.fecha_fin !== null;
+
+    // Solo resetear a página 1 si NO hay filtros activos
+    if (!hayFiltros) {
+      setPage(1);
+    }
+
+    // Limpiar filtros vacíos manteniendo la estructura correcta
+    filtros.value = {
+      numero_documento: filtros.value.numero_documento.trim(),
+      fecha_inicio: filtros.value.fecha_inicio,
+      fecha_fin: filtros.value.fecha_fin
+    };
+
+    // Cargar con los parámetros actualizados
+    loadOperaciones();
+  };
 
   /* -------- helpers para la construcción del DTO -------- */
   const buildOperacionDTO = (payload: Partial<Operacion>): OpDTO => {
@@ -218,6 +244,8 @@ export function useOperaciones() {
     pageSize,
     load: loadOperaciones,
     setPage,
+    filtros,
+    aplicarFiltros,
 
     // Form-related properties and actions
     formData,

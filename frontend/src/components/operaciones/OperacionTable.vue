@@ -13,25 +13,27 @@
         <!-- Filtros -->
         <div class="grid gap-4 md:grid-cols-3">
           <n-input
-            v-model:value="searchDoc"
+            v-model:value="filtros.numero_documento"
             placeholder="Buscar por número de documento"
             clearable
             class="w-full"
+            @keyup.enter="aplicarFiltros"
           />
           <n-date-picker
-            v-model:formatted-value="fechaInicio"
+            v-model:formatted-value="filtros.fecha_inicio"
             type="date"
             placeholder="Fecha inicio"
             class="w-full"
             clearable
           />
           <n-date-picker
-            v-model:formatted-value="fechaFin"
+            v-model:formatted-value="filtros.fecha_fin"
             type="date"
             placeholder="Fecha fin"
             class="w-full"
             clearable
           />
+          <n-button @click="aplicarFiltros" type="primary">Buscar</n-button>
         </div>
       </div>
 
@@ -97,13 +99,11 @@ const {
   pageSize,
   total,
   setPage,
-  load
+  load,
+  filtros,
+  aplicarFiltros
 } = useOperaciones()
 
-// Filtros
-const searchDoc = ref<string>('')
-const fechaInicio = ref(null)
-const fechaFin = ref(null)
 const loadError = ref<boolean>(false)
 
 // Obtener operaciones
@@ -139,13 +139,46 @@ const handlePageChange = async (page: number) => {
 // Clave única de fila
 const rowKey = (row: Operacion) => row.id
 
+// Función formatFecha con debugging directo
+function formatFecha(fecha: string) {
+  try {
+    if (!fecha || fecha.trim() === '') {
+      return 'Sin fecha'
+    }
+
+    // Crear Date directamente - esto revelará el error
+    const date = new Date(fecha)
+    
+    if (isNaN(date.getTime())) {
+      return 'Fecha inválida'
+    }
+
+    const resultado = date.toLocaleDateString('es-PE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    
+    return resultado
+
+  } catch (error) {
+    return 'Error en fecha'
+  }
+}
+
 // Columnas de la tabla
 const columns = [
   { title: 'N° Documento', key: 'numero_documento' },
   { title: 'RUC Proveedor', key: 'ruc_proveedor' },
   { title: 'Nombre Proveedor', key: 'nombre_proveedor' },
   { title: 'Tipo Operación', key: 'tipo_operacion' },
-  { title: 'Fecha', key: 'fecha' },
+  {
+    title: 'Fecha',
+    key: 'fecha',
+    render(row: Operacion) {
+      return formatFecha(row.fecha)
+    }
+  },
   {
     title: 'Detalle',
     key: 'actions',
@@ -163,16 +196,4 @@ const columns = [
     }
   }
 ]
-
-// // Filtro reactivo
-// const operacionesFiltradas = computed(() =>
-//   operaciones.value.filter(op => {
-//     const matchDoc = op.numero_documento.toLowerCase().includes(searchDoc.value.toLowerCase())
-//     const fechaOp = new Date(op.fecha)
-//     const ini = fechaInicio.value ? new Date(fechaInicio.value) : null
-//     const fin = fechaFin.value ? new Date(fechaFin.value) : null
-//     const matchFecha = (!ini || fechaOp >= ini) && (!fin || fechaOp <= fin)
-//     return matchDoc && matchFecha
-//   })
-// )
 </script>
