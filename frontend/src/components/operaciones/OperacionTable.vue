@@ -146,20 +146,15 @@ function formatFecha(fecha: string) {
       return 'Sin fecha'
     }
 
-    // Crear Date directamente - esto revelará el error
-    const date = new Date(fecha)
-    
-    if (isNaN(date.getTime())) {
+    // Validar que tenga formato correcto YYYY-MM-DD
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(fecha)) {
       return 'Fecha inválida'
     }
 
-    const resultado = date.toLocaleDateString('es-PE', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-    
-    return resultado
+    // Dividir y reordenar directamente
+    const [año, mes, dia] = fecha.split('-');
+    return `${dia}/${mes}/${año}`;
 
   } catch (error) {
     return 'Error en fecha'
