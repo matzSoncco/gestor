@@ -40,10 +40,10 @@
         <template v-if="!loadError">
           <n-data-table
             :columns="columns"
-            :data="operacionesFiltradas"
+            :data="operaciones"
             :loading="loading"
-            :bordered="false"
-            :pagination="false"
+            remote
+            :row-key="rowKey"
           >
           <template #empty>
             <div class="text-center text-gray-500">
@@ -51,13 +51,22 @@
             </div>
           </template>
           </n-data-table>
+
+          <div class="flex justify-end mt-4">
+          <n-pagination
+            v-model:page="pagination.page"
+            :page-size="pagination.pageSize"
+            :item-count="pagination.itemCount"
+            @update:page="handlePageChange"
+          />
+        </div>
         </template>
 
         <n-result
           v-else
           status="error"
           class="mt-6"
-          title="Error al cargar los vehículos"
+          title="Error al cargar las operaciones"
           description="No se pudo conectar con el servidor. Verifica tu conexión o intenta nuevamente."
         >
           <template #footer>
@@ -73,12 +82,19 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOperaciones } from '@/composables/operaciones/useOperaciones'
-
 import { NButton } from 'naive-ui'
 import { Operacion } from '@/types/operacion'
 
 const router = useRouter()
-const { operaciones, loading, load } = useOperaciones()
+const {
+  operaciones,
+  loading,
+  currentPage,
+  pageSize,
+  total,
+  setPage,
+  load
+} = useOperaciones()
 
 // Filtros
 const searchDoc = ref<string>('')
@@ -105,6 +121,20 @@ const reintentarCarga = async () => {
   }
 }
 
+// Paginación Naive UI reactiva
+const pagination = computed(() => ({
+  page: currentPage.value,
+  pageSize: pageSize.value,
+  itemCount: total.value,
+}))
+
+const handlePageChange = async (page: number) => {
+  setPage(page)
+}
+
+// Clave única de fila
+const rowKey = (row: Operacion) => row.id
+
 // Columnas de la tabla
 const columns = [
   { title: 'N° Documento', key: 'numero_documento' },
@@ -130,15 +160,15 @@ const columns = [
   }
 ]
 
-// Filtro reactivo
-const operacionesFiltradas = computed(() =>
-  operaciones.value.filter(op => {
-    const matchDoc = op.numero_documento.toLowerCase().includes(searchDoc.value.toLowerCase())
-    const fechaOp = new Date(op.fecha)
-    const ini = fechaInicio.value ? new Date(fechaInicio.value) : null
-    const fin = fechaFin.value ? new Date(fechaFin.value) : null
-    const matchFecha = (!ini || fechaOp >= ini) && (!fin || fechaOp <= fin)
-    return matchDoc && matchFecha
-  })
-)
+// // Filtro reactivo
+// const operacionesFiltradas = computed(() =>
+//   operaciones.value.filter(op => {
+//     const matchDoc = op.numero_documento.toLowerCase().includes(searchDoc.value.toLowerCase())
+//     const fechaOp = new Date(op.fecha)
+//     const ini = fechaInicio.value ? new Date(fechaInicio.value) : null
+//     const fin = fechaFin.value ? new Date(fechaFin.value) : null
+//     const matchFecha = (!ini || fechaOp >= ini) && (!fin || fechaOp <= fin)
+//     return matchDoc && matchFecha
+//   })
+// )
 </script>

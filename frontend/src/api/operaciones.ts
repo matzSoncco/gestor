@@ -1,8 +1,8 @@
 import api from '@/services/authService'
 import type { Operacion } from '@/types/operacion'
 
-export const fetchOperaciones = () =>
-    api.get<Operacion[]>('/operaciones')
+export const fetchOperaciones = (params?: Record<string, any>) =>
+  api.get('/operaciones', { params })
 
 export const createOperacion = (payload: Partial<Operacion>) =>
     api.post<Operacion>('/operaciones')

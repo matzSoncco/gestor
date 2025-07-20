@@ -4,13 +4,14 @@ import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
 import { validateRequired } from '@/utils/validateRequired'
 import { makeVehiculoDefaults, type Vehiculo } from '@/types/vehiculo'
+import { usePagination } from '../global/usePagination'
 
 import {
   fetchVehiculos,
   createVehiculo,
   updateVehiculo,
   deleteVehiculo
-} from '@/api/vehiculo'
+} from '@/api/vehiculos'
 
 function validateVehiculo(p: Partial<Vehiculo>): string | null {
   const required: (keyof Vehiculo)[] = ['placa', 'marca', 'modelo']
@@ -20,21 +21,41 @@ function validateVehiculo(p: Partial<Vehiculo>): string | null {
 export function useVehiculos() {
   const vehiculoStore = useVehiculoStore()
   const { success, error, info } = useNotify()
-  const loading = ref(false)
 
-  const vehiculos = computed(() => vehiculoStore.vehiculos)
+  // ✅ Mantener usePagination genérico - NO renombrar items
+  const {
+    items,
+    total,
+    currentPage,
+    pageSize,
+    loading,
+    load: loadVehiculos, // ✅ Este es el que necesitas para la tabla
+    setPage
+  } = usePagination<Vehiculo>({
+    fetcher: fetchVehiculos,
+    pageSize: 10
+  })
 
-  /* -------- cargar lista -------- */
-  const load = async () => {
-    try {
-      loading.value = true
-      const { data } = await fetchVehiculos()
-      vehiculoStore.setVehiculos(data)
-    } catch (e) {
-      error('Error al cargar vehículos')
-      throw e
-    } finally {
-      loading.value = false
+  // ✅ Computed que une ambas fuentes cuando sea necesario
+  const vehiculos = computed(() => {
+    // Para la tabla, usar items de usePagination
+    return items.value
+  })
+
+  // ✅ Método para sincronizar el store con los datos paginados
+  const syncStore = () => {
+    vehiculoStore.setVehiculos(items.value)
+  }
+
+  // ✅ Método para actualizar un vehículo específico en ambas fuentes
+  const updateVehiculoLocal = (updated: Vehiculo) => {
+    // Actualizar store
+    vehiculoStore.actualizarVehiculo(updated)
+    
+    // Actualizar items paginados
+    const idx = items.value.findIndex(v => v.id === updated.id)
+    if (idx !== -1) {
+      items.value[idx] = { ...items.value[idx], ...updated }
     }
   }
 
@@ -47,7 +68,11 @@ export function useVehiculos() {
     }
 
     const { data } = await createVehiculo(payload)
-    vehiculoStore.setVehiculos([data, ...vehiculos.value]) // inserta al inicio
+    
+    // Actualizar items locales y store
+    items.value = [data, ...items.value]
+    vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
+    
     success('Vehículo creado')
     return data
   }
@@ -55,7 +80,7 @@ export function useVehiculos() {
   /* -------- editar -------- */
   const update = async (id: number, payload: Partial<Vehiculo>) => {
     const { data } = await updateVehiculo(id, payload)
-    vehiculoStore.actualizarVehiculo(data)
+    updateVehiculoLocal(data)
     success('Vehículo actualizado')
     return data
   }
@@ -63,8 +88,18 @@ export function useVehiculos() {
   /* -------- eliminar -------- */
   const remove = async (id: number) => {
     await deleteVehiculo(id)
-    vehiculoStore.setVehiculos(vehiculos.value.filter(v => v.id !== id))
+    
+    // Remover de ambas fuentes
+    items.value = items.value.filter(v => v.id !== id)
+    vehiculoStore.setVehiculos(vehiculoStore.vehiculos.filter(v => v.id !== id))
+    
     success('Vehículo eliminado')
+  }
+
+  /* -------- load con sincronización -------- */
+  const load = async () => {
+    await loadVehiculos()
+    syncStore() // Sincronizar store después de cargar
   }
 
   /* -------- formulario reusable -------- */
@@ -86,14 +121,19 @@ export function useVehiculos() {
 
   /* -------- API pública del composable -------- */
   return {
-    vehiculos,
+    vehiculos, // ✅ Computed que devuelve items.value
     loading,
-    load,
+    total,
+    currentPage,
+    pageSize,
+    setPage,
+    load, // ✅ Load personalizado que sincroniza
     create: submitForm,
     update,
     remove,
     formData,
     formLoading,
-    resetForm
+    resetForm,
+    updateVehiculoLocal // ✅ Exportar para usar en el componente
   }
 }

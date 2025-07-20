@@ -31,11 +31,11 @@
         <template v-if="!loadError">
           <n-data-table
             :columns="columns"
-            :data="vehiculosFiltrados"
+            :data="vehiculos"
             :loading="loading"
-            :bordered="false"
-            :pagination="false"
+            remote
             :row-class-name="getRowClassName"
+            :row-key="rowKey"
           >
             <template #empty>
               <div class="text-center text-gray-500">
@@ -43,6 +43,15 @@
               </div>
             </template>
           </n-data-table>
+          
+          <div class="flex justify-end mt-4">
+          <n-pagination
+            v-model:page="pagination.page"
+            :page-size="pagination.pageSize"
+            :item-count="pagination.itemCount"
+            @update:page="handlePageChange"
+          />
+        </div>
         </template>
 
         <!-- Mostrar sólo si hubo error al cargar -->
@@ -73,17 +82,26 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { NButton, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
-
 import ActualizarKmModal from '@/components/modals/ActualizarKmModal.vue'
 import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
-import { registrarMantenimiento } from '@/api/vehiculo'
+import { registrarMantenimiento } from '@/api/vehiculos'
 import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { Vehiculo } from '@/types/vehiculo'
 
 const router = useRouter()
-const { vehiculos, loading, load } = useVehiculos()
 const vehiculoStore = useVehiculoStore()
 const message = useMessage()
+
+const {
+  vehiculos,
+  loading,
+  currentPage,
+  pageSize,
+  total,
+  setPage,
+  load,
+  updateVehiculoLocal
+} = useVehiculos()
 
 const modalVisible = ref<boolean>(false)
 const selectedId = ref<number | null>(null)
@@ -107,6 +125,18 @@ const reintentarCarga = async () => {
     loadError.value = true
   }
 }
+
+const pagination = computed(() => ({
+  page: currentPage.value,
+  pageSize: pageSize.value,
+  itemCount: total.value,
+}))
+
+const handlePageChange = async (page: number) => {
+  setPage(page)
+}
+
+const rowKey = (row: Vehiculo) => row.id
 
 const vehiculosFiltrados = computed(() =>
   vehiculos.value.filter(v =>
@@ -230,6 +260,8 @@ async function handleRegistrarMantenimiento(vehiculoId: number) {
     const actualizado = response.data.vehiculo
 
     vehiculoStore.actualizarVehiculo(actualizado)
+
+    updateVehiculoLocal(actualizado)
 
     // ✅ Notifica éxito
     message.success(response.data.detail)

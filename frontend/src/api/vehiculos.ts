@@ -2,8 +2,8 @@ import type { AxiosResponse } from 'axios'
 import api from '@/services/authService'          // o tu instancia ya configurada
 import type { Vehiculo, MantenimientoResponse } from '@/types/vehiculo'
 
-export const fetchVehiculos = () =>
-  api.get<Vehiculo[]>('/vehiculos')
+export const fetchVehiculos = (params?: Record<string, any>) =>
+  api.get('/vehiculos', { params })
 
 export const createVehiculo = (payload: Partial<Vehiculo>) =>
   api.post<Vehiculo>('/vehiculos', payload)

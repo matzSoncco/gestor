@@ -15,6 +15,7 @@ import { useNotify } from '@/composables/global/useNotify';
 import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
+import { usePagination } from '../global/usePagination';
 
 import {
   makeOperacionDefaults,
@@ -52,23 +53,19 @@ export function useOperaciones() {
   const { success, error, info } = useNotify();
 
   // State for list of operations and their loading status
-  const operaciones: Ref<Operacion[]> = ref([]);
-  const loading = ref(false);
 
-  /* -------- cargar lista -------- */
-  const load = async () => {
-    loading.value = true;
-    try {
-      const { data } = await fetchOperaciones()
-      operaciones.value = data
-      operacionStore.setOperaciones(data) // 🆕 sincroniza el store
-    } catch (e) {
-      error('Error al cargar operaciones');
-      throw e;
-    } finally {
-      loading.value = false;
-    }
-  };
+  const {
+    items: operaciones,
+    total,
+    currentPage,
+    pageSize,
+    loading,
+    load: loadOperaciones,
+    setPage
+  } = usePagination<Operacion>({
+    fetcher: fetchOperaciones,
+    pageSize: 10
+  })
 
   /* -------- helpers para la construcción del DTO -------- */
   const buildOperacionDTO = (payload: Partial<Operacion>): OpDTO => {
@@ -216,7 +213,11 @@ export function useOperaciones() {
   return {
     operaciones,
     loading, // Loading state for the list of operations
-    load,    // Function to load all operations
+    total,
+    currentPage,
+    pageSize,
+    load: loadOperaciones,
+    setPage,
 
     // Form-related properties and actions
     formData,
