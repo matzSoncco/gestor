@@ -55,6 +55,7 @@ export function usePagination<T>({ fetcher, page = 1, pageSize = 6, immediate = 
     totalPages,
     loading,
     load,
-    setPage: (p: number) => currentPage.value = p
+    setPage: (p: number) => currentPage.value = p,
+    params
   }
 }
