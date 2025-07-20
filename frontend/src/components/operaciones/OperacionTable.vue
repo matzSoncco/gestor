@@ -38,19 +38,23 @@
       <!-- Tabla -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <template v-if="!loadError">
-          <n-data-table
-            :columns="columns"
-            :data="operaciones"
-            :loading="loading"
-            remote
-            :row-key="rowKey"
-          >
-          <template #empty>
-            <div class="text-center text-gray-500">
-              No se encontraron Operaciones Registradas.
+          <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+            <div class="min-w-[900px]">
+              <n-data-table
+                :columns="columns"
+                :data="operaciones"
+                :loading="loading"
+                remote
+                :row-key="rowKey"
+              >
+              <template #empty>
+                <div class="text-center text-gray-500">
+                  No se encontraron Operaciones Registradas.
+                </div>
+              </template>
+              </n-data-table>
             </div>
-          </template>
-          </n-data-table>
+          </div>
 
           <div class="flex justify-end mt-4">
           <n-pagination

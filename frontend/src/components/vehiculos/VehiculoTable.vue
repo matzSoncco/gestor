@@ -29,20 +29,24 @@
 
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <template v-if="!loadError">
-          <n-data-table
-            :columns="columns"
-            :data="vehiculos"
-            :loading="loading"
-            remote
-            :row-class-name="getRowClassName"
-            :row-key="rowKey"
-          >
-            <template #empty>
-              <div class="text-center text-gray-500">
-                No se encontraron Vehículos Registrados.
-              </div>
-            </template>
-          </n-data-table>
+          <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+            <div class="min-w-[900px]">
+              <n-data-table
+                :columns="columns"
+                :data="vehiculos"
+                :loading="loading"
+                remote
+                :row-class-name="getRowClassName"
+                :row-key="rowKey"
+              >
+                <template #empty>
+                  <div class="text-center text-gray-500">
+                    No se encontraron Vehículos Registrados.
+                  </div>
+                </template>
+              </n-data-table>
+            </div>
+          </div>
           
           <div class="flex justify-end mt-4">
           <n-pagination

@@ -6,7 +6,7 @@
 export type TipoOperacion = 'combustible' | 'mantenimiento' | 'servicio' | '';
 
 export interface Operacion {
-  id?: number
+  id: number
   numero_documento: string;
   ruc_proveedor: string;
   nombre_proveedor: string;
@@ -25,6 +25,7 @@ export interface Operacion {
  */
 export function makeOperacionDefaults(): Operacion {
   return {
+    id: 0,
     numero_documento : '',
     ruc_proveedor    : '',
     nombre_proveedor : '',

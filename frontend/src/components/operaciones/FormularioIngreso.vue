@@ -19,17 +19,26 @@
               clearable
             />
           </n-form-item>
-          
-          <n-form-item label="RUC del Proveedor (*)">
-            <n-input
-              v-model:value="formData.ruc_proveedor"
-              placeholder="Ingrese RUC (11 dígitos)"
-              maxlength="11"
-              clearable
-            />
-          </n-form-item>
 
-          <n-button @click="consultarNombre">Consultar</n-button>
+          <!-- Campo RUC + botón juntos -->
+          <n-form-item label="RUC del Proveedor (*)">
+            <div class="flex gap-2 w-full">
+              <n-input
+                v-model:value="formData.ruc_proveedor"
+                placeholder="Ingrese RUC (11 dígitos)"
+                maxlength="11"
+                clearable
+                class="flex-1"
+              />
+              <n-button
+                @click="consultarNombre"
+                type="primary"
+                class="shrink-0"
+              >
+                Consultar
+              </n-button>
+            </div>
+          </n-form-item>
         </div>
         
         <n-form-item label="Nombre del Proveedor (*)">
