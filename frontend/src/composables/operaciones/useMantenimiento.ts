@@ -1,10 +1,12 @@
 import { ref, watch, computed, Ref } from 'vue';
-import { useIdGenerator }            from '@/composables/global/useIdGenerator';
+import { fetchRepuestosByQuery } from '@/api/repuestos';
+import { useIdGenerator } from '@/composables/global/useIdGenerator';
+import { SugerenciaItem } from '@/types/operacion';
 
 /* ------------- Tipos ------------- */
 interface MantRow {
   id: string | number;
-  descripcion_item: string;
+  repuesto: string;
   cantidad: number | null;
   costo_unitario: number | null;
   subtotal: number;
@@ -24,14 +26,14 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
     // … el resto
   ]);
 
-  const sugerencias = ref<string[]>([]);
+  const sugerencias = ref<SugerenciaItem[][]>([])
   const inputActivo = ref<number | null>(null);
 
   /* ---- acciones array ---- */
   const addMantenimientoRow = (): void => {
     formDataRef.value.mantenimientos.push({
       id: generateId(),
-      descripcion_item: '',
+      repuesto: '',
       cantidad: null,
       costo_unitario: null,
       subtotal: 0,
@@ -45,18 +47,31 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   };
 
   /* ---- autocompletado ---- */
-  const updateSugerencias = (text: unknown, rowIdx: number): void => {
-    const q = typeof text === 'string' ? text.toLowerCase() : '';
-    sugerencias.value = q
-      ? itemsConocidos.value.filter((i) => i.toLowerCase().includes(q))
-      : [];
-    inputActivo.value = rowIdx;
+  const updateSugerencias = async (text: string, rowIdx: number) => {
+    inputActivo.value = rowIdx
+    if (!text || text.length < 2) {
+      sugerencias.value = []
+      return
+    }
+
+    try {
+      const data = await fetchRepuestosByQuery(text)
+
+      // 👇 Aquí está el cambio importante: accedemos a 'results'
+      sugerencias.value = data.results.map((item: any) => item.descripcion)
+
+    } catch (err) {
+      console.error('Error al buscar repuestos:', err)
+      sugerencias.value = []
+    }
   };
-  const selectItem = (item: string, rowIdx: number): void => {
-    formDataRef.value.mantenimientos[rowIdx].descripcion_item = item;
-    sugerencias.value = [];
-    inputActivo.value = null;
-  };
+
+  const selectItem = (item: SugerenciaItem, index: number): void => {
+    formDataRef.value.mantenimientos[index].repuesto = item.value
+    sugerencias.value[index] = []
+    inputActivo.value = null
+  }
+
   const blurHandler = (): void => {
     setTimeout(() => {
       sugerencias.value = [];

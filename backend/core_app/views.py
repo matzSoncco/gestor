@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
@@ -40,9 +40,12 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         serializer.save(empresa=self.request.user.empresa)
 
 class RepuestoViewSet(viewsets.ModelViewSet):
+    queryset = Repuesto.objects.all()
     serializer_class = RepuestoSerializer
+    filter_backends = [filters.SearchFilter]
     permission_classes = [IsAuthenticated]
-
+    search_fields = ['descripcion']
+    
     def get_queryset(self):
         # Solo repuestos de la empresa del usuario logueado
         return Repuesto.objects.filter(empresa=self.request.user.empresa)

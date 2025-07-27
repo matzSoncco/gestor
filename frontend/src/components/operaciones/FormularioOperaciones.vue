@@ -220,21 +220,20 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <n-form-item label="Item/Servicio (*)" class="relative">
-                    <n-input
+                    <n-auto-complete
                       v-model:value="mant.descripcion_item"
                       placeholder="Escriba o seleccione item"
-                      @input="updateSugerencias($event.target.value, index)"
-                      @focus="updateSugerencias($event.target.value, index)"
-                      @blur="blurHandler(index)"
-                      autocomplete="off"
+                      :options="sugerencias[index] || []"
+                      @search="(val: string) => updateSugerencias(val, index)"
+                      @blur="() => blurHandler()"
                     />
                     <div
                       v-if="sugerencias.length > 0 && inputActivo === index"
                       class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1"
                     >
                       <div
-                        v-for="suggestion in sugerencias"
-                        :key="suggestion"
+                        v-for="suggestion in sugerencias[index] || []"
+                        :key="suggestion.value"
                         @mousedown.prevent="selectItem(suggestion, index)"
                         class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                       >
@@ -457,13 +456,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import api from '@/services/authService';
+import { AxiosError } from 'axios';
 import { onMounted, ref } from 'vue';
 import { useOperaciones } from '@/composables/operaciones/useOperaciones';
 import { obtenerNombreProveedor } from '@/services/rucService';
+import { Vehiculo } from '@/types/vehiculo';
 
-const listaVehiculos = ref([]);
+const listaVehiculos = ref<Vehiculo[]>([]);
 
 async function consultarNombre() {
   const ruc = formData.value.ruc_proveedor?.trim()
@@ -484,7 +485,8 @@ onMounted(async () => {
     const response = await api.get('vehiculos/');
     listaVehiculos.value = response.data.results;
   } catch (error) {
-    console.error('Error al cargar vehículos:', error.response || error);
+    const err = error as AxiosError
+    console.error('Error al cargar vehículos:', err.response?.data || err.message );
     listaVehiculos.value = [];
   }
 });

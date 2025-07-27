@@ -10,9 +10,11 @@ declare module 'vue' {
   export interface GlobalComponents {
     ActualizarKmModal: typeof import('./src/components/modals/ActualizarKmModal.vue')['default']
     CargaCSV: typeof import('./src/components/CargaCSV.vue')['default']
-    FormularioIngreso: typeof import('./src/components/operaciones/FormularioIngreso.vue')['default']
+    FormularioIngreso: typeof import('./src/components/operaciones/FormularioOperaciones.vue')['default']
+    FormularioOperaciones: typeof import('./src/components/operaciones/FormularioOperaciones.vue')['default']
     FormularioVehiculo: typeof import('./src/components/vehiculos/FormularioVehiculo.vue')['default']
     ModalGlobal: typeof import('./src/components/modals/ModalGlobal.vue')['default']
+    NAutoComplete: typeof import('naive-ui')['NAutoComplete']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCollapseTransition: typeof import('naive-ui')['NCollapseTransition']

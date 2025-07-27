@@ -250,7 +250,8 @@ const formatDate = (date) => {
 
 // Obtener placa del vehículo por ID
 const getPlacaVehiculo = (id) => {
-  const v = vehiculos.value.find(v => v.id === id)
+  const lista = vehiculos.value?.results || []
+  const v = lista.find(v => v.id === id)
   return v ? v.placa : `ID: ${id}`
 }
 

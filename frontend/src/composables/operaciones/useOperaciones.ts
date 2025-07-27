@@ -73,41 +73,41 @@ export function useOperaciones() {
   })
 
   const aplicarFiltros = () => {
-  const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
-                    filtros.value.fecha_inicio !== null || 
-                    filtros.value.fecha_fin !== null;
+    const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
+                      filtros.value.fecha_inicio !== null || 
+                      filtros.value.fecha_fin !== null;
 
-  if (!hayFiltros) {
-    setPage(1);
-  }
+    if (!hayFiltros) {
+      setPage(1);
+    }
 
-  const filtrosParams: Record<string, any> = {};
-  
-  if (filtros.value.numero_documento.trim()) {
-    filtrosParams.numero_documento = filtros.value.numero_documento.trim();
-  }
-  
-  if (filtros.value.fecha_inicio) {
-    console.log('Fecha inicio original:', filtros.value.fecha_inicio);
-    console.log('Tipo de fecha inicio:', typeof filtros.value.fecha_inicio);
+    const filtrosParams: Record<string, any> = {};
     
-    // Método más directo - enviar tal como viene del input
-    filtrosParams.fecha_inicio = filtros.value.fecha_inicio;
+    if (filtros.value.numero_documento.trim()) {
+      filtrosParams.numero_documento = filtros.value.numero_documento.trim();
+    }
     
-    console.log('Fecha inicio que se enviará:', filtrosParams.fecha_inicio);
-  }
-  
-  if (filtros.value.fecha_fin) {
-    console.log('Fecha fin original:', filtros.value.fecha_fin);
-    filtrosParams.fecha_fin = filtros.value.fecha_fin;
-    console.log('Fecha fin que se enviará:', filtrosParams.fecha_fin);
-  }
+    if (filtros.value.fecha_inicio) {
+      console.log('Fecha inicio original:', filtros.value.fecha_inicio);
+      console.log('Tipo de fecha inicio:', typeof filtros.value.fecha_inicio);
+      
+      // Método más directo - enviar tal como viene del input
+      filtrosParams.fecha_inicio = filtros.value.fecha_inicio;
+      
+      console.log('Fecha inicio que se enviará:', filtrosParams.fecha_inicio);
+    }
+    
+    if (filtros.value.fecha_fin) {
+      console.log('Fecha fin original:', filtros.value.fecha_fin);
+      filtrosParams.fecha_fin = filtros.value.fecha_fin;
+      console.log('Fecha fin que se enviará:', filtrosParams.fecha_fin);
+    }
 
-  console.log('Todos los parámetros que se envían:', filtrosParams);
-  
-  params.value = filtrosParams;
-  loadOperaciones();
-};
+    console.log('Todos los parámetros que se envían:', filtrosParams);
+    
+    params.value = filtrosParams;
+    loadOperaciones();
+  };
 
   /* -------- helpers para la construcción del DTO -------- */
   const buildOperacionDTO = (payload: Partial<Operacion>): OpDTO => {

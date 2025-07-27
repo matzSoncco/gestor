@@ -28,7 +28,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class RepuestoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repuesto
-        fields = ['id', 'nombre']
+        fields = ['id', 'descripcion', 'empresa']
 
 class MantenimientoHitoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,8 +50,23 @@ class MantenimientoSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     class Meta:
         model = Mantenimiento
-        fields = ['id', 'descripcion_item', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo']
+        fields = ['id', 'repuesto', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo']
         read_only_fields = ['id', 'subtotal']
+
+    def create(self, validated_data):
+        descripcion = validated_data.get("repuesto", "").strip()
+
+        # ⚠️ Verifica si la descripción está vacía
+        if not descripcion:
+            raise serializers.ValidationError("La descripción del ítem no puede estar vacía.")
+
+        # Obtener o crear el respuesto
+        repuesto, _ = Repuesto.objects.get_or_create(descripcion=descripcion)
+
+        # Asignar al mantenimiento
+        validated_data["repuesto"] = repuesto
+
+        return super().create(validated_data)
 
 # -----------------------------------
 # 5) Serializer para Combustible

@@ -150,7 +150,7 @@ class Vehiculo(models.Model):
         else:
             # Calcular el siguiente hito desde el último mantenimiento
             proximo = ((ultimo.kilometraje // intervalo) + 1) * intervalo
-            print(f"[DEBUG] KM actual: {self.kilometraje}, último: {ultimo.kilometraje if ultimo else 'Ninguno'}, siguiente hito: {proximo}")
+            #print(f"[DEBUG] KM actual: {self.kilometraje}, último: {ultimo.kilometraje if ultimo else 'Ninguno'}, siguiente hito: {proximo}")
 
         return self.kilometraje >= proximo
 
@@ -200,10 +200,10 @@ class Operaciones(models.Model):
 
 class Repuesto(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="repuestos")
-    nombre = models.CharField(max_length=100, default="")
+    descripcion = models.CharField(max_length=100, default="")
 
     def __str__(self):
-        return self.nombre
+        return self.descripcion
 
 class Servicio(models.Model):
     # Relación con Operaciones
@@ -231,7 +231,7 @@ class Mantenimiento(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="mantenimientos")
 
     # Campos específicos del mantenimiento
-    descripcion_item = models.CharField(max_length=100, default="")
+    repuesto = models.ForeignKey(Repuesto, null=True, blank=True, on_delete=models.SET_NULL)
     cantidad = models.IntegerField(null=False, default=0)
     costo_unitario = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
     subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)

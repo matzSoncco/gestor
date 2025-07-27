@@ -19,6 +19,11 @@ export interface Operacion {
   servicios: any[];        // Idealmente: Servicio[]
 }
 
+export interface SugerenciaItem {
+  label: string
+  value: string
+}
+
 /**
  * Genera un nuevo objeto con valores por defecto para el formulario
  */

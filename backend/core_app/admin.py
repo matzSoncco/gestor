@@ -20,7 +20,7 @@ class MantenimientoInline(admin.TabularInline):
     model = Mantenimiento
     fk_name = 'operacion'
     extra = 0
-    readonly_fields = ['descripcion_item', 'cantidad', 'costo_unitario', 'subtotal']
+    readonly_fields = ['repuesto', 'cantidad', 'costo_unitario', 'subtotal']
     # Quita 'readonly_fields' si quieres que los campos sean editables en el inline.
 
 class CombustibleInline(admin.TabularInline):
@@ -50,9 +50,9 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(Repuesto)
 class RepuestoAdmin(admin.ModelAdmin):
-    list_display = ['id', 'nombre']
-    search_fields = ['nombre']
-    ordering = ['nombre']
+    list_display = ['id', 'descripcion', 'empresa']
+    search_fields = ['descripcion']
+    ordering = ['descripcion']
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):
@@ -171,7 +171,7 @@ class MantenimientoAdmin(admin.ModelAdmin):
     """
     list_display = [
         'id',
-        'descripcion_item',
+        'repuesto',
         'cantidad',
         'costo_unitario',
         'subtotal',
@@ -183,7 +183,7 @@ class MantenimientoAdmin(admin.ModelAdmin):
     # podrías filtrar por 'costoUnitario' o por otro campo que exista.
     list_filter = ['costo_unitario']
     readonly_fields = []  # Si quieres que "subTotal" sea solo lectura, pon ['subTotal']
-    search_fields = ['descripcion_item']
+    search_fields = ['repuesto']
 
 @admin.register(Combustible)
 class CombustibleAdmin(admin.ModelAdmin):

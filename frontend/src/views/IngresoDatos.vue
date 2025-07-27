@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import FormularioIngreso from '../components/operaciones/FormularioIngreso.vue';
+import FormularioIngreso from '../components/operaciones/FormularioOperaciones.vue';
 import CargaCSV from '../components/CargaCSV.vue';
 
 import { useIngresoDatos } from '../composables/operaciones/useIngresoDatos';
