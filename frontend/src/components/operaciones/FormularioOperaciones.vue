@@ -221,25 +221,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <n-form-item label="Item/Servicio (*)" class="relative">
                     <n-auto-complete
-                      v-model:value="mant.descripcion_item"
-                      placeholder="Escriba o seleccione item"
+                      :value="mant.repuesto"
                       :options="sugerencias[index] || []"
-                      @search="(val: string) => updateSugerencias(val, index)"
-                      @blur="() => blurHandler()"
+                      placeholder="Escriba o seleccione item"
+                      @update:value="(val: string) => {
+                        mant.repuesto = val
+                        updateSugerencias(val, index)
+                      }"
+                      @blur="() => blurHandler(index)"
                     />
-                    <div
-                      v-if="sugerencias.length > 0 && inputActivo === index"
-                      class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1"
-                    >
-                      <div
-                        v-for="suggestion in sugerencias[index] || []"
-                        :key="suggestion.value"
-                        @mousedown.prevent="selectItem(suggestion, index)"
-                        class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                      >
-                        {{ suggestion }}
-                      </div>
-                    </div>
                   </n-form-item>
                   
                   <n-form-item label="Cantidad (*)">
