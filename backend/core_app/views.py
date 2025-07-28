@@ -3,8 +3,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import viewsets, status, filters
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework import status
+from django.contrib.auth import get_user_model
 from .models import Vehiculo, Servicio, Mantenimiento, Combustible, Operaciones, Repuesto, CustomUser, Empresa, MantenimientoHito
 from .serializers import (
     VehiculoSerializer, 
@@ -225,3 +226,48 @@ def consultar_ruc(request, ruc):
 
     except requests.RequestException as e:
         return Response({"error": "Error al consultar RUC"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+User = get_user_model()
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])  # Solo usuarios logueados
+def crear_usuario_con_clave(request):
+    SECRET_KEY = settings.USER_CREATION_SECRET
+    data = request.data
+
+    if data.get("secret_key") != SECRET_KEY:
+        return Response({"error": "Acceso denegado: clave inválida"}, status=403)
+
+    username = data.get("username")
+    password = data.get("password")
+    empresa_id = data.get("empresa_id")
+
+    if not username or not password or not empresa_id:
+        return Response({"error": "Faltan campos requeridos"}, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Ya existe ese usuario"}, status=400)
+
+    try:
+        empresa = Empresa.objects.get(id=empresa_id)
+    except Empresa.DoesNotExist:
+        return Response({"error": "Empresa no encontrada"}, status=404)
+
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        empresa=empresa,
+        email=data.get("email", ""),
+        first_name=data.get("first_name", ""),
+        last_name=data.get("last_name", ""),
+        is_staff=False,
+        is_superuser=False
+    )
+
+    return Response(
+        {
+            "mensaje": f"Usuario '{username}' creado correctamente",
+            "empresa": empresa.razon_social
+        },
+        status=201
+    )

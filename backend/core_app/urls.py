@@ -15,10 +15,11 @@ router.register(r'empresas', views.EmpresaViewSet, basename='empresas')
 
 urlpatterns = [
     # REST API routes principales
+    path('', include(router.urls)),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('', include(router.urls)),
     path('logout/', views.logout_view, name='logout'),
     path('user/me/', views.CurrentUserView.as_view(), name='current-user'),
     path('ruc/<str:ruc>/', views.consultar_ruc, name='consultar_ruc'),
+    path('adminmayor/crear-usuario/', views.crear_usuario_con_clave),
 ]

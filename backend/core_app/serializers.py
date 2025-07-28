@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
 from decimal import Decimal, InvalidOperation
+from django.contrib.auth.hashers import make_password
 import logging
 from .models import (
     Vehiculo,
@@ -23,7 +24,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
     empresa = EmpresaSerializer(read_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'empresa']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
 
 class RepuestoSerializer(serializers.ModelSerializer):
     class Meta:

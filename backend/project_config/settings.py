@@ -30,6 +30,9 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv(
 
 API_NET_PE_TOKEN = config('TOKEN_CONSULTA_RUC')
 
+# para que yo pueda crear usuarios
+USER_CREATION_SECRET = config('TOKEN_PARA_CREAR_USUARIOS')
+
 raw_frontend = config('FRONTEND_URL', default='http://localhost:5173').rstrip('/')
 
 CSRF_TRUSTED_ORIGINS = [
@@ -63,7 +66,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt', #para usar autenticación del usuario de django
     'corsheaders',
     # Mis aplicaciones
-    'core_app',
+    'core_app.apps.CoreAppConfig',
 ]
 
 MIDDLEWARE = [
