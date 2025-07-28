@@ -2,29 +2,14 @@ from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
 from core_app.models import Empresa, Repuesto
+from django.conf import settings
+from core_app.utils import crear_repuestos_base_para_empresa
 
 @receiver(post_save, sender=Empresa)
 def crear_repuestos_base(sender, instance: Empresa, created: bool, **kwargs):
     if not created:
-        return  # Solo cuando se crea la empresa
-
-    base_items = [
-        "Llanta",
-        "Filtro de aceite",
-        "Pastillas de freno",
-        "Cambio de aceite",
-        "Alineamiento",
-        "Balanceo",
-        "Revisión general",
-        "Cambio de bujías",
-        "Revisión de suspensión"
-    ]
-
-    for descripcion in base_items:
-        Repuesto.objects.get_or_create(
-            empresa=instance,
-            descripcion=descripcion
-        )
+        return
+    crear_repuestos_base_para_empresa(instance)
 
 @receiver(post_migrate)
 def crear_superadmin(sender, **kwargs):
@@ -32,11 +17,11 @@ def crear_superadmin(sender, **kwargs):
 
     if not CustomUser.objects.filter(username='maxadmin').exists():
         CustomUser.objects.create(
-            username='maxadmin',
-            password=make_password('s3cret0Max123'),
+            username='ADMIN_USERNAME',
+            password=make_password('ADMIN_PASSWORD'),
             is_superuser=True,
             is_staff=True,
-            email='admin@example.com',  # opcional
+            email='maxjuniorsmy@gmail.com',  # opcional
             empresa=None  # explícitamente sin empresa
         )
         print("Superadmin 'maxadmin' creado exitosamente.")

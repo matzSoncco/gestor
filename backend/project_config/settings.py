@@ -33,6 +33,9 @@ API_NET_PE_TOKEN = config('TOKEN_CONSULTA_RUC')
 # para que yo pueda crear usuarios
 USER_CREATION_SECRET = config('TOKEN_PARA_CREAR_USUARIOS')
 
+ADMIN_USERNAME = config('ADMIN_USERNAME')
+ADMIN_PASSWORD = config('ADMIN_PASSWORD')
+
 raw_frontend = config('FRONTEND_URL', default='http://localhost:5173').rstrip('/')
 
 CSRF_TRUSTED_ORIGINS = [
@@ -66,7 +69,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt', #para usar autenticación del usuario de django
     'corsheaders',
     # Mis aplicaciones
-    'core_app.apps.CoreAppConfig',
+    'core_app',
 ]
 
 MIDDLEWARE = [
