@@ -1,12 +1,5 @@
 import { ref, watch, nextTick, type Ref } from 'vue';
 
-import {
-  fetchOperaciones,
-  createOperacion,
-  updateOperacion,
-  deleteOperacion,
-} from '@/api/operaciones';
-
 import { useCombustible } from '@/composables/operaciones/useCombustible';
 import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio } from '@/composables/operaciones/useServicio';
@@ -16,6 +9,13 @@ import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
+
+import {
+  fetchOperaciones,
+  createOperacion,
+  updateOperacion,
+  deleteOperacion,
+} from '@/api/operaciones';
 
 import {
   makeOperacionDefaults,
@@ -88,23 +88,13 @@ export function useOperaciones() {
     }
     
     if (filtros.value.fecha_inicio) {
-      console.log('Fecha inicio original:', filtros.value.fecha_inicio);
-      console.log('Tipo de fecha inicio:', typeof filtros.value.fecha_inicio);
-      
-      // Método más directo - enviar tal como viene del input
       filtrosParams.fecha_inicio = filtros.value.fecha_inicio;
-      
-      console.log('Fecha inicio que se enviará:', filtrosParams.fecha_inicio);
     }
     
     if (filtros.value.fecha_fin) {
-      console.log('Fecha fin original:', filtros.value.fecha_fin);
       filtrosParams.fecha_fin = filtros.value.fecha_fin;
-      console.log('Fecha fin que se enviará:', filtrosParams.fecha_fin);
     }
 
-    console.log('Todos los parámetros que se envían:', filtrosParams);
-    
     params.value = filtrosParams;
     loadOperaciones();
   };

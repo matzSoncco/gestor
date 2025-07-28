@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { useVehiculos } from '../../composables/vehiculos/useVehiculo';
+import { useVehiculos } from '../../composables/vehiculos/useVehiculos';
 
 const {
   formData,

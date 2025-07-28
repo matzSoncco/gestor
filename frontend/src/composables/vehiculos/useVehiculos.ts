@@ -3,7 +3,6 @@ import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
 import { validateRequired } from '@/utils/validateRequired'
-import { makeVehiculoDefaults, type Vehiculo } from '@/types/vehiculo'
 import { usePagination } from '../global/usePagination'
 
 import {
@@ -13,35 +12,67 @@ import {
   deleteVehiculo
 } from '@/api/vehiculos'
 
+import {
+  makeVehiculoDefaults,
+  type Vehiculo
+} from '@/types/vehiculo'
+
 function validateVehiculo(p: Partial<Vehiculo>): string | null {
-  const required: (keyof Vehiculo)[] = ['placa', 'marca', 'modelo']
+  const required: (keyof Vehiculo)[] = [
+    'placa',
+    'marca',
+    'modelo'
+  ];
+
   return validateRequired(p, required)
 }
 
 export function useVehiculos() {
-  const vehiculoStore = useVehiculoStore()
-  const { success, error, info } = useNotify()
+  const vehiculoStore = useVehiculoStore();
+  const isResetting = ref(false);
+  const defaults = makeVehiculoDefaults();
+  const { success, error, info } = useNotify();
 
-  // ✅ Mantener usePagination genérico - NO renombrar items
+  const filtros = ref({
+    placa: ''
+  })
+
   const {
-    items,
+    items: vehiculos,
     total,
     currentPage,
     pageSize,
     loading,
-    load: loadVehiculos, // ✅ Este es el que necesitas para la tabla
-    setPage
+    load: loadVehiculos,
+    setPage,
+    params
   } = usePagination<Vehiculo>({
     fetcher: fetchVehiculos,
-    pageSize: 10
+    pageSize: 6
   })
 
   // ✅ Computed que une ambas fuentes cuando sea necesario
-  const vehiculos = computed(() => items.value || [])
+  //const vehiculos = computed(() => items.value || [])
 
+  const aplicarFiltros = () => {
+    const hayFiltros = filtros.value.placa.trim() !== ''
+
+    if (!hayFiltros) {
+      setPage(1);
+    }
+
+    const filtrosParams: Record<string, any> = {};
+
+    if (filtros.value.placa.trim()) {
+      filtrosParams.placa = filtros.value.placa.trim();
+    }
+
+    params.value = filtrosParams;
+    loadVehiculos()
+  }
   // ✅ Método para sincronizar el store con los datos paginados
   const syncStore = () => {
-    vehiculoStore.setVehiculos(items.value)
+    vehiculoStore.setVehiculos(vehiculos.value)
   }
 
   // ✅ Método para actualizar un vehículo específico en ambas fuentes
@@ -50,14 +81,14 @@ export function useVehiculos() {
     vehiculoStore.actualizarVehiculo(updated)
     
     // Actualizar items paginados
-    const idx = items.value.findIndex(v => v.id === updated.id)
+    const idx = vehiculos.value.findIndex(v => v.id === updated.id)
     if (idx !== -1) {
-      items.value[idx] = { ...items.value[idx], ...updated }
+      vehiculos.value[idx] = { ...vehiculos.value[idx], ...updated }
     }
   }
 
   /* -------- crear -------- */
-  const onSubmitService = async (payload: Partial<Vehiculo>) => {
+  const create = async (payload: Partial<Vehiculo>) => {
     const msg = validateVehiculo(payload)
     if (msg) {
       error(msg)
@@ -67,7 +98,7 @@ export function useVehiculos() {
     const { data } = await createVehiculo(payload)
     
     // Actualizar items locales y store
-    items.value = [data, ...items.value]
+    vehiculos.value = [data, ...vehiculos.value]
     vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
     
     success('Vehículo creado')
@@ -87,7 +118,7 @@ export function useVehiculos() {
     await deleteVehiculo(id)
     
     // Remover de ambas fuentes
-    items.value = items.value.filter(v => v.id !== id)
+    vehiculos.value = vehiculos.value.filter(v => v.id !== id)
     vehiculoStore.setVehiculos(vehiculoStore.vehiculos.filter(v => v.id !== id))
     
     success('Vehículo eliminado')
@@ -106,31 +137,39 @@ export function useVehiculos() {
     resetForm: baseReset,
     submitForm
   } = useFormActions<Vehiculo>({
-    defaults: makeVehiculoDefaults(),
-    onSubmitService,
-    onResetCallback: () => info('Formulario reiniciado'),
+    defaults,
+    onSubmitService: create,
+    onResetCallback: () => info('Formulario limpiado'),
   })
 
   const resetForm = async () => {
-    await baseReset()
-    await nextTick()
+    isResetting.value = true;
+    await baseReset();
+    await nextTick();
+    isResetting.value = false;
   }
 
   /* -------- API pública del composable -------- */
   return {
-    vehiculos: items, // ✅ Computed que devuelve items.value
+    vehiculos,
     loading,
     total,
     currentPage,
     pageSize,
+    load: loadVehiculos,
     setPage,
-    load, // ✅ Load personalizado que sincroniza
-    create: submitForm,
-    update,
-    remove,
+    filtros,
+    aplicarFiltros,
+
     formData,
     formLoading,
     resetForm,
+    submitForm,
+
+    create: submitForm,
+    update,
+    remove,
+    
     updateVehiculoLocal // ✅ Exportar para usar en el componente
   }
 }

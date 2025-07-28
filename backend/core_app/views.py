@@ -60,8 +60,14 @@ class VehiculoViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Filtrar solo los vehículos de la empresa del usuario
-        return Vehiculo.objects.filter(empresa=self.request.user.empresa)
+        empresa = self.request.user.empresa
+        queryset = Vehiculo.objects.filter(empresa=empresa)
+
+        placa = self.request.query_params.get('placa')
+        if placa:
+            queryset = queryset.filter(placa__icontains=placa)
+
+        return queryset.order_by('-placa')
 
     def perform_create(self, serializer):
         # Asociar automáticamente a la empresa del usuario autenticado

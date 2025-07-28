@@ -10,20 +10,14 @@
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-          <n-button
-            type="primary"
-            @click="$router.push({ name: 'RegistroVehiculos' })"
-            class="w-full md:w-auto"
-          >
-            Registrar Vehículo
-          </n-button>
-          
           <n-input
-            v-model:value="searchPlaca"
+            v-model:value="filtros.placa"
             placeholder="Buscar por placa"
             clearable
             class="w-full md:w-64"
+            @keyup.enter="aplicarFiltros"
           />
+          <n-button @click="aplicarFiltros" type="primary">Buscar</n-button>
         </div>
       </div>
 
@@ -84,17 +78,18 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
-import { NButton, useMessage } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import ActualizarKmModal from '@/components/modals/ActualizarKmModal.vue'
-import { useVehiculos } from '@/composables/vehiculos/useVehiculo'
+import { useVehiculos } from '@/composables/vehiculos/useVehiculos'
 import { registrarMantenimiento } from '@/api/vehiculos'
 import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { Vehiculo } from '@/types/vehiculo'
+import { useNotify } from '@/composables/global/useNotify'
 
 const router = useRouter()
 const vehiculoStore = useVehiculoStore()
-const message = useMessage()
+const { success, error, info } = useNotify()
 
 const {
   vehiculos,
@@ -104,12 +99,13 @@ const {
   total,
   setPage,
   load,
+  filtros,
+  aplicarFiltros,
   updateVehiculoLocal
 } = useVehiculos()
 
 const modalVisible = ref<boolean>(false)
 const selectedId = ref<number | null>(null)
-const searchPlaca = ref<string>('')
 const loadError = ref<boolean>(false)
 
 onMounted(async () => {
@@ -142,11 +138,11 @@ const handlePageChange = async (page: number) => {
 
 const rowKey = (row: Vehiculo) => row.id
 
-const vehiculosFiltrados = computed(() =>
-  vehiculos.value.filter(v =>
-    v.placa.toLowerCase().includes(searchPlaca.value.toLowerCase())
-  )
-)
+// const vehiculosFiltrados = computed(() =>
+//   vehiculos.value.filter(v =>
+//     v.placa.toLowerCase().includes(searchPlaca.value.toLowerCase())
+//   )
+// )
 
 function openModal(id: number) {
   selectedId.value = id
@@ -268,12 +264,12 @@ async function handleRegistrarMantenimiento(vehiculoId: number) {
     updateVehiculoLocal(actualizado)
 
     // ✅ Notifica éxito
-    message.success(response.data.detail)
+    success(response.data.detail)
   } catch (error: any) {
     if (error.response?.data?.detail) {
-      message.error(error.response.data.detail)
+      error(error.response.data.detail)
     } else {
-      message.error('Error al registrar mantenimiento')
+      error('Error al registrar mantenimiento')
     }
   }
 }

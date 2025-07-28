@@ -9,7 +9,7 @@
 
 <script setup>
 import FormularioVehiculo from '../components/vehiculos/FormularioVehiculo.vue';
-import { useVehiculos } from '../composables/vehiculos/useVehiculo';
+import { useVehiculos } from '../composables/vehiculos/useVehiculos';
 
 const { handleSave, handleCancel } = useVehiculos();
 </script>
