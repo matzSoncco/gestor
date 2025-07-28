@@ -68,7 +68,7 @@
           
           <n-form-item label="Fecha (*)">
             <n-date-picker
-              v-model:formatted-value="formData.fecha"
+              v-model="formData.fecha"
               type="date"
               placeholder="Seleccione fecha"
               class="w-full"
