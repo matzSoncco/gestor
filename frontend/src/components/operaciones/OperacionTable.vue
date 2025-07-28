@@ -11,7 +11,7 @@
         </div>
 
         <!-- Filtros -->
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-4">
           <n-input
             v-model:value="filtros.numero_documento"
             placeholder="Buscar por número de documento"
