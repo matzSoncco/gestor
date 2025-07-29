@@ -136,7 +136,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useVehiculos } from '../../composables/vehiculos/useVehiculos';
 
 const {

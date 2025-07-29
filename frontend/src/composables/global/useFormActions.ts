@@ -53,7 +53,7 @@ export function useFormActions<T extends object>({
       await resetForm();
     } catch (err) {
       // Pasas el error hacia arriba si quieres manejarlo en el componente
-      console.error('[useFormActions] submit error:', err);
+      //console.error('[useFormActions] submit error:', err);
     } finally {
       loading.value = false;
     }

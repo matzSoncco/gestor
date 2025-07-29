@@ -1,6 +1,7 @@
 import type { AxiosResponse } from 'axios'
 import api from '@/services/authService'
 import type { Vehiculo, MantenimientoResponse } from '@/types/vehiculo'
+import { handleApiError } from '@/utils/apiWrapper'
 
 export const fetchVehiculos = async (params?: Record<string, any>) => {
   try {
@@ -14,15 +15,12 @@ export const fetchVehiculos = async (params?: Record<string, any>) => {
   }
 }
 
-export const createVehiculo = async (payload: Partial<Vehiculo>) => {
+export const createVehiculo = async (payload: Partial<Vehiculo>): Promise<Vehiculo> => {
   try {
     const response = await api.post<Vehiculo>('/vehiculos/', payload)
     return response.data
-  } catch (error:any) {
-    if (error.response?.data) {
-      throw error.response.data
-    }
-    throw new Error('Error inesperado al crear el vehículo')
+  } catch (error) {
+    throw handleApiError(error, 'Error al crear el vehículo')
   }
 }
 

@@ -2,7 +2,7 @@ export interface Vehiculo {
   id: number;
   placa: string;
   anio: number;
-  kilometraje: number | string;
+  kilometraje: number | null;
   costo: number;
   ubicacion: string;
   categoria: string;

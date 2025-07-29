@@ -4,6 +4,7 @@ import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
 import { validateRequired } from '@/utils/validateRequired'
 import { usePagination } from '../global/usePagination'
+import { parseApiError } from '@/utils/parseApiError'
 
 import {
   fetchVehiculos,
@@ -89,22 +90,24 @@ export function useVehiculos() {
   }
 
   /* -------- crear -------- */
-  const createVehiculoAction  = async (payload: Partial<Vehiculo>) => {
+  const createVehiculoAction = async (payload: Partial<Vehiculo>) => {
     const msg = validateVehiculo(payload)
     if (msg) {
       error(msg)
       throw new Error(msg)
     }
+
     try {
       const data = await createVehiculo(payload)
-      
+
       vehiculos.value = [data, ...vehiculos.value]
       vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
-      
       success('Vehículo creado exitosamente')
+
       return data
     } catch (err) {
-      error('Error al crear el vehículo')
+      const message = parseApiError(err, 'No se pudo crear el vehículo')
+      error(message)
       throw err
     }
   }
