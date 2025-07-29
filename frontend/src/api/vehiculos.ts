@@ -2,17 +2,53 @@ import type { AxiosResponse } from 'axios'
 import api from '@/services/authService'
 import type { Vehiculo, MantenimientoResponse } from '@/types/vehiculo'
 
-export const fetchVehiculos = (params?: Record<string, any>) =>
-  api.get('/vehiculos/', { params })
+export const fetchVehiculos = async (params?: Record<string, any>) => {
+  try {
+    const response = await api.get('/vehiculos/', { params })
+    return response.data
+  } catch (error:any) {
+    if (error.response?.data) {
+      throw error.response.data
+    }
+    throw new Error('Error inesperado al buscar los vehículos')
+  }
+}
 
-export const createVehiculo = (payload: Partial<Vehiculo>) =>
-  api.post<Vehiculo>('/vehiculos/', payload)
+export const createVehiculo = async (payload: Partial<Vehiculo>) => {
+  try {
+    const response = await api.post<Vehiculo>('/vehiculos/', payload)
+    return response.data
+  } catch (error:any) {
+    if (error.response?.data) {
+      throw error.response.data
+    }
+    throw new Error('Error inesperado al crear el vehículo')
+  }
+}
 
-export const updateVehiculo = (id: number, payload: Partial<Vehiculo>) =>
-  api.put<Vehiculo>(`/vehiculos/${id}`, payload)
+export const updateVehiculo = async (id: number, payload: Partial<Vehiculo>) => {
+  try {
+    const response = await api.put<Vehiculo>(`/vehiculos/${id}`, payload)
+    return response.data
+  } catch (error:any) {
+    if (error.response?.data) {
+      throw error.response.data
+    }
+    throw new Error('Error inesperado al actualizar el vehículo')
+  }
+}
 
-export const deleteVehiculo = (id: number) =>
-  api.delete(`/vehiculos/${id}`)
+export const deleteVehiculo = async (id: number) => {
+  try {
+    const response = await api.delete(`/vehiculos/${id}`)
+    return response.data
+  } catch (error:any) {
+    if (error.response?.data) {
+      throw error.response.data
+    }
+    throw new Error('Error inesperado al eliminar el vehículo')
+  }
+}
 
 export function registrarMantenimiento(
   vehiculoId: number,

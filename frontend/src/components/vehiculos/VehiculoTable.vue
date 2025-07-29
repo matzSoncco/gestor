@@ -98,10 +98,11 @@ const {
   pageSize,
   total,
   setPage,
-  load,
+  loadData,
   filtros,
   aplicarFiltros,
-  updateVehiculoLocal
+  updateVehiculo,
+  updateVehiculoInBothSources
 } = useVehiculos()
 
 const modalVisible = ref<boolean>(false)
@@ -110,7 +111,7 @@ const loadError = ref<boolean>(false)
 
 onMounted(async () => {
   try {
-    await load()
+    await loadData()
     loadError.value = false
   } catch {
     loadError.value = true
@@ -120,7 +121,7 @@ onMounted(async () => {
 const reintentarCarga = async () => {
   loadError.value = false
   try {
-    await load()
+    await loadData()
   } catch {
     loadError.value = true
   }
@@ -261,7 +262,7 @@ async function handleRegistrarMantenimiento(vehiculoId: number) {
 
     vehiculoStore.actualizarVehiculo(actualizado)
 
-    updateVehiculoLocal(actualizado)
+    updateVehiculoInBothSources(actualizado)
 
     // ✅ Notifica éxito
     success(response.data.detail)

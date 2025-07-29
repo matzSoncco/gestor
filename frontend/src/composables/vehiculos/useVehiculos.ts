@@ -1,4 +1,4 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
@@ -51,8 +51,20 @@ export function useVehiculos() {
     pageSize: 6
   })
 
-  // ✅ Computed que une ambas fuentes cuando sea necesario
-  //const vehiculos = computed(() => items.value || [])
+  const syncStoreWithPagination  = () => { //cambio de nombre a una más descriptiva
+    vehiculoStore.setVehiculos(vehiculos.value)
+  }
+
+  const updateVehiculoInBothSources  = (updated: Vehiculo) => { //nombre mas descriptivo, explica qué hace
+    //ctualizar store global
+    vehiculoStore.actualizarVehiculo(updated)
+    
+    //actualizar items paginados (si está en la pag actual)
+    const idx = vehiculos.value.findIndex(v => v.id === updated.id)
+    if (idx !== -1) {
+      vehiculos.value[idx] = { ...vehiculos.value[idx], ...updated }
+    }
+  }
 
   const aplicarFiltros = () => {
     const hayFiltros = filtros.value.placa.trim() !== ''
@@ -70,64 +82,60 @@ export function useVehiculos() {
     params.value = filtrosParams;
     loadVehiculos()
   }
-  // ✅ Método para sincronizar el store con los datos paginados
-  const syncStore = () => {
-    vehiculoStore.setVehiculos(vehiculos.value)
-  }
 
-  // ✅ Método para actualizar un vehículo específico en ambas fuentes
-  const updateVehiculoLocal = (updated: Vehiculo) => {
-    // Actualizar store
-    vehiculoStore.actualizarVehiculo(updated)
-    
-    // Actualizar items paginados
-    const idx = vehiculos.value.findIndex(v => v.id === updated.id)
-    if (idx !== -1) {
-      vehiculos.value[idx] = { ...vehiculos.value[idx], ...updated }
-    }
+  const loadData = async () => { //evitamos confucion con loadVehiculos
+    await loadVehiculos()
+    syncStoreWithPagination() //sincronizar después de cargar
   }
 
   /* -------- crear -------- */
-  const create = async (payload: Partial<Vehiculo>) => {
+  const createVehiculoAction  = async (payload: Partial<Vehiculo>) => {
     const msg = validateVehiculo(payload)
     if (msg) {
       error(msg)
       throw new Error(msg)
     }
-
-    const { data } = await createVehiculo(payload)
-    
-    // Actualizar items locales y store
-    vehiculos.value = [data, ...vehiculos.value]
-    vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
-    
-    success('Vehículo creado')
-    return data
+    try {
+      const data = await createVehiculo(payload)
+      
+      vehiculos.value = [data, ...vehiculos.value]
+      vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
+      
+      success('Vehículo creado exitosamente')
+      return data
+    } catch (err) {
+      error('Error al crear el vehículo')
+      throw err
+    }
   }
 
   /* -------- editar -------- */
-  const update = async (id: number, payload: Partial<Vehiculo>) => {
-    const { data } = await updateVehiculo(id, payload)
-    updateVehiculoLocal(data)
-    success('Vehículo actualizado')
-    return data
+  const updateVehiculoAction  = async (id: number, payload: Partial<Vehiculo>) => {
+    try {
+      const data = await updateVehiculo(id, payload)
+      updateVehiculoInBothSources(data)
+      success('Vehículo actualizado exitosamente')
+      return data
+    } catch (err) {
+      error('Error al actualizar el vehículo')
+      throw err
+    }
   }
 
   /* -------- eliminar -------- */
-  const remove = async (id: number) => {
-    await deleteVehiculo(id)
-    
-    // Remover de ambas fuentes
-    vehiculos.value = vehiculos.value.filter(v => v.id !== id)
-    vehiculoStore.setVehiculos(vehiculoStore.vehiculos.filter(v => v.id !== id))
-    
-    success('Vehículo eliminado')
-  }
-
-  /* -------- load con sincronización -------- */
-  const load = async () => {
-    await loadVehiculos()
-    syncStore() // Sincronizar store después de cargar
+  const deleteVehiculoAction = async (id: number) => {
+    try {
+      await deleteVehiculo(id)
+      
+      // Remover de ambas fuentes
+      vehiculos.value = vehiculos.value.filter(v => v.id !== id)
+      vehiculoStore.setVehiculos(vehiculoStore.vehiculos.filter(v => v.id !== id))
+      
+      success('Vehículo eliminado exitosamente')
+    } catch (err) {
+      error('Error al eliminar el vehículo')
+      throw err
+    }
   }
 
   /* -------- formulario reusable -------- */
@@ -138,7 +146,7 @@ export function useVehiculos() {
     submitForm
   } = useFormActions<Vehiculo>({
     defaults,
-    onSubmitService: create,
+    onSubmitService: createVehiculoAction,
     onResetCallback: () => info('Formulario limpiado'),
   })
 
@@ -149,6 +157,11 @@ export function useVehiculos() {
     isResetting.value = false;
   }
 
+  const refresh = async () => {
+    await loadData()
+    info('Datos actualizados')
+  }
+
   /* -------- API pública del composable -------- */
   return {
     vehiculos,
@@ -156,8 +169,8 @@ export function useVehiculos() {
     total,
     currentPage,
     pageSize,
-    load: loadVehiculos,
     setPage,
+
     filtros,
     aplicarFiltros,
 
@@ -166,10 +179,16 @@ export function useVehiculos() {
     resetForm,
     submitForm,
 
-    create: submitForm,
-    update,
-    remove,
+    loadData,
+    createVehiculo: createVehiculoAction, // Para crear programáticamente
+    updateVehiculo: updateVehiculoAction,
+    deleteVehiculo: deleteVehiculoAction,
     
-    updateVehiculoLocal // ✅ Exportar para usar en el componente
+    refresh,
+
+    updateVehiculoInBothSources,
+    syncStoreWithPagination,
+    
+    isResetting
   }
 }

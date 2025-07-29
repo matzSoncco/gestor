@@ -30,8 +30,12 @@ export function usePagination<T>({ fetcher, page = 1, pageSize = 6, immediate = 
       }
 
       const response = await fetcher(mergedParams)
-      items.value = response.data.results
-      total.value = response.data.count
+      items.value = response.results
+      total.value = response.count || 0
+    } catch (error) {
+      console.error('Error loading data:', error)
+      items.value = []
+      total.value = 0
     } finally {
       loading.value = false
     }
