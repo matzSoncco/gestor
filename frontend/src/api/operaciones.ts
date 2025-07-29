@@ -1,14 +1,37 @@
 import api from '@/services/authService'
 import type { Operacion } from '@/types/operacion'
+import { handleApiError } from '@/utils/apiWrapper'
 
-export const fetchOperaciones = (params?: Record<string, any>) =>
-  api.get('/operaciones', { params })
+export const fetchOperaciones = async (params?: Record<string, any>) => {
+  try {
+    const response = await api.get<Operacion>('/operaciones/', { params })
+    return response.data
+  } catch (error) {
+    throw handleApiError(error, 'Error al buscar operaciones')
+  }
+}
 
-export const createOperacion = (payload: Partial<Operacion>) =>
-    api.post<Operacion>('/operaciones', payload)
+export const createOperacion = async (payload: Partial<Operacion>) => {
+  try {
+    const response = await api.post<Operacion>('/operaciones/', payload)
+    return response.data
+  } catch (error) {
+    throw handleApiError(error, 'Error al crear la operación')
+  }
+}
 
-export const updateOperacion = (id: number, payload: Partial<Operacion>) =>
-    api.put<Operacion>(`/operaciones/${id}`, payload)
+export const updateOperacion = async (id: number, payload: Partial<Operacion>) => {
+  try {
+    const response = await api.put<Operacion>(`/operaciones/${id}`, payload)
+  } catch (error) {
+    throw handleApiError(error, 'Error al actualizar operación')
+  }
+}
 
-export const deleteOperacion = (id: number) =>
-  api.delete(`/operaciones/${id}`)
+export const deleteOperacion = async (id: number) => {
+  try {
+    const response = await api.delete<Operacion>(`/operaciones/${id}`)
+  } catch (error) {
+    throw handleApiError(error, 'Error al eliminar operación')
+  }
+}
