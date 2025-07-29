@@ -24,6 +24,6 @@ def crear_superadmin(sender, **kwargs):
             email='maxjuniorsmy@gmail.com',  # opcional
             empresa=None  # explícitamente sin empresa
         )
-        print("Superadmin 'maxadmin' creado exitosamente.")
+        print("Superadmin creado exitosamente.")
     else:
-        print("Superadmin 'maxadmin' ya existe, no se creó de nuevo.")
+        print("Superadmin ya existe, no se creó de nuevo.")

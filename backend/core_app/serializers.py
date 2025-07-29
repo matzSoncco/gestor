@@ -21,7 +21,7 @@ class EmpresaSerializer(serializers.ModelSerializer):
         fields = ['id', 'ruc', 'razon_social']
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    empresa = EmpresaSerializer(read_only=True)
+    #empresa = EmpresaSerializer(read_only=True)
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password']
