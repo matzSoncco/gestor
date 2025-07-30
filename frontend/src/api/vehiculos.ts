@@ -1,11 +1,11 @@
 import type { AxiosResponse } from 'axios'
 import api from '@/services/authService'
-import type { Vehiculo, MantenimientoResponse } from '@/types/vehiculo'
+import type { Vehiculo, MantenimientoResponse, VehiculoResponse } from '@/types/vehiculo'
 import { handleApiError } from '@/utils/apiErroHandler'
 
 export const fetchVehiculos = async (params?: Record<string, any>) => {
   try {
-    const response = await api.get<Vehiculo>('/vehiculos/', { params })
+    const response = await api.get<VehiculoResponse>('/vehiculos/', { params })
     return response.data
   } catch (error) {
     throw handleApiError(error, 'Error al buscar vehículos')

@@ -241,7 +241,7 @@ class Operaciones(models.Model):
 
 
 class Repuesto(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="repuestos")
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="repuestos", null=True)
     descripcion = models.CharField(max_length=100, default="")
 
     def __str__(self):
@@ -257,7 +257,7 @@ class Servicio(models.Model):
 
     # Campos específicos del servicio
     descripcion_item = models.CharField(max_length=100, default="")
-    subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
+    subtotal = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
     
     @property
     def igv(self):
@@ -268,7 +268,9 @@ class Servicio(models.Model):
         return (self.subtotal + self.igv).quantize(Decimal('0.01'))
     
     def save(self, *args, **kwargs):
-        # 1) Si necesitas lógica adicional: colócala aquí…
+        print("💾 Guardando servicio con subtotal:", self.subtotal)
+        if self.subtotal is None:
+            self.subtotal = Decimal('0.00')
         super().save(*args, **kwargs)
 
 

@@ -18,18 +18,18 @@ import {
 } from '@/api/operaciones';
 
 import {
+  Combustible,
   makeOperacionDefaults,
+  Mantenimiento,
+  Servicio,
   type Operacion,
 } from '@/types/operacion';
 
 /* ------------ Tipo auxiliar DTO sin campos temporales ------------ */
-type OperacionDTO = Omit<
-  Operacion,
-  'combustibles' | 'mantenimientos' | 'servicios' | 'costo_total'
-> & {
-  combustible_detalle: any[];
-  mantenimiento_detalle: any[];
-  servicio_detalle: any[];
+type OperacionDTO = Omit<Operacion, 'combustibles' | 'mantenimientos' | 'servicios' | 'costo_total'> & {
+  combustible_detalle: Omit<Combustible, 'id'>[];
+  mantenimiento_detalle: Omit<Mantenimiento, 'id'>[];
+  servicio_detalle: Omit<Servicio, 'id'>[];
 };
 
 type OperacionFiltros = {
@@ -191,6 +191,14 @@ export function useOperaciones() {
     if (msg) {
       error(msg);
       throw new Error(msg);
+    }
+
+    if (formData.value.tipo_operacion === 'servicio') {
+      servicioComposable.updateSubtotals();
+    } else if (formData.value.tipo_operacion === 'mantenimiento') {
+      mantenimientoComposable.updateSubtotals();
+    } else if (formData.value.tipo_operacion === 'combustible') {
+      servicioComposable.updateSubtotals();
     }
 
     const dto = buildOperacionPayload(payload);

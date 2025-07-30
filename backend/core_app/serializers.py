@@ -33,18 +33,24 @@ class CustomUserSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
 
-class RepuestoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Repuesto
-        fields = ['id', 'descripcion', 'empresa']
+class RepuestoSerializer(serializers.PrimaryKeyRelatedField):
+    def to_internal_value(self, data):
+        # Si el dato es un número (id), DRF lo procesa normal
+        if isinstance(data, int):
+            return super().to_internal_value(data)
+
+        # Si el dato es un string, lo tratamos como nombre de repuesto
+        if isinstance(data, str):
+            repuesto, created = Repuesto.objects.get_or_create(descripcion=data.strip())
+            return repuesto
+
+        raise serializers.ValidationError("Formato inválido para repuesto")
 
 class MantenimientoHitoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MantenimientoHito
         fields = '__all__'
         read_only_fields = ['fecha', 'empresa', 'vehiculo']
-
-    
 
 class ServicioSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
@@ -53,7 +59,7 @@ class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servicio
         fields = ['id', 'descripcion_item', 'subtotal', 'placa_vehiculo', 'igv', 'total']
-        read_only_fields = ['subtotal', 'igv', 'total']
+        read_only_fields = ['igv', 'total']
 
     def get_igv(self, obj):
         return obj.igv
@@ -62,6 +68,7 @@ class ServicioSerializer(serializers.ModelSerializer):
         return obj.total
 
 class MantenimientoSerializer(serializers.ModelSerializer):
+    repuesto = RepuestoSerializer(queryset=Repuesto.objects.all())
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()

@@ -17,7 +17,7 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
       subtotal: 0,
       igv: 0,
       total: 0,
-      placa_vehiculo: '',
+      placa_vehiculo: 0,
       ubicacion: 'AREQUIPA',
     });
   };
@@ -60,5 +60,6 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
     addCombustibleRow,
     removeCombustibleRow,
     costoTotalCombustible,
+    updateSubtotals,
   };
 }

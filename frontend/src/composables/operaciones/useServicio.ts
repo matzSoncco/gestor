@@ -16,7 +16,7 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
       subtotal: 0,
       igv: 0,
       total: 0,
-      placa_vehiculo: '',
+      placa_vehiculo: 0,
     });
   };
 
@@ -52,5 +52,6 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
     addServicioRow,
     removeServicioRow,
     costoTotalServicio,
+    updateSubtotals,
   };
 }

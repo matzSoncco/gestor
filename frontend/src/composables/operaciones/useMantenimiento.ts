@@ -25,7 +25,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
       subtotal: 0,
       igv: 0,
       total: 0,
-      placa_vehiculo: '',
+      placa_vehiculo: 0,
     });
 
     sugerencias.value.push([])
@@ -107,6 +107,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
     blurHandler,
     sugerencias,
     inputActivo,
+    updateSubtotals,
     costoTotalMantenimiento,
   };
 }

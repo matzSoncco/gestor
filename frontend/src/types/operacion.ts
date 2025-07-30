@@ -1,5 +1,12 @@
 export type TipoOperacion = 'combustible' | 'mantenimiento' | 'servicio' | '';
 
+export interface OperacionResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Operacion[]
+}
+
 export interface Combustible {
   id: string;
   cantidad_galones: number;
@@ -8,7 +15,7 @@ export interface Combustible {
   igv?: number;
   total?: number;
   ubicacion: string;
-  placa_vehiculo?: string;
+  placa_vehiculo?: number;
 }
 
 export interface Mantenimiento {
@@ -19,7 +26,7 @@ export interface Mantenimiento {
   subtotal: number;
   igv?: number;
   total?: number;
-  placa_vehiculo?: string;
+  placa_vehiculo?: number;
 }
 
 export interface Servicio {
@@ -28,7 +35,7 @@ export interface Servicio {
   subtotal: number;
   igv?: number;
   total?: number;
-  placa_vehiculo?: string;
+  placa_vehiculo?: number;
 }
 
 export interface Operacion {
@@ -39,10 +46,24 @@ export interface Operacion {
   tipo_operacion: TipoOperacion;
   fecha: string;
   descripcion: string;
-  costo_total: number;
+  costo_total: string;
   combustibles: Combustible[];
   mantenimientos: Mantenimiento[];
   servicios: Servicio[];
+}
+
+export interface OperacionBackend {
+  id: number
+  numero_documento: string;
+  ruc_proveedor: string;
+  nombre_proveedor: string;
+  tipo_operacion: TipoOperacion;
+  fecha: string;
+  descripcion: string;
+  costo_total: string;
+  combustible_detalle?: Combustible[];
+  mantenimiento_detalle?: Mantenimiento[];
+  servicio_detalle?: Servicio[];
 }
 
 export interface SugerenciaItem {
@@ -62,7 +83,7 @@ export function makeOperacionDefaults(): Operacion {
     tipo_operacion: '',
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
-    costo_total: 0,
+    costo_total: '',
     combustibles: [],
     mantenimientos: [],
     servicios: [],

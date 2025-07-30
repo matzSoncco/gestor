@@ -34,6 +34,13 @@ export interface Vehiculo {
   proximo_hito_mantenimiento: number // <-- Calculado
 }
 
+export interface VehiculoResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Vehiculo[]
+}
+
 export interface MantenimientoResponse {
   detail: string
   vehiculo: Vehiculo
