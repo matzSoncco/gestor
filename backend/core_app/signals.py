@@ -15,12 +15,16 @@ def crear_repuestos_base(sender, instance: Empresa, created: bool, **kwargs):
 def crear_superadmin(sender, **kwargs):
     from core_app.models import CustomUser
 
-    if not CustomUser.objects.filter(username='ADMIN_USERNAME').exists():
+    username = settings.ADMIN_USERNAME
+    password = settings.ADMIN_PASSWORD
+
+    if not CustomUser.objects.filter(username=username).exists():
         CustomUser.objects.create(
-            username='ADMIN_USERNAME',
-            password=make_password('ADMIN_PASSWORD'),
+            username=username,
+            password=make_password(password),
             is_superuser=True,
             is_staff=True,
+            is_active=True,
             email='maxjuniorsmy@gmail.com',  # opcional
             empresa=None  # explícitamente sin empresa
         )
