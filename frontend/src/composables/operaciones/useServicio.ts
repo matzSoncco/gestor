@@ -1,4 +1,4 @@
-import { computed, Ref } from 'vue';
+import { computed, Ref, watch } from 'vue';
 import { useIdGenerator } from '@/composables/global/useIdGenerator';
 import type { Servicio } from '@/types/operacion';
 
@@ -26,7 +26,7 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
     )
   };
 
-  const updateSubtotal = (): void => {
+  const updateSubtotals = (): void => {
     formDataRef.value.servicios.forEach((s) => {
       s.igv = Number((s.subtotal * 0.18).toFixed(2));
       s.total = Number((s.subtotal + s.igv).toFixed(2))
@@ -40,6 +40,12 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
         0,
       ).toFixed(2),
     ),
+  );
+
+  watch(
+    () => formDataRef.value.servicios,
+    updateSubtotals,
+    { deep: true }
   );
 
   return {

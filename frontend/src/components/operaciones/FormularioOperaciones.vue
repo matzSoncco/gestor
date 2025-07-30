@@ -113,7 +113,7 @@
                   </n-button>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <n-form-item label="Cantidad (Galones) (*)">
                     <n-input-number
                       v-model:value="comb.cantidad_galones"
@@ -133,6 +133,14 @@
                       :step="0.01"
                       :precision="2"
                       class="w-full"
+                    />
+                  </n-form-item>
+
+                  <n-form-item label="Combustible (*)">
+                    <n-select
+                      v-model:value="comb.ubicacion"
+                      :options="UBICACION_OPTIONS"
+                      placeholder="Seleccione tipo"
                     />
                   </n-form-item>
                   
@@ -173,7 +181,7 @@
               </div>
               
               <n-statistic
-                label="Costo Total Combustible"
+                label="Costo Total Combustible (con IGV)"
                 :value="costoTotalCombustible"
                 :precision="2"
                 class="text-right"
@@ -218,7 +226,7 @@
                   </n-button>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <n-form-item label="Item/Servicio (*)" class="relative">
                     <n-auto-complete
                       :value="mant.repuesto"
@@ -259,16 +267,16 @@
                       class="bg-gray-100"
                     />
                   </n-form-item>
+
+                  <n-form-item label="Vehículo (*)">
+                    <n-select
+                      v-model:value="mant.placa_vehiculo"
+                      placeholder="Seleccione vehículo"
+                      :options="listaVehiculos.map(v => ({ label: v.placa, value: v.id }))"
+                      class="w-full"
+                    />
+                  </n-form-item>
                 </div>
-                
-                <n-form-item label="Vehículo (*)">
-                  <n-select
-                    v-model:value="mant.placa_vehiculo"
-                    placeholder="Seleccione vehículo"
-                    :options="listaVehiculos.map(v => ({ label: v.placa, value: v.id }))"
-                    class="w-full"
-                  />
-                </n-form-item>
               </div>
               
               <n-button
@@ -288,7 +296,7 @@
               </n-button>
               
               <n-statistic
-                label="Costo Total Mantenimiento"
+                label="Costo Total Mantenimiento (con IGV)"
                 :value="costoTotalMantenimiento"
                 :precision="2"
                 class="text-right"
@@ -333,7 +341,7 @@
                   </n-button>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <n-form-item label="Descripción del Servicio (*)">
                     <n-input
                       v-model:value="serv.descripcion_item"
@@ -344,7 +352,7 @@
                   
                   <n-form-item label="Costo (S/) (*)">
                     <n-input-number
-                      v-model:value="serv.costo_servicio"
+                      v-model:value="serv.subtotal"
                       placeholder="0.00"
                       :min="0"
                       :step="0.01"
@@ -352,16 +360,16 @@
                       class="w-full"
                     />
                   </n-form-item>
+                  
+                  <n-form-item label="Vehículo (*)">
+                    <n-select
+                      v-model:value="serv.placa_vehiculo"
+                      placeholder="Seleccione vehículo"
+                      :options="listaVehiculos.map(v => ({ label: v.placa, value: v.id }))"
+                      class="w-full"
+                    />
+                  </n-form-item>
                 </div>
-                
-                <n-form-item label="Vehículo (*)">
-                  <n-select
-                    v-model:value="serv.placa_vehiculo"
-                    placeholder="Seleccione vehículo"
-                    :options="listaVehiculos.map(v => ({ label: v.placa, value: v.id }))"
-                    class="w-full"
-                  />
-                </n-form-item>
               </div>
               
               <n-button
@@ -381,7 +389,7 @@
               </n-button>
               
               <n-statistic
-                label="Costo Total Servicio"
+                label="Costo Total Servicio (con IGV)"
                 :value="costoTotalServicio"
                 :precision="2"
                 class="text-right"
@@ -454,6 +462,7 @@ import { useOperaciones } from '@/composables/operaciones/useOperaciones';
 import { obtenerNombreProveedor } from '@/services/rucService';
 import { Vehiculo } from '@/types/vehiculo';
 import { useNotify } from '@/composables/global/useNotify';
+import { UBICACION_OPTIONS } from '@/types/constants';
 
 const listaVehiculos = ref<Vehiculo[]>([]);
 const { error } = useNotify()

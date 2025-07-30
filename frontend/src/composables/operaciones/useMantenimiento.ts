@@ -72,7 +72,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   }
 
   /* ---- subtotales y total ---- */
-  const updateSubtotal = (): void => {
+  const updateSubtotals = (): void => {
     formDataRef.value.mantenimientos.forEach((m) => {
       const cantidad = Number(m.cantidad) || 0;
       const precio = Number(m.costo_unitario) || 0;
@@ -94,7 +94,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
 
   watch(
     () => formDataRef.value.mantenimientos,
-    updateSubtotal,
+    updateSubtotals,
     { deep: true },
   );
 
@@ -107,7 +107,6 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
     blurHandler,
     sugerencias,
     inputActivo,
-    updateSubtotal,
     costoTotalMantenimiento,
   };
 }
