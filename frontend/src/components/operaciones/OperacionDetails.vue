@@ -16,16 +16,6 @@
           <div class="h-6 w-px bg-gray-300"></div>
           <h1 class="text-2xl font-bold text-gray-800">Operación #{{ id }}</h1>
         </div>
-        
-        <!-- Badge de estado -->
-        <div class="flex items-center space-x-2">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-            Completada
-          </span>
-        </div>
       </div>
 
       <!-- Estados de carga y error -->
@@ -70,7 +60,7 @@
                    class="bg-gray-50 rounded-lg p-4 border border-gray-100">
                 <div class="text-sm font-medium text-gray-600 mb-1">{{ label }}</div>
                 <div class="text-lg font-semibold" 
-                     :class="label === 'Costo Total' ? 'text-red-600' : 'text-gray-900'">
+                     :class="getCostClass(label)">
                   {{ value }}
                 </div>
               </div>
@@ -102,26 +92,48 @@
             
             <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div v-for="c in operacion.combustible_detalle" :key="c.id" 
-                   class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                      <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                  class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200 hover:shadow-md transition-shadow duration-200">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-sm">
+                      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                       </svg>
                     </div>
-                    <span class="font-semibold text-gray-700">{{ getPlacaVehiculo(c.placa_vehiculo) }}</span>
+                    <div>
+                      <span class="font-semibold text-gray-800">{{ getPlacaVehiculo(c.placa_vehiculo) }}</span>
+                      <div class="text-sm text-gray-600">{{ c.ubicacion }}</div>
+                    </div>
                   </div>
-                  <span class="text-lg font-bold text-green-600">S/. {{ c.subtotal }}</span>
                 </div>
-                <div class="space-y-2 text-sm">
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Galones:</span>
-                    <span class="font-medium">{{ c.cantidad_galones }}</span>
+                
+                <!-- Información de consumo -->
+                <div class="bg-white rounded-lg p-3 mb-3 border border-orange-100">
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Galones:</span>
+                      <span class="font-medium text-gray-800">{{ c.cantidad_galones }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Precio/galón:</span>
+                      <span class="font-medium text-gray-800">S/. {{ c.costo_por_galon }}</span>
+                    </div>
                   </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Precio/galón:</span>
-                    <span class="font-medium">S/. {{ c.costo_por_galon }}</span>
+                </div>
+
+                <!-- Información financiera -->
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center py-1">
+                    <span class="text-sm text-gray-600">Subtotal:</span>
+                    <span class="font-semibold text-gray-800">S/. {{ c.subtotal }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-1">
+                    <span class="text-sm text-gray-600">IGV (18%):</span>
+                    <span class="font-semibold text-yellow-600">S/. {{ c.igv }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-t border-orange-200">
+                    <span class="text-sm font-medium text-gray-700">Total:</span>
+                    <span class="text-lg font-bold text-green-600">S/. {{ c.total }}</span>
                   </div>
                 </div>
               </div>
@@ -151,23 +163,47 @@
               <p>No hay registros de mantenimiento</p>
             </div>
             
-            <div v-else class="space-y-4">
+            <div v-else class="grid gap-4 md:grid-cols-2">
               <div v-for="m in operacion.mantenimiento_detalle" :key="m.id" 
-                   class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex-1">
-                    <h4 class="font-semibold text-gray-800 mb-1">{{ m.descripcion_item }}</h4>
-                    <div class="flex items-center space-x-2 text-sm text-gray-600">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                   class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow duration-200">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center shadow-sm">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                       </svg>
-                      <span>{{ getPlacaVehiculo(m.placa_vehiculo) }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <h4 class="font-semibold text-gray-800 mb-1 truncate">{{ m.descripcion_item }}</h4>
+                      <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>{{ getPlacaVehiculo(m.placa_vehiculo) }}</span>
+                      </div>
                     </div>
                   </div>
-                  <div class="text-right">
-                    <div class="text-lg font-bold text-green-600">S/. {{ m.subtotal }}</div>
-                    <div class="text-sm text-gray-500">{{ m.cantidad }} × S/. {{ m.costo_unitario }}</div>
+                </div>
+                
+                <!-- Información de cantidad y costo -->
+                <div class="bg-white rounded-lg p-3 mb-3 border border-purple-100">
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Cantidad:</span>
+                      <span class="font-medium text-gray-800">{{ m.cantidad }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">Costo unitario:</span>
+                      <span class="font-medium text-gray-800">S/. {{ m.costo_unitario }}</span>
+                    </div>
                   </div>
+                </div>
+
+                <!-- Total -->
+                <div class="flex justify-between items-center py-2 border-t border-purple-200">
+                  <span class="text-sm font-medium text-gray-700">Subtotal:</span>
+                  <span class="text-lg font-bold text-green-600">S/. {{ m.subtotal }}</span>
                 </div>
               </div>
             </div>
@@ -197,21 +233,26 @@
             
             <div v-else class="grid gap-4 md:grid-cols-2">
               <div v-for="s in operacion.servicio_detalle" :key="s.id" 
-                   class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                <div class="flex items-start justify-between">
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-2 mb-2">
-                      <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                        </svg>
-                      </div>
-                      <span class="font-semibold text-gray-700">Servicio</span>
+                   class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow duration-200">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center space-x-3 flex-1">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
                     </div>
-                    <p class="text-gray-600 mb-2">{{ s.descripcion_item }}</p>
+                    <div class="min-w-0 flex-1">
+                      <span class="font-semibold text-gray-800">Servicio</span>
+                      <p class="text-gray-600 text-sm mt-1">{{ s.descripcion_item }}</p>
+                    </div>
                   </div>
-                  <div class="text-right">
-                    <div class="text-2xl font-bold text-green-600">S/. {{ s.costo_servicio }}</div>
+                </div>
+                
+                <!-- Total del servicio -->
+                <div class="bg-white rounded-lg p-3 border border-green-100">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-700">Costo del servicio:</span>
+                    <span class="text-xl font-bold text-green-600">S/. {{ s.subtotal }}</span>
                   </div>
                 </div>
               </div>
@@ -223,7 +264,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/authService.js'
@@ -255,9 +296,25 @@ const getPlacaVehiculo = (id) => {
   return v ? v.placa : `ID: ${id}`
 }
 
-// Propiedad computada para mostrar en la tabla general
+// Función para obtener clases CSS según el tipo de costo
+const getCostClass = (label) => {
+  if (label === 'Costo Total') return 'text-red-600'
+  if (label === 'IGV (18%)') return 'text-yellow-600'
+  if (label === 'Subtotal (sin IGV)') return 'text-blue-600'
+  return 'text-gray-900'
+}
+
+// Propiedad computada para mostrar en la tabla general - CORREGIDA
 const generalInfo = computed(() => {
   if (!operacion.value) return {}
+  const costoTotal = Number(operacion.value.costo_total || 0)
+  
+  // CORRECCIÓN: El IGV ya está incluido en el costo_total
+  // Subtotal = costo_total / 1.18
+  // IGV = costo_total - subtotal
+  const subtotal = Number((costoTotal / 1.18).toFixed(2))
+  const igv = Number((costoTotal - subtotal).toFixed(2))
+
   return {
     'Número Documento': operacion.value.numero_documento,
     'RUC Proveedor': operacion.value.ruc_proveedor,
@@ -265,7 +322,9 @@ const generalInfo = computed(() => {
     'Tipo Operación': operacion.value.tipo_operacion,
     'Fecha': formatDate(operacion.value.fecha),
     'Descripción': operacion.value.descripcion || 'Sin descripción',
-    'Costo Total': `S/. ${operacion.value.costo_total}`
+    'Subtotal (sin IGV)': `S/. ${subtotal}`,
+    'IGV (18%)': `S/. ${igv}`,
+    'Costo Total': `S/. ${costoTotal}`
   }
 })
 
@@ -273,11 +332,12 @@ const generalInfo = computed(() => {
 onMounted(async () => {
   try {
     const [v, o] = await Promise.all([
-      api.get('vehiculos/'),
-      api.get(`operaciones/${id}/`)
+      api.get('/vehiculos/'),
+      api.get(`/operaciones/${id}/`)
     ])
     vehiculos.value = v.data
     operacion.value = o.data
+    console.log('Datos de operación recibidos:', operacion.value);
   } catch (err) {
     error.value = true
     errorMessage.value = err.response?.data || 'Error desconocido'

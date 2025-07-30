@@ -6,6 +6,7 @@ from django.core.validators import (
     MinValueValidator, MaxValueValidator, RegexValidator
 )
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Sum
 from decimal import Decimal, ROUND_HALF_UP
 
 COMBUSTIBLE_CHOICES = [
@@ -197,32 +198,46 @@ class Operaciones(models.Model):
         return f"{self.get_tipo_operacion_display()} - {fecha_str}"
     
     def save(self, *args, **kwargs):
-        if self.pk is None:
-            super().save(*args, **kwargs)
-            return
-        
-        total_subtotal = Decimal('0.00')
+        # Llama al save original para asegurar que el objeto tiene un PK
+        # Esto es esencial para que las relaciones ".all()" funcionen
+        # correctamente cuando se crean detalles junto con la operación padre.
+        super().save(*args, **kwargs) # Este save persistirá la instancia con el costo_total que tenía (ej. 0.00)
 
-        #verifica que las relaciones existan antes de acceder
-        if hasattr(self, 'combustible_detalle'):
-            for c in self.combustible_detalle.all():
-                total_subtotal += c.subtotal or Decimal('0.00')
+        # Ahora, si el objeto tiene un PK (ya está en la DB), podemos calcular el total
+        if self.pk: # Esto asegura que no intentamos acceder a relaciones de un objeto no guardado
+            total_subtotal = Decimal('0.00')
 
-        if hasattr(self, 'mantenimiento_detalle'):
-            for m in self.mantenimiento_detalle.all():
-                total_subtotal += m.subtotal or Decimal('0.00')
+            # Usar aggregate para sumar eficientemente los subtotales de los detalles
+            # Asegúrate de que los `related_name` en tus ForeignKey de los modelos de detalle
+            # (Combustible, Mantenimiento, Servicio) coincidan con lo que usas aquí.
+            # E.g., en Combustible: operacion = models.ForeignKey(Operaciones, ..., related_name='combustible_detalle')
 
-        if hasattr(self, 'servicios_detalle'):
-            for s in self.servicios_detalle.all():
-                total_subtotal += s.subtotal or Decimal('0.00')
+            if hasattr(self, 'combustible_detalle'):
+                combustible_sum = self.combustible_detalle.aggregate(total_sum=Sum('subtotal'))['total_sum']
+                if combustible_sum is not None:
+                    total_subtotal += combustible_sum
 
-        igv = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        self.costo_total = (total_subtotal + igv).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        
-        super().save(*args, **kwargs)
+            if hasattr(self, 'mantenimiento_detalle'):
+                mantenimiento_sum = self.mantenimiento_detalle.aggregate(total_sum=Sum('subtotal'))['total_sum']
+                if mantenimiento_sum is not None:
+                    total_subtotal += mantenimiento_sum
 
-    def recalcular_total(self):
-        self.save()
+            if hasattr(self, 'servicio_detalle'): # **Confirmar este related_name con tu modelo Servicio**
+                servicio_sum = self.servicio_detalle.aggregate(total_sum=Sum('subtotal'))['total_sum']
+                if servicio_sum is not None:
+                    total_subtotal += servicio_sum
+
+            # Calcula el IGV y el costo total final
+            igv_calculado = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            costo_total_calculado = (total_subtotal + igv_calculado).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+            # Si el costo total ha cambiado, guarda la instancia nuevamente con el nuevo valor.
+            # Esto es importante para evitar bucles infinitos si este save() se dispara
+            # por una señal post_save de un detalle (aunque aquí estamos en el save del padre).
+            if self.costo_total != costo_total_calculado:
+                self.costo_total = costo_total_calculado
+                # Usa update_fields para solo guardar el campo modificado
+                super().save(update_fields=['costo_total'], *args, **kwargs)
 
 
 class Repuesto(models.Model):
@@ -238,7 +253,7 @@ class Servicio(models.Model):
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='servicio_vehiculo')
 
     # Relación con Empresa
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="servicios")
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="servicios", null=True)
 
     # Campos específicos del servicio
     descripcion_item = models.CharField(max_length=100, default="")
@@ -263,7 +278,7 @@ class Mantenimiento(models.Model):
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='mantenimiento_vehiculo')
 
     # Relación con Empresa
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="mantenimientos")
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="mantenimientos", null=True)
 
     # Campos específicos del mantenimiento
     repuesto = models.ForeignKey(Repuesto, null=True, blank=True, on_delete=models.SET_NULL)
@@ -289,7 +304,7 @@ class Combustible(models.Model):
     placa_vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE, null=True, blank=True, related_name='combustible_vehiculo')
 
     # Relación con Empresa
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="combustibles")
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="combustibles", null=True)
 
     # Campos específicos del combustible
     cantidad_galones = models.IntegerField(null=False, default=0)

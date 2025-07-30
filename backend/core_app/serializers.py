@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from django.db import transaction
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from django.contrib.auth.hashers import make_password
-import logging
+from decimal import Decimal, ROUND_HALF_UP
 from .models import (
     Vehiculo,
     Operaciones,
@@ -44,6 +44,8 @@ class MantenimientoHitoSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['fecha', 'empresa', 'vehiculo']
 
+    
+
 class ServicioSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
@@ -59,9 +61,6 @@ class ServicioSerializer(serializers.ModelSerializer):
     def get_total(self, obj):
         return obj.total
 
-# ---------------------------------
-# 4) Serializer para Mantenimiento
-# ---------------------------------
 class MantenimientoSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
@@ -92,9 +91,6 @@ class MantenimientoSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-# -----------------------------------
-# 5) Serializer para Combustible
-# -----------------------------------
 class CombustibleSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
@@ -110,9 +106,6 @@ class CombustibleSerializer(serializers.ModelSerializer):
     def get_total(self, obj):
         return obj.total
 
-# ---------------------------------------------------
-# 6) Serializer para Vehiculo
-# ---------------------------------------------------
 class VehiculoSerializer(serializers.ModelSerializer):
     # Campo extra combinado
     marca_modelo = serializers.SerializerMethodField(read_only=True)
@@ -181,58 +174,36 @@ class OperacionSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Usamos una transacción. Si algo falla, nada se guarda.
-        logger = logging.getLogger(__name__)
-        with transaction.atomic():
-            servicios_data = validated_data.pop('servicio_detalle', [])
-            mantenimientos_data = validated_data.pop('mantenimiento_detalle', [])
-            combustibles_data = validated_data.pop('combustible_detalle', [])
+        combustible_data = validated_data.pop('combustible_detalle', [])
+        mantenimiento_data = validated_data.pop('mantenimiento_detalle', [])
+        servicio_data = validated_data.pop('servicio_detalle', [])
 
-            # Creamos la operación principal
-            operacion = Operaciones(**validated_data)
-            
-            super(Operaciones, operacion).save()
-            
-            total_operacion = Decimal('0.00')
+        operacion = Operaciones.objects.create(**validated_data) # Primero crea la Operacion
 
-            def safe_decimal_conversion(value, field_name="campo"):
-                """Convierte un valor a Decimal de forma segura"""
-                try:
-                    if value is None:
-                        return Decimal('0.00')
-                    if isinstance(value, Decimal):
-                        return value
-                    return Decimal(str(value))
-                except (InvalidOperation, ValueError, TypeError) as e:
-                    logger.error(f"Error convirtiendo {field_name}: {value} - {e}")
-                    return Decimal('0.00')
+        total_subtotal = Decimal('0.00')
 
-            # Creamos los detalles y vamos sumando sus subtotales
-            for servicio_data in servicios_data:
-                Servicio.objects.create(
-                    operacion=operacion, 
-                    empresa=self.context["request"].user.empresa, 
-                    **servicio_data
-                )
+        # Crea y asocia los detalles, y suma sus subtotales
+        for c_data in combustible_data:
+            combustible_instance = Combustible.objects.create(operacion=operacion, **c_data)
+            total_subtotal += combustible_instance.subtotal
 
-            for mantenimiento_data in mantenimientos_data:
-                Mantenimiento.objects.create(
-                    operacion=operacion, 
-                    empresa=self.context["request"].user.empresa, 
-                    **mantenimiento_data
-                )
+        for m_data in mantenimiento_data:
+            mantenimiento_instance = Mantenimiento.objects.create(operacion=operacion, **m_data)
+            total_subtotal += mantenimiento_instance.subtotal
 
-            for combustible_data in combustibles_data:
-                Combustible.objects.create(
-                    operacion=operacion, 
-                    empresa=self.context["request"].user.empresa, 
-                    **combustible_data
-                )
+        for s_data in servicio_data:
+            servicio_instance = Servicio.objects.create(operacion=operacion, **s_data)
+            total_subtotal += servicio_instance.subtotal
 
-            # ASIGNAMOS Y GUARDAMOS EL COSTO TOTAL CALCULADO
-            operacion.recalcular_total
+        # Calcula el IGV y el costo total
+        igv_final = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        costo_total_final = (total_subtotal + igv_final).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-            return operacion
+        # Asigna el costo_total calculado a la operación y guárdala nuevamente
+        operacion.costo_total = costo_total_final
+        operacion.save() # Llama al save del modelo que ahora debería ser más simple (o incluso vacío si la lógica está toda aquí)
+
+        return operacion
     
     def update(self, instance, validated_data):
         # Misma lógica de transacción para el update

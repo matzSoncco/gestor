@@ -127,19 +127,6 @@
               </div>
               <span class="text-lg font-bold text-red-600">S/ {{ parseFloat(vehiculo.costo).toFixed(2) }}</span>
             </div>
-
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
-                </div>
-                <span class="text-sm font-medium text-gray-600">Ubicación</span>
-              </div>
-              <span class="text-lg font-bold text-gray-800">{{ vehiculo.ubicacion || "—" }}</span>
-            </div>
           </div>
         </div>
 
