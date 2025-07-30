@@ -1,5 +1,4 @@
-import { ref, watch, nextTick, type Ref } from 'vue';
-
+import { ref, computed, watch, nextTick, type Ref } from 'vue';
 import { useCombustible } from '@/composables/operaciones/useCombustible';
 import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio } from '@/composables/operaciones/useServicio';
@@ -9,6 +8,7 @@ import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
+import { parseApiError } from '@/utils/parseApiError';
 
 import {
   fetchOperaciones,
@@ -23,7 +23,7 @@ import {
 } from '@/types/operacion';
 
 /* ------------ Tipo auxiliar DTO sin campos temporales ------------ */
-type OpDTO = Omit<
+type OperacionDTO = Omit<
   Operacion,
   'combustibles' | 'mantenimientos' | 'servicios' | 'costo_total'
 > & {
@@ -32,8 +32,14 @@ type OpDTO = Omit<
   servicio_detalle: any[];
 };
 
+type OperacionFiltros = {
+  numero_documento: string;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+};
+
 /* ----------------- VALIDACIÓN ----------------- */
-function validateOperacion(p: Partial<Operacion>): string | null {
+function validateOperacion(operacion: Partial<Operacion>): string | null {
   const required: (keyof Operacion)[] = [
     'numero_documento',
     'ruc_proveedor',
@@ -42,17 +48,64 @@ function validateOperacion(p: Partial<Operacion>): string | null {
     'tipo_operacion',
   ];
 
-  return validateRequired(p, required);
+  const requiredValidation = validateRequired(operacion, required)
+  if (requiredValidation) return requiredValidation
+
+  if (operacion.fecha) {
+    const fecha = new Date(operacion.fecha);
+    const hoy = new Date();
+    if (fecha > hoy) {
+      return 'La fecha de operación no puede ser posterior a hoy';
+    }
+  }
+
+  if (operacion.tipo_operacion === 'combustible' && 
+      (!operacion.combustibles || operacion.combustibles.length === 0)) {
+    return 'Debe agregar al menos un registro de combustible';
+  }
+
+  if (operacion.tipo_operacion === 'mantenimiento' && 
+      (!operacion.mantenimientos || operacion.mantenimientos.length === 0)) {
+    return 'Debe agregar al menos un registro de mantenimiento';
+  }
+
+  if (operacion.tipo_operacion === 'servicio' && 
+      (!operacion.servicios || operacion.servicios.length === 0)) {
+    return 'Debe agregar al menos un registro de servicio';
+  }
+
+  return null;
 }
+
+function buildOperacionPayload(operacion: Partial<Operacion>): OperacionDTO {
+  const defaults = makeOperacionDefaults();
+  const merged: Operacion = { ...defaults, ...operacion };
+
+  const dto: OperacionDTO = {
+    ...merged,
+    combustible_detalle: stripTempIds(merged.combustibles || []),
+    mantenimiento_detalle: stripTempIds(merged.mantenimientos || []),
+    servicio_detalle: stripTempIds(merged.servicios || []),
+  };
+
+  // Eliminamos arrays originales y costo_total
+  delete (dto as any).combustibles;
+  delete (dto as any).mantenimientos;
+  delete (dto as any).servicios;
+  delete (dto as any).costo_total;
+
+  return dto;
+};
 
 export function useOperaciones() {
   const operacionStore = useOperacionStore()
-  /* -------- estado base -------- */
-  const isResetting = ref(false);
   const defaults = makeOperacionDefaults();
   const { success, error, info } = useNotify();
 
-  const filtros = ref({
+  /* -------- estado base -------- */
+  const isResetting = ref(false);
+
+  const filtros = ref<OperacionFiltros>({
     numero_documento: '',
     fecha_inicio: null,
     fecha_fin: null
@@ -72,12 +125,27 @@ export function useOperaciones() {
     pageSize: 6,
   })
 
-  const aplicarFiltros = () => {
-    const hayFiltros = filtros.value.numero_documento.trim() !== '' || 
-                      filtros.value.fecha_inicio !== null || 
-                      filtros.value.fecha_fin !== null;
+  const syncStoreWithPagination = () => {
+    operacionStore.setOperaciones(operaciones.value)
+  }
 
-    if (!hayFiltros) {
+  const updateOperacionInBothSources = (updated: Operacion) => {
+    operacionStore.actualizarOperacion(updated)
+
+    const idx = operaciones.value.findIndex(o => o.id === updated.id)
+    if (idx !== -1) {
+      operaciones.value[idx] = { ...operaciones.value[idx], ...updated }
+    }
+  }
+
+  const hayFiltros = computed(() => {
+    return filtros.value.numero_documento.trim() !== '' || 
+           filtros.value.fecha_inicio !== null || 
+           filtros.value.fecha_fin !== null;
+  });
+
+  const aplicarFiltros = () => {
+    if (!hayFiltros.value) {
       setPage(1);
     }
 
@@ -99,97 +167,12 @@ export function useOperaciones() {
     loadOperaciones();
   };
 
-  /* -------- helpers para la construcción del DTO -------- */
-  const buildOperacionDTO = (payload: Partial<Operacion>): OpDTO => {
-    const merged: Operacion = { ...defaults, ...payload };
-
-    const dto: OpDTO = {
-      ...merged,
-      combustible_detalle: stripTempIds(merged.combustibles),
-      mantenimiento_detalle: stripTempIds(merged.mantenimientos),
-      servicio_detalle: stripTempIds(merged.servicios),
-    };
-
-    // Eliminamos arrays originales y costo_total
-    delete (dto as any).combustibles;
-    delete (dto as any).mantenimientos;
-    delete (dto as any).servicios;
-    delete (dto as any).costo_total;
-
-    return dto;
-  };
-
-  /* -------- crear operación -------- */
-  const create = async (payload: Partial<Operacion>) => {
-    const validationMsg = validateOperacion(payload);
-    if (validationMsg) {
-      error(validationMsg);
-      throw new Error(validationMsg);
-    }
-
-    const dto = buildOperacionDTO(payload);
-
-    try {
-      const { data } = await createOperacion(dto);
-      success('Operación registrada correctamente');
-      operaciones.value.unshift(data)
-      operacionStore.agregarOperacion(data) // 🆕
-      return data;
-    } catch (e) {
-      error('Error al registrar la operación');
-      throw e;
-    }
-  };
-
-  /* -------- actualizar operación -------- */
-  const update = async (id: number, payload: Partial<Operacion>) => {
-    const validationMsg = validateOperacion(payload);
-    if (validationMsg) {
-      error(validationMsg);
-      throw new Error(validationMsg);
-    }
-
-    const dto = buildOperacionDTO(payload);
-
-    try {
-      const { data } = await updateOperacion(id, dto);
-      const idx = operaciones.value.findIndex((op) => op.id === id);
-      if (idx !== -1) operaciones.value[idx] = data
-      operacionStore.actualizarOperacion(data) // 🆕
-      success('Operación actualizada correctamente');
-      return data;
-    } catch (e) {
-      error('Error al actualizar la operación');
-      throw e;
-    }
-  };
-
-  /* -------- eliminar operación -------- */
-  const remove = async (id: number) => {
-    try {
-      await deleteOperacion(id);
-      operaciones.value = operaciones.value.filter(op => op.id !== id)
-      operacionStore.eliminarOperacion(id) // 🆕
-      success('Operación eliminada correctamente');
-    } catch (e) {
-      error('Error al eliminar la operación');
-      throw e;
-    }
-  };
-
-  /* ------------ acciones genéricas del formulario ------------ */
-  const {
-    formData,
-    loading: formLoading, // Renamed to avoid conflict with 'loading' for list
-    resetForm: baseReset,
-    submitForm,
-  } = useFormActions<Operacion>({
-    defaults,
-    // onSubmitService now only handles creation, 'create' function handles it
-    onSubmitService: create, // The form now directly calls our 'create' function
-    onResetCallback: () => info('Formulario limpiado'),
-  });
-
+  const loadData = async () => {
+    await loadOperaciones()
+    syncStoreWithPagination()
+  }
+  
+  //acciones del formulario
   const resetForm = async () => {
     isResetting.value = true;
     await baseReset();
@@ -197,85 +180,192 @@ export function useOperaciones() {
     isResetting.value = false;
   };
 
-  /**
-   * Sets the formData to an existing operation for editing.
-   * @param operacion The operation object to edit.
-   */
-  const editOperacion = (operacion: Operacion) => {
-    // Deep copy to ensure independence from the list object
-    formData.value = JSON.parse(JSON.stringify(operacion));
+  const refresh = async () => {
+    await loadData()
+    info('Datos actualizados')
+  }
+
+  /* CRUD */
+  const createOperacionAction = async (payload: Partial<Operacion>) => {
+    const msg = validateOperacion(payload);
+    if (msg) {
+      error(msg);
+      throw new Error(msg);
+    }
+
+    const dto = buildOperacionPayload(payload);
+
+    try {
+      const data = await createOperacion(dto);
+      
+      //actualizar estado local
+      operaciones.value = [data, ...operaciones.value]
+      operacionStore.agregarOperacion(data);
+      
+      success('Operación registrada correctamente');
+      return data;
+    } catch (err) {
+      const message = parseApiError(err, 'No se pudo crear la operación');
+      error(message);
+      throw err;
+    }
+  }
+
+  const updateOperacionAction = async (id: number, payload: Partial<Operacion>) => {
+    const msg = validateOperacion(payload);
+    if (msg) {
+      error(msg);
+      throw new Error(msg);
+    }
+
+    const dto = buildOperacionPayload(payload);
+
+    try {
+      const data = await updateOperacion(id, dto);
+      updateOperacionInBothSources(data);
+      success('Operación actualizada exitosamente');
+      return data;
+    } catch (err) {
+      const message = parseApiError(err, 'No se pudo actualizar la operación');
+      error(message);
+      throw err;
+    }
+  }
+
+  const deleteOperacionAction = async (id: number) => {
+    try {
+      await deleteOperacion(id);
+      
+      // Actualizar estado local
+      operaciones.value = operaciones.value.filter(op => op.id !== id);
+      operacionStore.setOperaciones(operacionStore.operaciones.filter(op => op.id !== id))
+      
+      success('Operación eliminada correctamente');
+    } catch (err) {
+      error('Error al eliminar la operación');
+      throw err;
+    }
   };
 
-  /* ------ sub-composables por sección ---------- */
-  const { addCombustibleRow, removeCombustibleRow, costoTotalCombustible } =
-    useCombustible(formData as Ref<Operacion>);
+  const {
+    formData,
+    loading: formLoading,
+    resetForm: baseReset,
+    submitForm,
+  } = useFormActions<Operacion>({
+    defaults,
+    onSubmitService: createOperacionAction,
+    onResetCallback: () => info('Formulario limpiado'),
+  })
 
-  const { addMantenimientoRow, removeMantenimientoRow, costoTotal, ...mant } =
-    useMantenimiento(formData as Ref<Operacion>);
+  const combustibleComposable = useCombustible(formData as Ref<Operacion>);
+  const mantenimientoComposable = useMantenimiento(formData as Ref<Operacion>);
+  const servicioComposable = useServicio(formData as Ref<Operacion>);
 
-  const { addServicioRow, removeServicioRow, costoTotalServicio } =
-    useServicio(formData as Ref<Operacion>);
-
-  /* ------------- watcher de tipo_operacion --------------- */
   watch(
     () => formData.value.tipo_operacion,
-    (nuevo, viejo) => {
-      if (isResetting.value || nuevo === viejo) return;
-      const fd = formData.value;
+    (nuevoTipo, tipoAnterior) => {
+      if (isResetting.value || nuevoTipo === tipoAnterior) return;
 
-      const descartar = (campo: keyof Operacion, msg: string) => {
-        const arr = fd[campo] as unknown[];
-        if (Array.isArray(arr) && arr.length) {
-          (fd as any)[campo] = [];
-          info(msg);
+      // Helper para limpiar arrays con notificación
+      const limpiarDetalle = (campo: keyof Operacion, mensaje: string) => {
+        const array = formData.value[campo] as unknown[];
+        if (Array.isArray(array) && array.length > 0) {
+          (formData.value as any)[campo] = [];
+          info(mensaje);
         }
       };
 
-      if (nuevo !== 'combustible') descartar('combustibles', 'Descartado combustible');
-      if (nuevo !== 'mantenimiento') descartar('mantenimientos', 'Descartado mantenimiento');
-      if (nuevo !== 'servicio') descartar('servicios', 'Descartado servicio');
+      // Limpiar detalles no correspondientes al nuevo tipo
+      if (nuevoTipo !== 'combustible') {
+        limpiarDetalle('combustibles', 'Registros de combustible descartados');
+      }
+      if (nuevoTipo !== 'mantenimiento') {
+        limpiarDetalle('mantenimientos', 'Registros de mantenimiento descartados');
+      }
+      if (nuevoTipo !== 'servicio') {
+        limpiarDetalle('servicios', 'Registros de servicio descartados');
+      }
 
-      if (nuevo === 'combustible' && !fd.combustibles.length) addCombustibleRow();
-      if (nuevo === 'mantenimiento' && !fd.mantenimientos.length) addMantenimientoRow();
-      if (nuevo === 'servicio' && !fd.servicios.length) addServicioRow();
+      // Agregar fila inicial para el nuevo tipo si no existe
+      if (nuevoTipo === 'combustible' && formData.value.combustibles.length === 0) {
+        combustibleComposable.addCombustibleRow();
+      }
+      if (nuevoTipo === 'mantenimiento' && formData.value.mantenimientos.length === 0) {
+        mantenimientoComposable.addMantenimientoRow();
+      }
+      if (nuevoTipo === 'servicio' && formData.value.servicios.length === 0) {
+        servicioComposable.addServicioRow();
+      }
     },
   );
+
+  //calculos computados para costos
+  const costoTotalOperacion = computed(() => {
+    const { costoTotalCombustible } = combustibleComposable;
+    const { costoTotal: costoTotalMantenimiento } = mantenimientoComposable;
+    const { costoTotalServicio } = servicioComposable;
+
+    switch (formData.value.tipo_operacion) {
+      case 'combustible':
+        return costoTotalCombustible.value;
+      case 'mantenimiento':
+        return costoTotalMantenimiento.value;
+      case 'servicio':
+        return costoTotalServicio.value;
+      default:
+        return 0;
+    }
+  });
 
   /* ------------- API pública del composable ------------------- */
   return {
     operaciones,
-    loading, // Loading state for the list of operations
+    loading,
     total,
     currentPage,
     pageSize,
-    load: loadOperaciones,
     setPage,
+
+    // Filtros
     filtros,
     aplicarFiltros,
 
-    // Form-related properties and actions
+    // Estado del formulario
     formData,
-    formLoading, // Loading state for the form submission
+    formLoading,
     resetForm,
-    submitForm, // This will call the 'create' function internally
+    submitForm,
 
-    // CRUD operations
-    create: submitForm, // 'submitForm' from useFormActions will now call our 'create' function
-    update,
-    remove,
-    editOperacion,
+    // Operaciones CRUD
+    loadData,
+    createOperacion: createOperacionAction,
+    updateOperacion: updateOperacionAction,
+    deleteOperacion: deleteOperacionAction,
 
-    // Sub-composable actions and computed properties
-    addCombustibleRow,
-    removeCombustibleRow,
-    addMantenimientoRow,
-    removeMantenimientoRow,
-    ...mant,
-    addServicioRow,
-    removeServicioRow,
+    refresh,
 
-    costoTotalCombustible,
-    costoTotalServicio,
-    costoTotal,
+    // Sub-composables - Combustible
+    addCombustibleRow: combustibleComposable.addCombustibleRow,
+    removeCombustibleRow: combustibleComposable.removeCombustibleRow,
+    costoTotalCombustible: combustibleComposable.costoTotalCombustible,
+
+    // Sub-composables - Mantenimiento
+    addMantenimientoRow: mantenimientoComposable.addMantenimientoRow,
+    removeMantenimientoRow: mantenimientoComposable.removeMantenimientoRow,
+    updateSugerencias: mantenimientoComposable.updateSugerencias,
+    sugerencias: mantenimientoComposable.sugerencias,
+    blurHandler: mantenimientoComposable.blurHandler,
+    costoTotalMantenimiento: mantenimientoComposable.costoTotal,
+
+    // Sub-composables - Servicio
+    addServicioRow: servicioComposable.addServicioRow,
+    removeServicioRow: servicioComposable.removeServicioRow,
+    costoTotalServicio: servicioComposable.costoTotalServicio,
+
+    // Computadas
+    costoTotalOperacion,
+
+    isResetting,
   };
 }

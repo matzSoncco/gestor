@@ -23,6 +23,7 @@ export const createOperacion = async (payload: Partial<Operacion>) => {
 export const updateOperacion = async (id: number, payload: Partial<Operacion>) => {
   try {
     const response = await api.put<Operacion>(`/operaciones/${id}`, payload)
+    return response.data
   } catch (error) {
     throw handleApiError(error, 'Error al actualizar operación')
   }

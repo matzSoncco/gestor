@@ -56,7 +56,7 @@ export function useVehiculos() {
     vehiculoStore.setVehiculos(vehiculos.value)
   }
 
-  const updateVehiculoInBothSources  = (updated: Vehiculo) => { //nombre mas descriptivo, explica qué hace
+  const updateVehiculoInBothSources  = (updated: Vehiculo) => {
     //ctualizar store global
     vehiculoStore.actualizarVehiculo(updated)
     

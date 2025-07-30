@@ -152,6 +152,11 @@ class OperacionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['costo_total']
 
+    def validate_ruc_proveedor(self, value):
+        if not value.isdigit() or len(value) != 11:
+            raise serializers.ValidationError("El RUC debe tener exactamente 11 dígitos numéricos")
+        return value
+
     def create(self, validated_data):
         # Usamos una transacción. Si algo falla, nada se guarda.
         logger = logging.getLogger(__name__)

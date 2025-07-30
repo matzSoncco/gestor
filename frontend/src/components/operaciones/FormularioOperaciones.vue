@@ -289,7 +289,7 @@
               
               <n-statistic
                 label="Costo Total Mantenimiento"
-                :value="costoTotal"
+                :value="costoTotalMantenimiento"
                 :precision="2"
                 class="text-right"
               >
@@ -453,21 +453,33 @@ import { onMounted, ref } from 'vue';
 import { useOperaciones } from '@/composables/operaciones/useOperaciones';
 import { obtenerNombreProveedor } from '@/services/rucService';
 import { Vehiculo } from '@/types/vehiculo';
+import { useNotify } from '@/composables/global/useNotify';
 
 const listaVehiculos = ref<Vehiculo[]>([]);
+const { error } = useNotify()
 
 async function consultarNombre() {
   const ruc = formData.value.ruc_proveedor?.trim()
 
-  console.log('RUC antes de llamar al composable:', ruc)
-
-  if (!ruc || !/^\d{11}$/.test(ruc)) {
-    formData.value.nombre_proveedor = 'RUC inválido'
+  if (!ruc) {
+    error('Debe ingresar un RUC')
+    formData.value.nombre_proveedor = ''
     return
   }
 
-  const nombre = await obtenerNombreProveedor(ruc)
-  formData.value.nombre_proveedor = nombre ?? 'No encontrado'
+  if (!/^\d{11}$/.test(ruc)) {
+    error('El RUC debe tener exactamente 11 dígitos numéricos')
+    formData.value.nombre_proveedor = ''
+    return
+  }
+
+  try {
+    const nombre = await obtenerNombreProveedor(ruc)
+    formData.value.nombre_proveedor = nombre
+  } catch (err) {
+    error((err as Error).message)
+    formData.value.nombre_proveedor = 'Error al consultar'
+  }
 }
 
 onMounted(async () => {
@@ -491,13 +503,11 @@ const {
   addMantenimientoRow,
   removeMantenimientoRow,
   updateSugerencias,
-  selectItem,
   blurHandler,
   sugerencias,
-  inputActivo,
   costoTotalCombustible,
   costoTotalServicio,
-  costoTotal,
+  costoTotalMantenimiento,
 
   addServicioRow,
   removeServicioRow,
