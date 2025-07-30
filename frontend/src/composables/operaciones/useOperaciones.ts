@@ -8,7 +8,7 @@ import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
-import { parseApiError } from '@/utils/parseApiError';
+import { getApiErrorMessage } from '@/utils/apiErroHandler';
 
 import {
   fetchOperaciones,
@@ -205,7 +205,7 @@ export function useOperaciones() {
       success('Operación registrada correctamente');
       return data;
     } catch (err) {
-      const message = parseApiError(err, 'No se pudo crear la operación');
+      const message = getApiErrorMessage(err, 'No se pudo crear la operación');
       error(message);
       throw err;
     }
@@ -226,7 +226,7 @@ export function useOperaciones() {
       success('Operación actualizada exitosamente');
       return data;
     } catch (err) {
-      const message = parseApiError(err, 'No se pudo actualizar la operación');
+      const message = getApiErrorMessage(err, 'No se pudo actualizar la operación');
       error(message);
       throw err;
     }

@@ -1,7 +1,7 @@
 import type { AxiosResponse } from 'axios'
 import api from '@/services/authService'
 import type { Vehiculo, MantenimientoResponse } from '@/types/vehiculo'
-import { handleApiError } from '@/utils/apiWrapper'
+import { handleApiError } from '@/utils/apiErroHandler'
 
 export const fetchVehiculos = async (params?: Record<string, any>) => {
   try {

@@ -197,21 +197,32 @@ class Operaciones(models.Model):
         return f"{self.get_tipo_operacion_display()} - {fecha_str}"
     
     def save(self, *args, **kwargs):
+        if self.pk is None:
+            super().save(*args, **kwargs)
+            return
+        
         total_subtotal = Decimal('0.00')
 
-        for c in self.combustible_detalle.all():
-            total_subtotal += c.subtotal or Decimal('0.00')
+        #verifica que las relaciones existan antes de acceder
+        if hasattr(self, 'combustible_detalle'):
+            for c in self.combustible_detalle.all():
+                total_subtotal += c.subtotal or Decimal('0.00')
 
-        for m in self.mantenimiento_detalle.all():
-            total_subtotal += m.subtotal or Decimal('0.00')
+        if hasattr(self, 'mantenimiento_detalle'):
+            for m in self.mantenimiento_detalle.all():
+                total_subtotal += m.subtotal or Decimal('0.00')
 
-        for s in self.servicios_detalle.all():
-            total_subtotal += s.subtotal or Decimal('0.00')
+        if hasattr(self, 'servicios_detalle'):
+            for s in self.servicios_detalle.all():
+                total_subtotal += s.subtotal or Decimal('0.00')
 
         igv = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
         self.costo_total = (total_subtotal + igv).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
         super().save(*args, **kwargs)
+
+    def recalcular_total(self):
+        self.save()
 
 
 class Repuesto(models.Model):

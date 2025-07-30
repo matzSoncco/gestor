@@ -26,9 +26,6 @@
             <n-form-item label="Costo (S/) (*)">
               <n-input-number v-model:value="formData.costo" :min="0" :precision="2" placeholder="25000.00" />
             </n-form-item>
-            <n-form-item label="Ubicación (*)">
-              <n-input v-model:value="formData.ubicacion" placeholder="Arequipa, Perú" />
-            </n-form-item>
           </div>
       </n-card>
 

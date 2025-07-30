@@ -4,7 +4,7 @@ import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
 import { validateRequired } from '@/utils/validateRequired'
 import { usePagination } from '../global/usePagination'
-import { parseApiError } from '@/utils/parseApiError'
+import { getApiErrorMessage } from '@/utils/apiErroHandler'
 
 import {
   fetchVehiculos,
@@ -106,7 +106,7 @@ export function useVehiculos() {
 
       return data
     } catch (err) {
-      const message = parseApiError(err, 'No se pudo crear el vehículo')
+      const message = getApiErrorMessage(err, 'No se pudo crear el vehículo')
       error(message)
       throw err
     }

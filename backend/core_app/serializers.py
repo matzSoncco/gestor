@@ -189,7 +189,9 @@ class OperacionSerializer(serializers.ModelSerializer):
             combustibles_data = validated_data.pop('combustible_detalle', [])
 
             # Creamos la operación principal
-            operacion = Operaciones.objects.create(**validated_data)
+            operacion = Operaciones(**validated_data)
+            
+            super(Operaciones, operacion).save()
             
             total_operacion = Decimal('0.00')
 
@@ -207,23 +209,28 @@ class OperacionSerializer(serializers.ModelSerializer):
 
             # Creamos los detalles y vamos sumando sus subtotales
             for servicio_data in servicios_data:
-                servicio = Servicio.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **servicio_data)
-                costo_servicio = safe_decimal_conversion(servicio.costo_servicio, "costo_servicio")
-                total_operacion += costo_servicio
+                Servicio.objects.create(
+                    operacion=operacion, 
+                    empresa=self.context["request"].user.empresa, 
+                    **servicio_data
+                )
 
             for mantenimiento_data in mantenimientos_data:
-                mantenimiento = Mantenimiento.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **mantenimiento_data)
-                subtotal_mantenimiento = safe_decimal_conversion(mantenimiento.subtotal, "subtotal_mantenimiento")
-                total_operacion += subtotal_mantenimiento
+                Mantenimiento.objects.create(
+                    operacion=operacion, 
+                    empresa=self.context["request"].user.empresa, 
+                    **mantenimiento_data
+                )
 
             for combustible_data in combustibles_data:
-                combustible = Combustible.objects.create(operacion=operacion, empresa=self.context["request"].user.empresa, **combustible_data)
-                subtotal_combustible = safe_decimal_conversion(combustible.subtotal, "subtotal_combustible")
-                total_operacion += subtotal_combustible
+                Combustible.objects.create(
+                    operacion=operacion, 
+                    empresa=self.context["request"].user.empresa, 
+                    **combustible_data
+                )
 
             # ASIGNAMOS Y GUARDAMOS EL COSTO TOTAL CALCULADO
-            operacion.costo_total = total_operacion
-            operacion.save()
+            operacion.recalcular_total
 
             return operacion
     
