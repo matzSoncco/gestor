@@ -303,7 +303,7 @@ export function useOperaciones() {
   //calculos computados para costos
   const costoTotalOperacion = computed(() => {
     const { costoTotalCombustible } = combustibleComposable;
-    const { costoTotal: costoTotalMantenimiento } = mantenimientoComposable;
+    const { costoTotalMantenimiento } = mantenimientoComposable;
     const { costoTotalServicio } = servicioComposable;
 
     switch (formData.value.tipo_operacion) {
@@ -356,7 +356,7 @@ export function useOperaciones() {
     updateSugerencias: mantenimientoComposable.updateSugerencias,
     sugerencias: mantenimientoComposable.sugerencias,
     blurHandler: mantenimientoComposable.blurHandler,
-    costoTotalMantenimiento: mantenimientoComposable.costoTotal,
+    costoTotalMantenimiento: mantenimientoComposable.costoTotalMantenimiento,
 
     // Sub-composables - Servicio
     addServicioRow: servicioComposable.addServicioRow,

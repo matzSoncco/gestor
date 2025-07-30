@@ -1,9 +1,35 @@
-// Puedes importar estos tipos si luego defines estructuras específicas
-// import { Combustible } from './combustible';
-// import { Mantenimiento } from './mantenimiento';
-// import { Servicio } from './servicio';
-
 export type TipoOperacion = 'combustible' | 'mantenimiento' | 'servicio' | '';
+
+export interface Combustible {
+  id: string;
+  cantidad_galones: number;
+  costo_por_galon: number;
+  subtotal: number;
+  igv?: number;
+  total?: number;
+  ubicacion: string;
+  placa_vehiculo?: string;
+}
+
+export interface Mantenimiento {
+  id: string;
+  repuesto: string;
+  cantidad: number;
+  costo_unitario: number;
+  subtotal: number;
+  igv?: number;
+  total?: number;
+  placa_vehiculo?: string;
+}
+
+export interface Servicio {
+  id: string;
+  descripcion_item: string;
+  subtotal: number;
+  igv?: number;
+  total?: number;
+  placa_vehiculo?: string;
+}
 
 export interface Operacion {
   id: number
@@ -11,12 +37,12 @@ export interface Operacion {
   ruc_proveedor: string;
   nombre_proveedor: string;
   tipo_operacion: TipoOperacion;
-  fecha: string; // ISO string (yyyy-mm-dd)
+  fecha: string;
   descripcion: string;
   costo_total: number;
-  combustibles: any[];     // Idealmente: Combustible[]
-  mantenimientos: any[];   // Idealmente: Mantenimiento[]
-  servicios: any[];        // Idealmente: Servicio[]
+  combustibles: Combustible[];
+  mantenimientos: Mantenimiento[];
+  servicios: Servicio[];
 }
 
 export interface SugerenciaItem {
@@ -30,15 +56,15 @@ export interface SugerenciaItem {
 export function makeOperacionDefaults(): Operacion {
   return {
     id: 0,
-    numero_documento : '',
-    ruc_proveedor    : '',
-    nombre_proveedor : '',
-    tipo_operacion   : '',
-    fecha            : new Date().toISOString().split('T')[0], // ← aquí está el fix
-    descripcion      : '',
-    costo_total      : 0,
-    combustibles     : [],
-    mantenimientos   : [],
-    servicios        : [],
+    numero_documento: '',
+    ruc_proveedor: '',
+    nombre_proveedor: '',
+    tipo_operacion: '',
+    fecha: new Date().toISOString().split('T')[0],
+    descripcion: '',
+    costo_total: 0,
+    combustibles: [],
+    mantenimientos: [],
+    servicios: [],
   };
 }

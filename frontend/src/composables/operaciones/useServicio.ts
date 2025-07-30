@@ -1,14 +1,9 @@
 import { computed, Ref } from 'vue';
 import { useIdGenerator } from '@/composables/global/useIdGenerator';
+import type { Servicio } from '@/types/operacion';
 
-/* ------------- Tipos ------------- */
-interface ServicioRow {
-  id: string | number;
-  descripcion_item: string;
-  costo_servicio: number | null;
-}
 interface OperacionLike {
-  servicios: ServicioRow[];
+  servicios: Servicio[];
 }
 
 export function useServicio(formDataRef: Ref<OperacionLike>) {
@@ -18,19 +13,30 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
     formDataRef.value.servicios.push({
       id: generateId(),
       descripcion_item: '',
-      costo_servicio: null,
+      subtotal: 0,
+      igv: 0,
+      total: 0,
+      placa_vehiculo: '',
     });
   };
 
   const removeServicioRow = (id: string | number): void => {
-    formDataRef.value.servicios =
-      formDataRef.value.servicios.filter((s) => s.id !== id);
+    formDataRef.value.servicios = formDataRef.value.servicios.filter(
+      (s) => s.id !== id
+    )
   };
+
+  const updateSubtotal = (): void => {
+    formDataRef.value.servicios.forEach((s) => {
+      s.igv = Number((s.subtotal * 0.18).toFixed(2));
+      s.total = Number((s.subtotal + s.igv).toFixed(2))
+    })
+  }
 
   const costoTotalServicio = computed(() =>
     Number(
       formDataRef.value.servicios.reduce(
-        (s, i) => s + (i.costo_servicio || 0),
+        (s, i) => s + (i.total || 0),
         0,
       ).toFixed(2),
     ),

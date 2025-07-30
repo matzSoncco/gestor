@@ -3,18 +3,10 @@ import { fetchRepuestosByQuery } from '@/api/repuestos';
 import { useIdGenerator } from '@/composables/global/useIdGenerator';
 import { SugerenciaItem } from '@/types/operacion';
 import debounce from 'lodash.debounce';
+import type { Mantenimiento } from '@/types/operacion'; 
 
-/* ------------- Tipos ------------- */
-interface MantRow {
-  id: string | number;
-  repuesto: string;
-  cantidad: number | null;
-  costo_unitario: number | null;
-  subtotal: number;
-  placa_vehiculo: string | null;
-}
 interface OperacionLike {
-  mantenimientos: MantRow[];
+  mantenimientos: Mantenimiento[];
 }
 
 export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
@@ -28,21 +20,21 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
     formDataRef.value.mantenimientos.push({
       id: generateId(),
       repuesto: '',
-      cantidad: null,
-      costo_unitario: null,
+      cantidad: 0,
+      costo_unitario: 0,
       subtotal: 0,
-      placa_vehiculo: null,
+      igv: 0,
+      total: 0,
+      placa_vehiculo: '',
     });
 
     sugerencias.value.push([])
   };
 
   const removeMantenimientoRow = (id: string | number): void => {
-    const idx = formDataRef.value.mantenimientos.findIndex((m) => m.id === id)
-    if (idx !== -1) {
-      formDataRef.value.mantenimientos.splice(idx, 1)
-      sugerencias.value.splice(idx, 1) // 🔥 mantenemos sincronía
-    }
+    formDataRef.value.mantenimientos = formDataRef.value.mantenimientos.filter(
+      (m) => m.id !== id
+    )
   }
 
   /* ---- autocompletado ---- */
@@ -82,25 +74,28 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   /* ---- subtotales y total ---- */
   const updateSubtotal = (): void => {
     formDataRef.value.mantenimientos.forEach((m) => {
-      const c = Number(m.cantidad)       || 0;
-      const u = Number(m.costo_unitario) || 0;
-      m.subtotal = Number((c * u).toFixed(2));
+      const cantidad = Number(m.cantidad) || 0;
+      const precio = Number(m.costo_unitario) || 0;
+
+      m.subtotal = Number((cantidad * precio).toFixed(2));
+      m.igv = Number((m.subtotal * 0.18).toFixed(2));
+      m.total = Number((m.subtotal + m.igv).toFixed(2))
     });
   };
+
+  const costoTotalMantenimiento = computed(() =>
+    Number(
+      formDataRef.value.mantenimientos.reduce(
+        (s, i) => s + (i.total ?? 0),
+        0
+      ).toFixed(2)
+    )
+  )
 
   watch(
     () => formDataRef.value.mantenimientos,
     updateSubtotal,
     { deep: true },
-  );
-
-  const costoTotal = computed(() =>
-    Number(
-      formDataRef.value.mantenimientos.reduce(
-        (s, i) => s + (i.subtotal || 0),
-        0,
-      ).toFixed(2),
-    ),
   );
 
   /* ---- API ---- */
@@ -113,6 +108,6 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
     sugerencias,
     inputActivo,
     updateSubtotal,
-    costoTotal,
+    costoTotalMantenimiento,
   };
 }
