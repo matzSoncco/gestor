@@ -46,20 +46,24 @@ class MantenimientoHitoSerializer(serializers.ModelSerializer):
 
 class ServicioSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
+    igv = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
     class Meta:
         model = Servicio
-        fields = ['id', 'descripcion_item', 'costo_servicio', 'placa_vehiculo']
-        read_only_fields = ['id']
+        fields = ['id', 'descripcion_item', 'subtotal', 'placa_vehiculo', 'igv', 'total']
+        read_only_fields = ['subtotal', 'igv', 'total']
 
 # ---------------------------------
 # 4) Serializer para Mantenimiento
 # ---------------------------------
 class MantenimientoSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
+    igv = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
     class Meta:
         model = Mantenimiento
-        fields = ['id', 'repuesto', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo']
-        read_only_fields = ['id', 'subtotal']
+        fields = ['id', 'repuesto', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo', 'igv', 'total']
+        read_only_fields = ['subtotal', 'igv', 'total']
 
     def create(self, validated_data):
         descripcion = validated_data.get("repuesto", "").strip()
@@ -81,10 +85,12 @@ class MantenimientoSerializer(serializers.ModelSerializer):
 # -----------------------------------
 class CombustibleSerializer(serializers.ModelSerializer):
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
+    igv = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
     class Meta:
         model = Combustible
-        fields = ['id', 'cantidad_galones', 'costo_por_galon', 'placa_vehiculo', 'subtotal']
-        read_only_fields = ['id', 'subtotal']
+        fields = ['id', 'cantidad_galones', 'costo_por_galon', 'placa_vehiculo', 'subtotal', 'ubicacion', 'igv', 'total']
+        read_only_fields = ['subtotal', 'igv', 'total']
 
 # ---------------------------------------------------
 # 6) Serializer para Vehiculo
@@ -101,7 +107,6 @@ class VehiculoSerializer(serializers.ModelSerializer):
             'anio',
             'kilometraje',
             'costo',
-            'ubicacion',
             # Datos de tarjeta
             'categoria',
             'marca',

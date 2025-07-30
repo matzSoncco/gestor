@@ -6,6 +6,7 @@ from django.core.validators import (
     MinValueValidator, MaxValueValidator, RegexValidator
 )
 from django.contrib.auth.models import AbstractUser
+from decimal import Decimal, ROUND_HALF_UP
 
 COMBUSTIBLE_CHOICES = [
     ('GASOLINA', 'Gasolina'),
@@ -19,6 +20,13 @@ TIPO_OPERACION = [
     ('servicio', 'Servicio'),
 ]
 
+UBICACION_CHOICES = [
+    ('AREQUIPA', 'Arequipa'),
+    ('PEDREGAL', 'Pedregal'),
+    ('CHUQUIBAMBA', 'Chuquibamba'),
+    ('COTAWASI', 'Cotawasi'),
+    ('MINA', 'Mina'),
+]
 
 class Empresa(models.Model):
     ruc = models.CharField(max_length=11, unique=True, validators=[RegexValidator(r'^\d{11}$', 'RUC debe tener 11 dígitos.')])
@@ -72,11 +80,6 @@ class Vehiculo(models.Model):
         default=Decimal('0.00'),
         validators=[MinValueValidator(0)],
         help_text="Costo del vehículo en soles, 2 decimales."
-    )
-    ubicacion = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Ubicación actual (opcional)."
     )
 
     # Datos del “tarjetaVehiculo” integrados
@@ -194,7 +197,20 @@ class Operaciones(models.Model):
         return f"{self.get_tipo_operacion_display()} - {fecha_str}"
     
     def save(self, *args, **kwargs):
-        # Aquí puedes agregar lógica adicional antes de guardar
+        total_subtotal = Decimal('0.00')
+
+        for c in self.combustible_detalle.all():
+            total_subtotal += c.subtotal or Decimal('0.00')
+
+        for m in self.mantenimiento_detalle.all():
+            total_subtotal += m.subtotal or Decimal('0.00')
+
+        for s in self.servicios_detalle.all():
+            total_subtotal += s.subtotal or Decimal('0.00')
+
+        igv = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+        self.costo_total = (total_subtotal + igv).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         super().save(*args, **kwargs)
 
 
@@ -215,7 +231,15 @@ class Servicio(models.Model):
 
     # Campos específicos del servicio
     descripcion_item = models.CharField(max_length=100, default="")
-    costo_servicio = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
+    subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
+    
+    @property
+    def igv(self):
+        return (self.subtotal * Decimal('0.18')).quantize(Decimal('0.01'))
+
+    @property
+    def total(self):
+        return (self.subtotal + self.igv).quantize(Decimal('0.01'))
     
     def save(self, *args, **kwargs):
         # 1) Si necesitas lógica adicional: colócala aquí…
@@ -236,6 +260,14 @@ class Mantenimiento(models.Model):
     costo_unitario = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
     subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
 
+    @property
+    def igv(self):
+        return (self.subtotal * Decimal('0.18')).quantize(Decimal('0.01'))
+
+    @property
+    def total(self):
+        return (self.subtotal + self.igv).quantize(Decimal('0.01'))
+    
     def save(self, *args, **kwargs):
         self.subtotal = Decimal(self.cantidad) * self.costo_unitario
         super().save(*args, **kwargs)
@@ -251,7 +283,16 @@ class Combustible(models.Model):
     # Campos específicos del combustible
     cantidad_galones = models.IntegerField(null=False, default=0)
     costo_por_galon = models.DecimalField(null=False, default=Decimal('0.00'), decimal_places=2, max_digits=10)
+    ubicacion = models.CharField(max_length=100, blank=False, help_text="Lugar donde se realizó el repostaje", choices=UBICACION_CHOICES, default='AREQUIPA')
     subtotal = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
+
+    @property
+    def igv(self):
+        return (self.subtotal * Decimal('0.18')).quantize(Decimal('0.01'))
+
+    @property
+    def total(self):
+        return (self.subtotal + self.igv).quantize(Decimal('0.01'))
 
     def save(self, *args, **kwargs):
         self.subtotal = Decimal(self.cantidad_galones) * self.costo_por_galon
