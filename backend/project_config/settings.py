@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = config('DJANGO_DEBUG', default='True').lower() in ('1', 'true', 'yes')
 
-SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-cambia-esto-si-alguien-lo-ve')
+SECRET_KEY = config('SECRET_KEY')
 if not DEBUG and SECRET_KEY == 'dev-secret-key-cambia-esto-si-alguien-lo-ve':
     raise RuntimeError("En producción, SECRET_KEY debe estar definida en variables de entorno")
 
