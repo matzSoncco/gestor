@@ -99,17 +99,16 @@ const {
   pageSize,
   total,
   setPage,
-  load,
+  loadData,
   filtros,
   aplicarFiltros
 } = useOperaciones()
 
 const loadError = ref<boolean>(false)
 
-// Obtener operaciones
 onMounted(async () => {
   try {
-    await load()
+    await loadData()
     loadError.value = false
   } catch {
     loadError.value = true
@@ -119,7 +118,7 @@ onMounted(async () => {
 const reintentarCarga = async () => {
   loadError.value = false
   try {
-    await load()
+    await loadData()
   } catch {
     loadError.value = true
   }

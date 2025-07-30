@@ -101,7 +101,6 @@ const {
   loadData,
   filtros,
   aplicarFiltros,
-  updateVehiculo,
   updateVehiculoInBothSources
 } = useVehiculos()
 

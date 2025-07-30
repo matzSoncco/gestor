@@ -53,6 +53,12 @@ class ServicioSerializer(serializers.ModelSerializer):
         fields = ['id', 'descripcion_item', 'subtotal', 'placa_vehiculo', 'igv', 'total']
         read_only_fields = ['subtotal', 'igv', 'total']
 
+    def get_igv(self, obj):
+        return obj.igv
+
+    def get_total(self, obj):
+        return obj.total
+
 # ---------------------------------
 # 4) Serializer para Mantenimiento
 # ---------------------------------
@@ -64,6 +70,12 @@ class MantenimientoSerializer(serializers.ModelSerializer):
         model = Mantenimiento
         fields = ['id', 'repuesto', 'cantidad', 'costo_unitario', 'subtotal', 'placa_vehiculo', 'igv', 'total']
         read_only_fields = ['subtotal', 'igv', 'total']
+
+    def get_igv(self, obj):
+        return obj.igv
+
+    def get_total(self, obj):
+        return obj.total
 
     def create(self, validated_data):
         descripcion = validated_data.get("repuesto", "").strip()
@@ -91,6 +103,12 @@ class CombustibleSerializer(serializers.ModelSerializer):
         model = Combustible
         fields = ['id', 'cantidad_galones', 'costo_por_galon', 'placa_vehiculo', 'subtotal', 'ubicacion', 'igv', 'total']
         read_only_fields = ['subtotal', 'igv', 'total']
+
+    def get_igv(self, obj):
+        return obj.igv
+
+    def get_total(self, obj):
+        return obj.total
 
 # ---------------------------------------------------
 # 6) Serializer para Vehiculo
