@@ -28,7 +28,7 @@ if not DEBUG and SECRET_KEY == 'dev-secret-key-cambia-esto-si-alguien-lo-ve':
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
-API_NET_PE_TOKEN = config('TOKEN_CONSULTA_RUC')
+API_NET_PE_TOKEN = config('TOKEN_CONSULTA_RUC'.strip())
 
 # para que yo pueda crear usuarios
 USER_CREATION_SECRET = config('TOKEN_PARA_CREAR_USUARIOS')

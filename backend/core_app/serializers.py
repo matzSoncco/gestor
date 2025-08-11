@@ -68,7 +68,7 @@ class ServicioSerializer(serializers.ModelSerializer):
         return obj.total
 
 class MantenimientoSerializer(serializers.ModelSerializer):
-    repuesto = RepuestoSerializer(queryset=Repuesto.objects.all())
+    repuesto = serializers.PrimaryKeyRelatedField(queryset=Repuesto.objects.all())
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
