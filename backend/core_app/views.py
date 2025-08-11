@@ -201,6 +201,9 @@ def logout_view(request):
         pass
     return Response(status=status.HTTP_200_OK)
 
+import logging
+logger = logging.getLogger(__name__)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def consultar_ruc(request, ruc):
@@ -216,7 +219,7 @@ def consultar_ruc(request, ruc):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         data = response.json()
 
         if "razonSocial" in data:
@@ -225,7 +228,8 @@ def consultar_ruc(request, ruc):
             return Response({"error": "No se encontró razón social"}, status=status.HTTP_404_NOT_FOUND)
 
     except requests.RequestException as e:
-        return Response({"error": "Error al consultar RUC"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error consultando RUC {ruc}: {e}")
+        return Response({"error": str(e)}, status=500)
 
 User = get_user_model()
 

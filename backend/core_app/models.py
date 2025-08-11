@@ -268,7 +268,7 @@ class Servicio(models.Model):
         return (self.subtotal + self.igv).quantize(Decimal('0.01'))
     
     def save(self, *args, **kwargs):
-        print("💾 Guardando servicio con subtotal:", self.subtotal)
+        #print("💾 Guardando servicio con subtotal:", self.subtotal)
         if self.subtotal is None:
             self.subtotal = Decimal('0.00')
         super().save(*args, **kwargs)
