@@ -3,7 +3,8 @@ import { fetchRepuestosByQuery } from '@/api/repuestos';
 import { useIdGenerator } from '@/composables/global/useIdGenerator';
 import { SugerenciaItem } from '@/types/operacion';
 import debounce from 'lodash.debounce';
-import type { Mantenimiento } from '@/types/operacion'; 
+import type { Mantenimiento } from '@/types/operacion';
+import { useNotify } from '@/composables/global/useNotify';
 
 interface OperacionLike {
   mantenimientos: Mantenimiento[];
@@ -11,7 +12,7 @@ interface OperacionLike {
 
 export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   const { generateId } = useIdGenerator();
-
+  const { error } = useNotify()
   const sugerencias = ref<SugerenciaItem[][]>([])
   const inputActivo = ref<number | null>(null);
 
@@ -38,7 +39,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   }
 
   /* ---- autocompletado ---- */
-  const updateSugerencias = debounce(async (text: string, rowIdx: number) => {
+   const updateSugerencias = debounce(async (text: string, rowIdx: number) => {
     inputActivo.value = rowIdx
 
     if (!text || text.length < 2) {
@@ -52,8 +53,16 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
         label: item.descripcion,
         value: item.descripcion
       }))
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error buscando sugerencias:', err)
+
+      // Notificación visual
+      error(
+        err?.response?.data?.detail ||
+        err?.message ||
+        'No se pudieron cargar las sugerencias.'
+      )
+
       sugerencias.value[rowIdx] = []
     }
   }, 300)

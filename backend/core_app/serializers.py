@@ -33,18 +33,47 @@ class CustomUserSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
 
-class RepuestoSerializer(serializers.PrimaryKeyRelatedField):
-    def to_internal_value(self, data):
-        # Si el dato es un número (id), DRF lo procesa normal
-        if isinstance(data, int):
-            return super().to_internal_value(data)
+from rest_framework import serializers
+from .models import Repuesto
 
-        # Si el dato es un string, lo tratamos como nombre de repuesto
+class RepuestoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repuesto
+        fields = ['id', 'descripcion', 'empresa']
+        read_only_fields = ['empresa']  # lo asigna la vista con request.user.empresa
+
+    def to_internal_value(self, data):
+        """
+        Permite aceptar un id o una cadena como 'repuesto'.
+        Si es string, lo crea (o lo busca) automáticamente.
+        """
+        if isinstance(data, int):
+            # Buscar por ID
+            try:
+                return Repuesto.objects.get(pk=data)
+            except Repuesto.DoesNotExist:
+                raise serializers.ValidationError(f"Repuesto con id {data} no existe.")
+        
         if isinstance(data, str):
-            repuesto, created = Repuesto.objects.get_or_create(descripcion=data.strip())
+            descripcion = data.strip()
+            if not descripcion:
+                raise serializers.ValidationError("La descripción no puede estar vacía.")
+            repuesto, _ = Repuesto.objects.get_or_create(
+                descripcion=descripcion,
+                defaults={'empresa': self.context['request'].user.empresa}
+            )
             return repuesto
 
-        raise serializers.ValidationError("Formato inválido para repuesto")
+        raise serializers.ValidationError("Formato inválido para repuesto (usa id o texto).")
+
+    def to_representation(self, instance):
+        """
+        Cómo se envía al frontend.
+        """
+        return {
+            'id': instance.id,
+            'descripcion': instance.descripcion
+        }
 
 class MantenimientoHitoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,7 +97,7 @@ class ServicioSerializer(serializers.ModelSerializer):
         return obj.total
 
 class MantenimientoSerializer(serializers.ModelSerializer):
-    repuesto = serializers.PrimaryKeyRelatedField(queryset=Repuesto.objects.all())
+    repuesto = RepuestoSerializer()
     placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
     igv = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
