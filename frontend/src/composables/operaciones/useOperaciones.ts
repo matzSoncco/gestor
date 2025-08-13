@@ -8,7 +8,8 @@ import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
-import { getApiErrorMessage } from '@/utils/apiErroHandler';
+import { handleApiError } from '@/utils/apiErrorHandler';
+import type { ApiError, FieldErrors } from '@/types/errors'
 
 import {
   fetchOperaciones,
@@ -100,7 +101,11 @@ function buildOperacionPayload(operacion: Partial<Operacion>): OperacionDTO {
 export function useOperaciones() {
   const operacionStore = useOperacionStore()
   const defaults = makeOperacionDefaults();
-  const { success, error, info } = useNotify();
+  const formErrors = ref<FieldErrors>({});
+  const clearErrors = () => {
+    formErrors.value = {};
+  };
+  const { success, error, info, warning } = useNotify();
 
   /* -------- estado base -------- */
   const isResetting = ref(false);
@@ -187,35 +192,77 @@ export function useOperaciones() {
 
   /* CRUD */
   const createOperacionAction = async (payload: Partial<Operacion>) => {
-    const msg = validateOperacion(payload);
+    // 1️⃣ Validación local
+    const msg = validateOperacion(payload)
     if (msg) {
-      error(msg);
-      throw new Error(msg);
+      error(msg)
+      throw new Error(msg)
     }
 
-    if (formData.value.tipo_operacion === 'servicio') {
-      servicioComposable.updateSubtotals();
-    } else if (formData.value.tipo_operacion === 'mantenimiento') {
-      mantenimientoComposable.updateSubtotals();
-    } else if (formData.value.tipo_operacion === 'combustible') {
-      servicioComposable.updateSubtotals();
+    // 2️⃣ Actualizar subtotales según el tipo
+    switch (formData.value.tipo_operacion) {
+      case 'servicio':
+      case 'combustible':
+        servicioComposable.updateSubtotals()
+        break
+      case 'mantenimiento':
+        mantenimientoComposable.updateSubtotals()
+        break
     }
 
-    const dto = buildOperacionPayload(payload);
+    // 3️⃣ Construir DTO
+    const dto = buildOperacionPayload(payload)
 
     try {
-      const data = await createOperacion(dto);
-      
-      //actualizar estado local
+      const data = await createOperacion(dto)
+
+      // 4️⃣ Actualizar estado local
       operaciones.value = [data, ...operaciones.value]
-      operacionStore.agregarOperacion(data);
-      
-      success('Operación registrada correctamente');
-      return data;
+      operacionStore.agregarOperacion(data)
+
+      success('Operación registrada correctamente')
+      return data
     } catch (err) {
-      const message = getApiErrorMessage(err, 'No se pudo crear la operación');
-      error(message);
-      throw err;
+      try {
+        // Esto lanza un error parseado
+        handleApiError(err, 'No se pudo registrar la operación')
+      } catch (apiErr) {
+        const typedError = apiErr as ApiError & { fieldErrors?: Record<string, string[]> }
+
+        // Mostrar mensaje principal
+        error(typedError.detail || 'Ocurrió un error')
+
+        // Si hay errores por campo
+        if (typedError.errors) {
+          formErrors.value = typedError.errors;
+          
+          // Opcional: mostrar un warning adicional si hay múltiples errores
+          if (Object.keys(typedError.errors).length > 1) {
+              warning('Se encontraron errores en varios campos. Revísalos y corrige la información.');
+          }
+        } else {
+          // En caso de que no haya errores de campo, asegúrate de limpiarlos
+          clearErrors();
+        }
+
+        // Ejemplo de manejo por código
+        switch (typedError.code) {
+          case 'UNAUTHENTICATED':
+            warning('Tu sesión ha expirado.')
+            break
+          case 'FORBIDDEN':
+            error('No tienes permisos para crear operaciones.')
+            break
+          case 'NETWORK_ERROR':
+            error('Sin conexión a internet.')
+            break
+          case 'SERVER_ERROR':
+            error('Error temporal del servidor.')
+            break
+        }
+
+        throw typedError
+      }
     }
   }
 
@@ -340,6 +387,8 @@ export function useOperaciones() {
     aplicarFiltros,
 
     // Estado del formulario
+    formErrors,
+    clearErrors,
     formData,
     formLoading,
     resetForm,

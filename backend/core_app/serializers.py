@@ -82,7 +82,12 @@ class MantenimientoHitoSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha', 'empresa', 'vehiculo']
 
 class ServicioSerializer(serializers.ModelSerializer):
-    placa_vehiculo = serializers.PrimaryKeyRelatedField(queryset=Vehiculo.objects.all())
+    placa_vehiculo = serializers.PrimaryKeyRelatedField(
+        queryset=Vehiculo.objects.all(),
+        error_messages={
+            "required": "Debes seleccionar un vehículo",
+        }
+    )
     igv = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
     class Meta:

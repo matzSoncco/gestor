@@ -1,6 +1,6 @@
 import api from '@/services/authService'
 import type { Operacion, OperacionResponse, OperacionBackend  } from '@/types/operacion'
-import { handleApiError } from '@/utils/apiErroHandler'
+import { handleApiError } from '@/utils/apiErrorHandler'
 
 export const fetchOperaciones = async (params?: Record<string, any>) => {
   try {
@@ -12,7 +12,6 @@ export const fetchOperaciones = async (params?: Record<string, any>) => {
 }
 
 export const createOperacion = async (payload: Partial<Operacion>) => {
-  console.log('Payload enviado:', payload);
   try {
     const response = await api.post<Operacion>('/operaciones/', payload)
     return response.data

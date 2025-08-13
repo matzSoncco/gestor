@@ -15,7 +15,7 @@ export interface Combustible {
   igv?: number;
   total?: number;
   ubicacion: string;
-  placa_vehiculo?: number;
+  placa_vehiculo?: string;
 }
 
 export interface Mantenimiento {
@@ -26,7 +26,7 @@ export interface Mantenimiento {
   subtotal: number;
   igv?: number;
   total?: number;
-  placa_vehiculo?: number;
+  placa_vehiculo?: string;
 }
 
 export interface Servicio {
@@ -35,7 +35,7 @@ export interface Servicio {
   subtotal: number;
   igv?: number;
   total?: number;
-  placa_vehiculo?: number;
+  placa_vehiculo?: string;
 }
 
 export interface Operacion {
@@ -44,7 +44,7 @@ export interface Operacion {
   ruc_proveedor: string;
   nombre_proveedor: string;
   tipo_operacion: TipoOperacion;
-  fecha: string;
+  fecha: number; // Puede ser un timestamp o una fecha ISO
   descripcion: string;
   costo_total: string;
   combustibles: Combustible[];
@@ -71,6 +71,12 @@ export interface SugerenciaItem {
   value: string
 }
 
+const getTodayTimestamp = () => {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // Establece la hora a medianoche
+  return now.getTime(); // Devuelve el timestamp en milisegundos
+};
+
 /**
  * Genera un nuevo objeto con valores por defecto para el formulario
  */
@@ -81,7 +87,7 @@ export function makeOperacionDefaults(): Operacion {
     ruc_proveedor: '',
     nombre_proveedor: '',
     tipo_operacion: '',
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: getTodayTimestamp(),
     descripcion: '',
     costo_total: '',
     combustibles: [],

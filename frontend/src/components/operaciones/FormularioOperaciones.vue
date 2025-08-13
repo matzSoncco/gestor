@@ -9,10 +9,9 @@
       @submit.prevent="submitForm"
       class="space-y-6"
     >
-      <!-- Información básica -->
       <n-card title="Información del Documento" class="shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <n-form-item label="N° de Factura o Documento (*)">
+          <n-form-item label="N° de Factura o Documento (*)" v-bind="getFormItemProps('numero_documento')">
             <n-input
               v-model:value="formData.numero_documento"
               placeholder="Ingrese número de documento"
@@ -20,8 +19,7 @@
             />
           </n-form-item>
 
-          <!-- Campo RUC + botón juntos -->
-          <n-form-item label="RUC del Proveedor (*)">
+          <n-form-item label="RUC del Proveedor (*)" v-bind="getFormItemProps('ruc_proveedor')">
             <div class="flex gap-2 w-full">
               <n-input
                 v-model:value="formData.ruc_proveedor"
@@ -41,7 +39,7 @@
           </n-form-item>
         </div>
         
-        <n-form-item label="Nombre del Proveedor (*)">
+        <n-form-item label="Nombre del Proveedor (*)" v-bind="getFormItemProps('nombre_proveedor')">
           <n-input
             v-model:value="formData.nombre_proveedor"
             placeholder="Aquí se mostrará el nombre del proveedor"
@@ -51,10 +49,9 @@
         </n-form-item>
       </n-card>
 
-      <!-- Información de la operación -->
       <n-card title="Detalles de la Operación" class="shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <n-form-item label="Tipo de Operación (*)">
+          <n-form-item label="Tipo de Operación (*)" v-bind="getFormItemProps('tipo_operacion')">
             <n-select
               v-model:value="formData.tipo_operacion"
               placeholder="Seleccione un tipo"
@@ -66,9 +63,9 @@
             />
           </n-form-item>
           
-          <n-form-item label="Fecha (*)">
+          <n-form-item label="Fecha (*)" v-bind="getFormItemProps('fecha')">
             <n-date-picker
-              v-model="formData.fecha"
+              v-model:value="formData.fecha"
               type="date"
               placeholder="Seleccione fecha"
               class="w-full"
@@ -77,10 +74,8 @@
         </div>
       </n-card>
 
-      <!-- Detalles específicos por tipo -->
       <n-collapse-transition :show="!!formData.tipo_operacion">
         <div class="space-y-4">
-          <!-- Combustible -->
           <n-card 
             v-if="formData.tipo_operacion === 'combustible'"
             title="Detalles de Combustible"
@@ -114,7 +109,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <n-form-item label="Cantidad (Galones) (*)">
+                  <n-form-item label="Cantidad (Galones) (*)" v-bind="getFormItemProps('combustibles', index, 'cantidad_galones')">
                     <n-input-number
                       v-model:value="comb.cantidad_galones"
                       placeholder="0.00"
@@ -125,7 +120,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo por Galón (S/) (*)">
+                  <n-form-item label="Costo por Galón (S/) (*)" v-bind="getFormItemProps('combustibles', index, 'costo_por_galon')">
                     <n-input-number
                       v-model:value="comb.costo_por_galon"
                       placeholder="0.00"
@@ -136,7 +131,7 @@
                     />
                   </n-form-item>
 
-                  <n-form-item label="Combustible (*)">
+                  <n-form-item label="Combustible (*)" v-bind="getFormItemProps('combustibles', index, 'ubicacion')">
                     <n-select
                       v-model:value="comb.ubicacion"
                       :options="UBICACION_OPTIONS"
@@ -152,7 +147,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Vehículo (*)">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('combustibles', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="comb.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -193,7 +188,6 @@
             </div>
           </n-card>
 
-          <!-- Mantenimiento -->
           <n-card 
             v-if="formData.tipo_operacion === 'mantenimiento'"
             title="Detalles de Mantenimiento"
@@ -227,7 +221,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <n-form-item label="Item/Servicio (*)" class="relative">
+                  <n-form-item label="Item/Servicio (*)" class="relative" v-bind="getFormItemProps('mantenimientos', index, 'repuesto')">
                     <n-auto-complete
                       :value="mant.repuesto"
                       :options="sugerencias[index] || []"
@@ -240,7 +234,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Cantidad (*)">
+                  <n-form-item label="Cantidad (*)" v-bind="getFormItemProps('mantenimientos', index, 'cantidad')">
                     <n-input-number
                       v-model:value="mant.cantidad"
                       placeholder="1"
@@ -249,7 +243,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo Unit. (S/) (*)">
+                  <n-form-item label="Costo Unit. (S/) (*)" v-bind="getFormItemProps('mantenimientos', index, 'costo_unitario')">
                     <n-input-number
                       v-model:value="mant.costo_unitario"
                       placeholder="0.00"
@@ -268,7 +262,7 @@
                     />
                   </n-form-item>
 
-                  <n-form-item label="Vehículo (*)">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('mantenimientos', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="mant.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -308,7 +302,6 @@
             </div>
           </n-card>
 
-          <!-- Servicio -->
           <n-card 
             v-if="formData.tipo_operacion === 'servicio'"
             title="Detalles del Servicio"
@@ -342,7 +335,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <n-form-item label="Descripción del Servicio (*)">
+                  <n-form-item label="Descripción del Servicio (*)" v-bind="getFormItemProps('servicios', index, 'descripcion_item')">
                     <n-input
                       v-model:value="serv.descripcion_item"
                       placeholder="Especifique el servicio"
@@ -350,7 +343,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo (S/) (*)">
+                  <n-form-item label="Costo (S/) (*)" v-bind="getFormItemProps('servicios', index, 'subtotal')">
                     <n-input-number
                       v-model:value="serv.subtotal"
                       placeholder="0.00"
@@ -361,7 +354,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Vehículo (*)">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('servicios', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="serv.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -401,9 +394,8 @@
             </div>
           </n-card>
 
-          <!-- Descripción adicional -->
           <n-card title="Información Adicional" class="shadow-sm">
-            <n-form-item label="Descripción Adicional">
+            <n-form-item label="Descripción Adicional" v-bind="getFormItemProps('descripcion')">
               <n-input
                 v-model:value="formData.descripcion"
                 type="textarea"
@@ -417,20 +409,12 @@
         </div>
       </n-collapse-transition>
 
-      <!-- Acciones -->
       <div class="flex flex-col md:flex-row gap-3 justify-end">
         <n-button
           @click="resetForm"
           :disabled="loading"
           class="w-full md:w-auto"
         >
-          <template #icon>
-            <n-icon>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-              </svg>
-            </n-icon>
-          </template>
           Limpiar Formulario
         </n-button>
         
@@ -440,13 +424,6 @@
           :loading="loading"
           class="w-full md:w-auto"
         >
-          <template #icon>
-            <n-icon>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-              </svg>
-            </n-icon>
-          </template>
           {{ loading ? 'Enviando...' : 'Registrar Operación' }}
         </n-button>
       </div>
@@ -455,60 +432,24 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import api from '@/services/authService';
 import { AxiosError } from 'axios';
-import { onMounted, ref } from 'vue';
 import { useOperaciones } from '@/composables/operaciones/useOperaciones';
 import { obtenerNombreProveedor } from '@/services/rucService';
 import { Vehiculo } from '@/types/vehiculo';
 import { useNotify } from '@/composables/global/useNotify';
 import { UBICACION_OPTIONS } from '@/types/constants';
+import type { FieldErrors } from "@/types/errors";
 
 const listaVehiculos = ref<Vehiculo[]>([]);
-const { error } = useNotify()
-
-async function consultarNombre() {
-  const ruc = formData.value.ruc_proveedor?.trim()
-
-  if (!ruc) {
-    error('Debe ingresar un RUC')
-    formData.value.nombre_proveedor = ''
-    return
-  }
-
-  if (!/^\d{11}$/.test(ruc)) {
-    error('El RUC debe tener exactamente 11 dígitos numéricos')
-    formData.value.nombre_proveedor = ''
-    return
-  }
-
-  try {
-    const nombre = await obtenerNombreProveedor(ruc)
-    formData.value.nombre_proveedor = nombre
-  } catch (err) {
-    error((err as Error).message)
-    formData.value.nombre_proveedor = 'Error al consultar'
-  }
-}
-
-onMounted(async () => {
-  try {
-    const response = await api.get('vehiculos/');
-    listaVehiculos.value = response.data.results;
-  } catch (error) {
-    const err = error as AxiosError
-    console.error('Error al cargar vehículos:', err.response?.data || err.message );
-    listaVehiculos.value = [];
-  }
-});
+const { error } = useNotify();
 
 const {
   formData,
   loading,
-
   addCombustibleRow,
   removeCombustibleRow,
-
   addMantenimientoRow,
   removeMantenimientoRow,
   updateSugerencias,
@@ -517,11 +458,56 @@ const {
   costoTotalCombustible,
   costoTotalServicio,
   costoTotalMantenimiento,
-
   addServicioRow,
   removeServicioRow,
-
   resetForm,
-  submitForm 
+  submitForm,
+  formErrors
 } = useOperaciones();
+
+async function consultarNombre() {
+  const ruc = formData.value.ruc_proveedor?.trim();
+  if (!ruc) {
+    error('Debe ingresar un RUC');
+    formData.value.nombre_proveedor = '';
+    return;
+  }
+  if (!/^\d{11}$/.test(ruc)) {
+    error('El RUC debe tener exactamente 11 dígitos numéricos');
+    formData.value.nombre_proveedor = '';
+    return;
+  }
+  try {
+    const nombre = await obtenerNombreProveedor(ruc);
+    formData.value.nombre_proveedor = nombre;
+  } catch (err) {
+    error((err as Error).message);
+    formData.value.nombre_proveedor = 'Error al consultar';
+  }
+}
+
+onMounted(async () => {
+  try {
+    const response = await api.get('vehiculos/');
+    listaVehiculos.value = response.data.results;
+  } catch (error) {
+    const err = error as AxiosError;
+    console.error('Error al cargar vehículos:', err.response?.data || err.message);
+    listaVehiculos.value = [];
+  }
+});
+
+const getFormItemProps = (fieldPath: string, index?: number, subfield?: string) => {
+  let finalPath = fieldPath;
+  if (index !== undefined && subfield) {
+    finalPath = `${fieldPath}[${index}].${subfield}`;
+  }
+
+  const errorMessages = formErrors.value[finalPath];
+
+  return {
+    validationStatus: errorMessages ? 'error' as const : undefined,
+    feedback: errorMessages ? errorMessages[0] : undefined,
+  };
+};
 </script>

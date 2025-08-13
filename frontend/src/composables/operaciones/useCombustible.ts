@@ -17,7 +17,7 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
       subtotal: 0,
       igv: 0,
       total: 0,
-      placa_vehiculo: 0,
+      placa_vehiculo: '',
       ubicacion: 'AREQUIPA',
     });
   };
