@@ -2,9 +2,10 @@ import { ref, nextTick } from 'vue'
 import { useVehiculoStore } from '@/stores/vehiculoStore'
 import { useNotify } from '@/composables/global/useNotify'
 import { useFormActions } from '@/composables/global/useFormActions'
-import { validateRequired } from '@/utils/validateRequired'
 import { usePagination } from '../global/usePagination'
-import { getApiErrorMessage } from '@/utils/apiErroHandler'
+import { handleApiError } from '@/utils/apiErrorHandler'
+import { FIELD_NAMES_VEHICULO } from "@/types/fieldNames";
+import type { FieldNameMap } from '@/types/fieldNames'
 
 import {
   fetchVehiculos,
@@ -18,21 +19,80 @@ import {
   type Vehiculo
 } from '@/types/vehiculo'
 
+const formErrors = ref<Record<string, string[]>>({});
+const clearErrors = () => {
+  formErrors.value = {};
+};
+
 function validateVehiculo(p: Partial<Vehiculo>): string | null {
-  const required: (keyof Vehiculo)[] = [
+  formErrors.value = {}; // limpiar errores previos
+
+  // 1. Campos requeridos tipo texto
+  const requiredText: (keyof Vehiculo)[] = [
     'placa',
     'marca',
-    'modelo'
+    'modelo',
+    'ubicacion',
+    'categoria',
+    'version',
+    'color',
+    'motor',
+    'combustible',
+    'forma_rodante',
+    'vin',
+    'serie_chasis',
+    'carroceria'
   ];
 
-  return validateRequired(p, required)
+  for (const field of requiredText) {
+    if (!p[field] || String(p[field]).trim() === '') {
+      formErrors.value[field] = [
+        `El campo "${currentFieldNames.value[field] || field}" es obligatorio.`
+      ];
+    }
+  }
+
+  // 2. Campos numéricos que deben ser > 0
+  const numericRequired: (keyof Vehiculo)[] = [
+    'anio',
+    'kilometraje',
+    'costo',
+    'anio_fabricacion',
+    'anio_modelo',
+    'ejes',
+    'ruedas',
+    'pasajeros',
+    'peso_neto',
+    'peso_bruto',
+    'carga_util',
+    'cilindrada',
+    'cilindros',
+    'altura',
+    'ancho',
+    'longitud'
+  ];
+
+  for (const field of numericRequired) {
+    const value = p[field] as number | null | undefined;
+    if (value == null || value <= 0) {
+      formErrors.value[field] = [
+        `El campo "${currentFieldNames.value[field] || field}" debe ser mayor a 0.`
+      ];
+    }
+  }
+
+  return Object.keys(formErrors.value).length > 0
+    ? 'Corrige los errores en el formulario.'
+    : null;
 }
+
+const currentFieldNames = ref<FieldNameMap>(FIELD_NAMES_VEHICULO);
 
 export function useVehiculos() {
   const vehiculoStore = useVehiculoStore();
   const isResetting = ref(false);
   const defaults = makeVehiculoDefaults();
-  const { success, error, info } = useNotify();
+  const { success, error, info, warning } = useNotify();
 
   const filtros = ref({
     placa: ''
@@ -91,26 +151,60 @@ export function useVehiculos() {
 
   /* -------- crear -------- */
   const createVehiculoAction = async (payload: Partial<Vehiculo>) => {
-    const msg = validateVehiculo(payload)
+    // 1) Validación local
+    const msg = validateVehiculo(payload);
     if (msg) {
-      error(msg)
-      throw new Error(msg)
+      error(msg);
+      throw new Error(msg);
     }
 
     try {
-      const data = await createVehiculo(payload)
+      // 2) Llamada API
+      const data = await createVehiculo(payload);
 
-      vehiculos.value = [data, ...vehiculos.value]
-      vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos])
-      success('Vehículo creado exitosamente')
+      // 3) Estado local
+      vehiculos.value = [data, ...vehiculos.value];
+      vehiculoStore.setVehiculos([data, ...vehiculoStore.vehiculos]);
 
-      return data
+      success("Vehículo creado exitosamente");
+      return data;
+
     } catch (err) {
-      const message = getApiErrorMessage(err, 'No se pudo crear el vehículo')
-      error(message)
-      throw err
+      // 4) Manejo de errores consistente
+      const apiErr = handleApiError(err, {
+        context: "vehículo",
+        fieldNames: currentFieldNames.value, // asegúrate de tener esto igual que en operaciones
+      });
+
+      error(apiErr.detail || "Ocurrió un error");
+
+      if (apiErr.errors) {
+        formErrors.value = apiErr.errors;
+
+        const keys = Object.keys(apiErr.errors);
+        if (keys.length > 1) {
+          warning("Se encontraron errores en varios campos. Revísalos y corrige la información.");
+        }
+      } else {
+        clearErrors();
+      }
+
+      // Manejo por código (opcional según tu API)
+      switch (apiErr.code) {
+        case "UNAUTHENTICATED":
+          warning("Tu sesión ha expirado.");
+          break;
+        case "FORBIDDEN":
+          error("No tienes permisos para crear vehículos.");
+          break;
+        case "SERVER_ERROR":
+          error("Error temporal del servidor.");
+          break;
+      }
+
+      throw apiErr;
     }
-  }
+  };
 
   /* -------- editar -------- */
   const updateVehiculoAction  = async (id: number, payload: Partial<Vehiculo>) => {
@@ -181,6 +275,7 @@ export function useVehiculos() {
     formLoading,
     resetForm,
     submitForm,
+    formErrors,
 
     loadData,
     createVehiculo: createVehiculoAction, // Para crear programáticamente

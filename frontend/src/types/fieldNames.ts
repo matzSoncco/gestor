@@ -38,6 +38,43 @@ export const FIELD_NAMES_SERVICIO: FieldNameMap = {
   subtotal: "subtotal",
 };
 
+// Vehículo
+export const FIELD_NAMES_VEHICULO: FieldNameMap = {
+  placa: "placa",
+  anio: "año",
+  kilometraje: "kilometraje",
+  costo: "costo",
+  ubicacion: "ubicación",
+  categoria: "categoría",
+  marca: "marca",
+  modelo: "modelo",
+  version: "versión",
+  color: "color",
+  anio_fabricacion: "año de fabricación",
+  anio_modelo: "año de modelo",
+  motor: "motor",
+  combustible: "combustible",
+  forma_rodante: "forma rodante",
+  vin: "VIN",
+  serie_chasis: "serie de chasis",
+  ejes: "número de ejes",
+  ruedas: "número de ruedas",
+  pasajeros: "número de pasajeros",
+  carroceria: "carrocería",
+  peso_neto: "peso neto",
+  peso_bruto: "peso bruto",
+  carga_util: "carga útil",
+  cilindrada: "cilindrada",
+  cilindros: "cilindros",
+  altura: "altura",
+  ancho: "ancho",
+  longitud: "longitud",
+  necesita_mantenimiento: "necesita mantenimiento",
+  siguiente_hito_mantenimiento: "siguiente hito de mantenimiento",
+  proximo_hito_mantenimiento: "próximo hito de mantenimiento",
+  non_field_errors: "el formulario",
+};
+
 // Helper
 export function mergeFieldNames(...maps: FieldNameMap[]): FieldNameMap {
   return Object.assign({}, ...maps);

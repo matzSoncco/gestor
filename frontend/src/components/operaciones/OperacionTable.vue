@@ -170,7 +170,7 @@ const columns = [
     title: 'Fecha',
     key: 'fecha',
     render(row: Operacion) {
-      return formatFecha(row.fecha)
+      return formatFecha(String(row.fecha))
     }
   },
   {

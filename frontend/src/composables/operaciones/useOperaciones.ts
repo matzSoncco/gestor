@@ -4,7 +4,6 @@ import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio } from '@/composables/operaciones/useServicio';
 import { useFormActions } from '@/composables/global/useFormActions';
 import { useNotify } from '@/composables/global/useNotify';
-import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
 import { handleApiError } from '@/utils/apiErrorHandler';
@@ -26,9 +25,9 @@ import {
 
 import {
   Combustible,
-  makeOperacionDefaults,
   Mantenimiento,
   Servicio,
+  makeOperacionDefaults,
   type Operacion,
 } from '@/types/operacion';
 
@@ -39,45 +38,6 @@ type OperacionFiltros = {
   fecha_fin: string | null;
 };
 
-/* ----------------- VALIDACIÓN ----------------- */
-function validateOperacion(operacion: Partial<Operacion>): string | null {
-  const required: (keyof Operacion)[] = [
-    'numero_documento',
-    'ruc_proveedor',
-    'nombre_proveedor',
-    'fecha',
-    'tipo_operacion',
-  ];
-
-  const requiredValidation = validateRequired(operacion, required)
-  if (requiredValidation) return requiredValidation
-
-  if (operacion.fecha) {
-    const fecha = new Date(operacion.fecha);
-    const hoy = new Date();
-    if (fecha > hoy) {
-      return 'La fecha de operación no puede ser posterior a hoy';
-    }
-  }
-
-  if (operacion.tipo_operacion === 'combustible' && 
-      (!operacion.combustible_detalle || operacion.combustible_detalle.length === 0)) {
-    return 'Debe agregar al menos un registro de combustible';
-  }
-
-  if (operacion.tipo_operacion === 'mantenimiento' && 
-      (!operacion.mantenimiento_detalle || operacion.mantenimiento_detalle.length === 0)) {
-    return 'Debe agregar al menos un registro de mantenimiento';
-  }
-
-  if (operacion.tipo_operacion === 'servicio' && 
-      (!operacion.servicio_detalle || operacion.servicio_detalle.length === 0)) {
-    return 'Debe agregar al menos un registro de servicio';
-  }
-
-  return null;
-}
-
 export function useOperaciones() {
   const operacionStore = useOperacionStore()
   const defaults = makeOperacionDefaults();
@@ -85,7 +45,6 @@ export function useOperaciones() {
   const clearErrors = () => {
     formErrors.value = {};
   };
-  const { success, error, info, warning } = useNotify();
 
   const currentFieldNames = computed(() => {
     const tipo = formData.value.tipo_operacion; // 'combustible' | 'mantenimiento' | 'servicio'
@@ -100,6 +59,93 @@ export function useOperaciones() {
         return FIELD_NAMES_BASE;
     }
   });
+
+  /* ----------------- VALIDACIÓN ----------------- */
+  function validateOperacion(operacion: Partial<Operacion>): string | null {
+    formErrors.value = {}; // limpiar errores previos
+
+    // 1️⃣ Campos obligatorios tipo texto
+    const requiredText: (keyof Operacion)[] = [
+      'numero_documento',
+      'ruc_proveedor',
+      'nombre_proveedor',
+      'tipo_operacion',
+    ];
+
+    for (const field of requiredText) {
+      const val = operacion[field];
+      if (!val || (typeof val === 'string' && !val.trim())) {
+        formErrors.value[field] = [
+          `El campo "${currentFieldNames.value[field] || field}" es obligatorio.`
+        ];
+      }
+    }
+
+    // 2️⃣ Campos de tipo number que no pueden ser 0 o nulos
+    const requiredNumber: (keyof Operacion)[] = ['fecha']; // si quieres incluir más, agregalos
+    for (const field of requiredNumber) {
+      const val = operacion[field] as number | null | undefined;
+      if (val == null || val <= 0) {
+        formErrors.value[field] = [
+          `El campo "${currentFieldNames.value[field] || field}" debe ser mayor a 0.`
+        ];
+      }
+    }
+
+    // 3️⃣ Validar fecha (fecha no posterior a hoy)
+    if (operacion.fecha) {
+      const fecha = new Date(operacion.fecha);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      if (fecha > hoy) {
+        formErrors.value.fecha = [
+          'La fecha de operación no puede ser posterior a hoy.'
+        ];
+      }
+    }
+
+    // 4️⃣ Validaciones según tipo de operación
+    const detallesPorTipo: Record<string, keyof Operacion> = {
+      combustible: 'combustible_detalle',
+      mantenimiento: 'mantenimiento_detalle',
+      servicio: 'servicio_detalle',
+    };
+
+    const detalleKey = detallesPorTipo[operacion.tipo_operacion ?? ''];
+    if (detalleKey) {
+      const detalle = operacion[detalleKey] as (Partial<Combustible | Mantenimiento | Servicio>[]) | undefined;
+      if (!detalle || detalle.length === 0) {
+        formErrors.value[detalleKey as string] = [
+          `Debe agregar al menos un registro de ${operacion.tipo_operacion}.`
+        ];
+      } else {
+        // 4a️⃣ Validar campos dentro de cada detalle
+        detalle.forEach((item, index) => {
+          Object.keys(item).forEach((subfield) => {
+            const val = (item as any)[subfield];
+            if (val === null || val === undefined || (typeof val === 'number' && val <= 0)) {
+              const key = `${detalleKey}[${index}].${subfield}`;
+              formErrors.value[key] = [
+                `El campo "${currentFieldNames.value[subfield] || subfield}" tiene que ser mayor a 0.`
+              ];
+            }
+            if (val == null || val === undefined || (typeof val === 'string' && !val.trim())) {
+              const key = `${detalleKey}[${index}].${subfield}`;
+              formErrors.value[key] = [
+                `El campo "${currentFieldNames.value[subfield] || subfield}" es obligatorio.`
+              ];
+
+            }
+          });
+        });
+      }
+    }
+
+    return Object.keys(formErrors.value).length > 0
+      ? 'Corrige los errores en el formulario.'
+      : null;
+  }
+  const { success, error, info, warning } = useNotify();
 
   /* -------- estado base -------- */
   const isResetting = ref(false);

@@ -106,7 +106,7 @@
           </div>
           
           <div class="p-6">
-            <div v-if="!operacion?.combustibles?.length" 
+            <div v-if="!operacion?.combustible_detalle?.length" 
                  class="text-center py-8 text-gray-500">
               <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
@@ -115,7 +115,7 @@
             </div>
             
             <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div v-for="c in operacion.combustibles" :key="c.id" 
+              <div v-for="c in operacion.combustible_detalle" :key="c.id" 
                   class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200 hover:shadow-md transition-shadow duration-200">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex items-center space-x-3">
@@ -179,7 +179,7 @@
           </div>
           
           <div class="p-6">
-            <div v-if="!operacion?.mantenimientos.length" 
+            <div v-if="!operacion?.mantenimiento_detalle.length" 
                  class="text-center py-8 text-gray-500">
               <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -188,7 +188,7 @@
             </div>
             
             <div v-else class="grid gap-4 md:grid-cols-2">
-              <div v-for="m in operacion.mantenimientos" :key="m.id" 
+              <div v-for="m in operacion.mantenimiento_detalle" :key="m.id" 
                    class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow duration-200">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex items-center space-x-3 flex-1">
@@ -257,7 +257,7 @@
           </div>
           
           <div class="p-6">
-            <div v-if="!operacion?.servicios.length" 
+            <div v-if="!operacion?.servicio_detalle.length" 
                  class="text-center py-8 text-gray-500">
               <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -266,7 +266,7 @@
             </div>
             
             <div v-else class="grid gap-4 md:grid-cols-2">
-              <div v-for="s in operacion.servicios" :key="s.id" 
+              <div v-for="s in operacion.servicio_detalle" :key="s.id" 
                    class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow duration-200">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex items-center space-x-3 flex-1">
@@ -312,7 +312,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { fetchOperacionById } from '@/api/operaciones'
 import { useVehiculoStore } from '@/stores/vehiculoStore'
 import type { Operacion } from '@/types/operacion'
-import { handleApiError } from '@/utils/apiErroHandler'
 
 // Refs y estados
 const route = useRoute()
