@@ -44,12 +44,12 @@ export interface Operacion {
   ruc_proveedor: string;
   nombre_proveedor: string;
   tipo_operacion: TipoOperacion;
-  fecha: number; // Puede ser un timestamp o una fecha ISO
+  fecha: number;
   descripcion: string;
   costo_total: string;
-  combustibles: Combustible[];
-  mantenimientos: Mantenimiento[];
-  servicios: Servicio[];
+  combustible_detalle: Combustible[];
+  mantenimiento_detalle: Mantenimiento[];
+  servicio_detalle: Servicio[];
 }
 
 export interface OperacionBackend {
@@ -61,9 +61,9 @@ export interface OperacionBackend {
   fecha: string;
   descripcion: string;
   costo_total: string;
-  combustible_detalle?: Combustible[];
-  mantenimiento_detalle?: Mantenimiento[];
-  servicio_detalle?: Servicio[];
+  combustible_detalle?: Omit<Combustible, "id">[];
+  mantenimiento_detalle?: Omit<Mantenimiento, "id">[];
+  servicio_detalle?: Omit<Servicio, "id">[];
 }
 
 export interface SugerenciaItem {
@@ -90,8 +90,8 @@ export function makeOperacionDefaults(): Operacion {
     fecha: getTodayTimestamp(),
     descripcion: '',
     costo_total: '',
-    combustibles: [],
-    mantenimientos: [],
-    servicios: [],
+    combustible_detalle: [],
+    mantenimiento_detalle: [],
+    servicio_detalle: [],
   };
 }

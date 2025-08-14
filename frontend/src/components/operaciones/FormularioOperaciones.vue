@@ -83,7 +83,7 @@
           >
             <div class="space-y-4">
               <div
-                v-for="(comb, index) in formData.combustibles"
+                v-for="(comb, index) in formData.combustible_detalle"
                 :key="comb.id"
                 class="p-4 border border-gray-200 rounded-lg bg-gray-50"
               >
@@ -92,7 +92,7 @@
                     Combustible {{ index + 1 }}
                   </h4>
                   <n-button
-                    v-if="formData.combustibles.length > 1"
+                    v-if="formData.combustible_detalle.length > 1"
                     @click="removeCombustibleRow(comb.id)"
                     type="error"
                     size="small"
@@ -109,7 +109,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <n-form-item label="Cantidad (Galones) (*)" v-bind="getFormItemProps('combustibles', index, 'cantidad_galones')">
+                  <n-form-item label="Cantidad (Galones) (*)" v-bind="getFormItemProps('combustible_detalle', index, 'cantidad_galones')">
                     <n-input-number
                       v-model:value="comb.cantidad_galones"
                       placeholder="0.00"
@@ -120,7 +120,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo por Galón (S/) (*)" v-bind="getFormItemProps('combustibles', index, 'costo_por_galon')">
+                  <n-form-item label="Costo por Galón (S/) (*)" v-bind="getFormItemProps('combustible_detalle', index, 'costo_por_galon')">
                     <n-input-number
                       v-model:value="comb.costo_por_galon"
                       placeholder="0.00"
@@ -131,7 +131,7 @@
                     />
                   </n-form-item>
 
-                  <n-form-item label="Combustible (*)" v-bind="getFormItemProps('combustibles', index, 'ubicacion')">
+                  <n-form-item label="Combustible (*)" v-bind="getFormItemProps('combustible_detalle', index, 'ubicacion')">
                     <n-select
                       v-model:value="comb.ubicacion"
                       :options="UBICACION_OPTIONS"
@@ -147,7 +147,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('combustibles', index, 'placa_vehiculo')">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('combustible_detalle', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="comb.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -195,7 +195,7 @@
           >
             <div class="space-y-4">
               <div
-                v-for="(mant, index) in formData.mantenimientos"
+                v-for="(mant, index) in formData.mantenimiento_detalle"
                 :key="mant.id"
                 class="p-4 border border-gray-200 rounded-lg bg-gray-50"
               >
@@ -204,7 +204,7 @@
                     Mantenimiento {{ index + 1 }}
                   </h4>
                   <n-button
-                    v-if="formData.mantenimientos.length > 1"
+                    v-if="formData.mantenimiento_detalle.length > 1"
                     @click="removeMantenimientoRow(mant.id)"
                     type="error"
                     size="small"
@@ -221,7 +221,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <n-form-item label="Item/Servicio (*)" class="relative" v-bind="getFormItemProps('mantenimientos', index, 'repuesto')">
+                  <n-form-item label="Item/Servicio (*)" class="relative" v-bind="getFormItemProps('mantenimiento_detalle', index, 'repuesto')">
                     <n-auto-complete
                       :value="mant.repuesto"
                       :options="sugerencias[index] || []"
@@ -234,7 +234,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Cantidad (*)" v-bind="getFormItemProps('mantenimientos', index, 'cantidad')">
+                  <n-form-item label="Cantidad (*)" v-bind="getFormItemProps('mantenimiento_detalle', index, 'cantidad')">
                     <n-input-number
                       v-model:value="mant.cantidad"
                       placeholder="1"
@@ -243,7 +243,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo Unit. (S/) (*)" v-bind="getFormItemProps('mantenimientos', index, 'costo_unitario')">
+                  <n-form-item label="Costo Unit. (S/) (*)" v-bind="getFormItemProps('mantenimiento_detalle', index, 'costo_unitario')">
                     <n-input-number
                       v-model:value="mant.costo_unitario"
                       placeholder="0.00"
@@ -262,7 +262,7 @@
                     />
                   </n-form-item>
 
-                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('mantenimientos', index, 'placa_vehiculo')">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('mantenimiento_detalle', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="mant.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -309,7 +309,7 @@
           >
             <div class="space-y-4">
               <div
-                v-for="(serv, index) in formData.servicios"
+                v-for="(serv, index) in formData.servicio_detalle"
                 :key="serv.id"
                 class="p-4 border border-gray-200 rounded-lg bg-gray-50"
               >
@@ -318,7 +318,7 @@
                     Servicio {{ index + 1 }}
                   </h4>
                   <n-button
-                    v-if="formData.servicios.length > 1"
+                    v-if="formData.servicio_detalle.length > 1"
                     @click="removeServicioRow(serv.id)"
                     type="error"
                     size="small"
@@ -335,7 +335,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <n-form-item label="Descripción del Servicio (*)" v-bind="getFormItemProps('servicios', index, 'descripcion_item')">
+                  <n-form-item label="Descripción del Servicio (*)" v-bind="getFormItemProps('servicio_detalle', index, 'descripcion_item')">
                     <n-input
                       v-model:value="serv.descripcion_item"
                       placeholder="Especifique el servicio"
@@ -343,7 +343,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Costo (S/) (*)" v-bind="getFormItemProps('servicios', index, 'subtotal')">
+                  <n-form-item label="Costo (S/) (*)" v-bind="getFormItemProps('servicio_detalle', index, 'subtotal')">
                     <n-input-number
                       v-model:value="serv.subtotal"
                       placeholder="0.00"
@@ -354,7 +354,7 @@
                     />
                   </n-form-item>
                   
-                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('servicios', index, 'placa_vehiculo')">
+                  <n-form-item label="Vehículo (*)" v-bind="getFormItemProps('servicio_detalle', index, 'placa_vehiculo')">
                     <n-select
                       v-model:value="serv.placa_vehiculo"
                       placeholder="Seleccione vehículo"
@@ -440,7 +440,6 @@ import { obtenerNombreProveedor } from '@/services/rucService';
 import { Vehiculo } from '@/types/vehiculo';
 import { useNotify } from '@/composables/global/useNotify';
 import { UBICACION_OPTIONS } from '@/types/constants';
-import type { FieldErrors } from "@/types/errors";
 
 const listaVehiculos = ref<Vehiculo[]>([]);
 const { error } = useNotify();

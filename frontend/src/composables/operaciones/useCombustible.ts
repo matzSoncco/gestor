@@ -3,14 +3,14 @@ import { useIdGenerator }     from '@/composables/global/useIdGenerator';
 import type { Combustible } from '@/types/operacion';
 
 interface OperacionLike {
-  combustibles: Combustible[];
+  combustible_detalle: Combustible[];
 }
 
 export function useCombustible(formDataRef: Ref<OperacionLike>) {
   const { generateId } = useIdGenerator();
 
   const addCombustibleRow = (): void => {
-    formDataRef.value.combustibles.push({
+    formDataRef.value.combustible_detalle.push({
       id: generateId(),
       cantidad_galones: 0,
       costo_por_galon: 0,
@@ -23,14 +23,14 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
   };
 
   const removeCombustibleRow = (id: string | number): void => {
-    formDataRef.value.combustibles = formDataRef.value.combustibles.filter(
+    formDataRef.value.combustible_detalle = formDataRef.value.combustible_detalle.filter(
       (c) => c.id !== id
     );
   };
 
     /** Recalcula subtotal, IGV y total para cada fila */
   const updateSubtotals = (): void => {
-    formDataRef.value.combustibles.forEach((c) => {
+    formDataRef.value.combustible_detalle.forEach((c) => {
       const cantidad = Number(c.cantidad_galones) || 0;
       const precio = Number(c.costo_por_galon) || 0;
 
@@ -43,7 +43,7 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
   /** Calcula el total acumulado de todos los ítems */
   const costoTotalCombustible = computed(() =>
     Number(
-      formDataRef.value.combustibles.reduce(
+      formDataRef.value.combustible_detalle.reduce(
         (s, i) => s + (i.total ?? 0),
         0
       ).toFixed(2)
@@ -51,7 +51,7 @@ export function useCombustible(formDataRef: Ref<OperacionLike>) {
   );
 
   watch(
-    () => formDataRef.value.combustibles,
+    () => formDataRef.value.combustible_detalle,
     updateSubtotals,
     { deep: true },
   );

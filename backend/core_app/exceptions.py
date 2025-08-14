@@ -1,7 +1,10 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework import status as drf_status
+from rest_framework.exceptions import (
+    ValidationError, NotAuthenticated, AuthenticationFailed,
+    PermissionDenied, NotFound, MethodNotAllowed
+)
 
 DEFAULT_CODE_MAP = {
     400: "BAD_REQUEST",
@@ -14,35 +17,73 @@ DEFAULT_CODE_MAP = {
     500: "SERVER_ERROR",
 }
 
+
+# Asignación explícita por tipo de excepción (sobrescribe default_code)
+EXC_CODE_MAP = {
+    NotAuthenticated: "UNAUTHENTICATED",
+    AuthenticationFailed: "UNAUTHENTICATED",
+    PermissionDenied: "FORBIDDEN",
+    NotFound: "NOT_FOUND",
+    MethodNotAllowed: "METHOD_NOT_ALLOWED",
+}
+
+NON_FIELD_KEY = "non_field_errors"
+
+def _code_for(exc, status_code: int) -> str:
+    # Prioriza mapeo por clase
+    for klass, code in EXC_CODE_MAP.items():
+        if isinstance(exc, klass):
+            return code
+    # Luego default_code de DRF (upper)
+    default_code = getattr(exc, "default_code", None)
+    if default_code:
+        return str(default_code).upper()
+    # Finalmente por status
+    return DEFAULT_CODE_MAP.get(status_code, "ERROR")
+
 def custom_exception_handler(exc, context):
-    resp = exception_handler(exc, context)
+    response = exception_handler(exc, context)
 
-    # No lo manejó DRF → 500 genérico unificado
-    if resp is None:
+    # Errores no manejados por DRF → 500
+    if response is None:
+        status_code = drf_status.HTTP_500_INTERNAL_SERVER_ERROR
         return Response({
+            "status": status_code,
+            "code": "SERVER_ERROR",
             "detail": "Ha ocurrido un error inesperado. Intenta nuevamente.",
-            "code": "SERVER_ERROR"
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            "errors": None
+        }, status=status_code)
 
-    data = resp.data
+    status_code = response.status_code
+    data = response.data
 
-    # Validaciones → empaquetar como {detail, code, errors}
+    # Validaciones → forzar dict y usar NON_FIELD_KEY si viene lista/str
     if isinstance(exc, ValidationError):
-        errors = data if isinstance(data, dict) else {"non_field_errors": data}
-        resp.data = {
-            "detail": "Por favor revisa los campos marcados.",
+        if isinstance(data, dict):
+            errors = data
+        elif isinstance(data, list):
+            errors = {NON_FIELD_KEY: data}
+        else:
+            errors = {NON_FIELD_KEY: [str(data)]}
+
+        response.data = {
+            "status": status_code,
             "code": "VALIDATION_ERROR",
+            "detail": "Por favor revisa los campos marcados.",
             "errors": errors
         }
-        return resp
+        return response
 
-    # Otros errores → asegurar {detail, code}
+    # Resto de errores → mantener shape fijo
     if isinstance(data, dict):
-        detail = data.get("detail", "Ocurrió un error.")
-        code = data.get("code", DEFAULT_CODE_MAP.get(resp.status_code, "ERROR"))
+        detail = data.get("detail") or str(exc) or "Ocurrió un error."
     else:
-        detail = str(data)
-        code = DEFAULT_CODE_MAP.get(resp.status_code, "ERROR")
+        detail = str(data) if data is not None else "Ocurrió un error."
 
-    resp.data = {"detail": detail, "code": code}
-    return resp
+    response.data = {
+        "status": status_code,
+        "code": _code_for(exc, status_code),
+        "detail": detail,
+        "errors": None
+    }
+    return response

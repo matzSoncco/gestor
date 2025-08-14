@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Operacion, OperacionResponse } from '@/types/operacion'
+import type { Operacion } from '@/types/operacion'
 import { fetchOperaciones } from '@/api/operaciones'
 
 export const useOperacionStore = defineStore('operacion', {

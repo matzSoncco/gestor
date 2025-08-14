@@ -1,83 +1,96 @@
+// src/utils/apiErrorHandler.ts
 import type { ApiError, FieldErrors } from "@/types/errors";
 import { isApiError } from "@/types/errors";
+import { FIELD_NAMES_BASE } from "@/types/fieldNames";
 
-// Busca mensajes en estructuras anidadas
-function findDeepErrorMessage(data: any): string | null {
+type HandleApiErrorOptions =
+  | string
+  | {
+      context?: string;
+      fieldNames?: Record<string, string>;
+    };
+
+// Busca mensajes en estructuras anidadas usando un resolvedor de nombres
+function findDeepErrorMessage(
+  data: any,
+  resolveName: (field: string) => string
+): string | null {
   if (!data) return null;
-
   if (typeof data === "string") return data;
 
   if (Array.isArray(data)) {
     for (const item of data) {
-      const found = findDeepErrorMessage(item);
+      const found = findDeepErrorMessage(item, resolveName);
       if (found) return found;
     }
   }
 
   if (typeof data === "object") {
     for (const key of Object.keys(data)) {
-      const found = findDeepErrorMessage(data[key]);
+      const found = findDeepErrorMessage((data as any)[key], resolveName);
       if (found) {
-        const fieldName = getFieldDisplayName(key);
-        return `${fieldName}: ${found}`;
+        const fieldName = resolveName(key);
+        return key === "non_field_errors" ? found : `${fieldName}: ${found}`;
       }
     }
   }
-
   return null;
 }
 
 // Convierte errores anidados en objeto plano tipo { campo: [errores] }
-function normalizeFieldErrors(errors: any, parentKey = ""): FieldErrors {
-  const result: FieldErrors = {};
+function normalizeFieldErrors(errors: any, parentKey = ''): FieldErrors {
+  let flat: FieldErrors = {};
 
-  if (Array.isArray(errors)) {
-    errors.forEach((item, index) => {
-      const prefix = parentKey ? `${parentKey}[${index}]` : `[${index}]`;
-      Object.assign(result, normalizeFieldErrors(item, prefix));
-    });
-  } else if (typeof errors === "object" && errors !== null) {
-    for (const key in errors) {
-      const newKey = parentKey ? `${parentKey}.${key}` : key;
-      Object.assign(result, normalizeFieldErrors(errors[key], newKey));
+  for (const key in errors) {
+    const value = errors[key];
+    const fullKey = parentKey ? `${parentKey}.${key}` : key;
+
+    if (Array.isArray(value)) {
+      // Caso: array de strings → error directo
+      if (value.every(v => typeof v === 'string')) {
+        flat[fullKey] = value;
+      }
+      // Caso: array de objetos → indexarlos
+      else {
+        value.forEach((item, index) => {
+          if (typeof item === 'object' && item !== null) {
+            Object.assign(flat, normalizeFieldErrors(item, `${fullKey}[${index}]`));
+          }
+        });
+      }
     }
-  } else {
-    result[parentKey] = Array.isArray(errors) ? errors : [String(errors)];
+    else if (typeof value === 'object' && value !== null) {
+      // Objeto anidado → seguir recorriendo
+      Object.assign(flat, normalizeFieldErrors(value, fullKey));
+    }
+    else {
+      // Valor simple → pasarlo a array
+      flat[fullKey] = [String(value)];
+    }
   }
 
-  return result;
+  return flat;
 }
 
-function getFieldDisplayName(field: string): string {
-  const fieldNames: Record<string, string> = {
-    username: "nombre de usuario",
-    password: "contraseña",
-    fecha: "fecha",
-    monto: "monto",
-    descripcion: "descripción",
-    tipo_operacion: "tipo de operación",
-    servicio_detalle: "detalle del servicio",
-    mantenimiento_detalle: "detalle del mantenimiento",
-    combustible_detalle: "detalle del combustible",
-    placa_vehiculo: "placa del vehículo",
-    galones: "galones",
-    precio_galon: "precio por galón",
-    total: "total",
-    subtotal: "subtotal",
-    non_field_errors: "el formulario",
-  };
+// Nombres "bonitos" de campos, permitiendo inyectar un mapa por formulario/tipo
+function getFieldDisplayName(
+  field: string,
+  customMap?: Record<string, string>
+): string {
+  const base = { ...FIELD_NAMES_BASE, ...(customMap || {}) };
 
+  // Soporte para paths como "detalle[0].cantidad"
   if (field.includes("[") && field.includes("]")) {
-    const baseField = field.split("[")[0];
-    const nestedField = field.split(".").pop();
-    const baseName = fieldNames[baseField] || baseField.replace(/_/g, " ");
+    const baseField = field.split("[")[0]; // p.ej. 'mantenimiento_detalle'
+    const nestedField = field.split(".").pop(); // p.ej. 'cantidad'
+    const baseName = base[baseField] || baseField.replace(/_/g, " ");
     const nestedName = nestedField
-      ? fieldNames[nestedField] || nestedField.replace(/_/g, " ")
+      ? base[nestedField] || nestedField.replace(/_/g, " ")
       : "";
     return nestedName ? `${baseName} - ${nestedName}` : baseName;
   }
 
-  return fieldNames[field] || field.replace(/_/g, " ");
+  return base[field] || field.replace(/_/g, " ");
 }
 
 function inferCodeFromStatus(status: number): string {
@@ -95,7 +108,11 @@ function inferCodeFromStatus(status: number): string {
   }
 }
 
-function extractErrorMessage(error: any, fallback = "Ocurrió un error"): string {
+function extractErrorMessage(
+  error: any,
+  fallback: string,
+  resolveName: (field: string) => string
+): string {
   if (!error) return fallback;
   if (typeof error === "string") return error;
 
@@ -104,8 +121,9 @@ function extractErrorMessage(error: any, fallback = "Ocurrió un error"): string
   const responseData = error?.response?.data;
   if (responseData) {
     if (responseData.detail) return responseData.detail;
+
     if (responseData.errors) {
-      const deepMsg = findDeepErrorMessage(responseData.errors);
+      const deepMsg = findDeepErrorMessage(responseData.errors, resolveName);
       if (deepMsg) return deepMsg;
     }
 
@@ -113,59 +131,70 @@ function extractErrorMessage(error: any, fallback = "Ocurrió un error"): string
       const keys = Object.keys(responseData);
       if (keys.length > 0) {
         const firstKey = keys[0];
-        const firstError = Array.isArray(responseData[firstKey])
-          ? responseData[firstKey][0]
-          : responseData[firstKey];
-        const fieldName = getFieldDisplayName(firstKey);
+        const firstError = Array.isArray((responseData as any)[firstKey])
+          ? (responseData as any)[firstKey][0]
+          : (responseData as any)[firstKey];
+        const fieldName = resolveName(firstKey);
         return firstKey === "non_field_errors"
-          ? firstError
-          : `Error en ${fieldName}: ${firstError}`;
+          ? String(firstError)
+          : `Error en ${fieldName}: ${String(firstError)}`;
       }
     }
 
     if (typeof responseData === "string") return responseData;
   }
 
+  // AxiosError sin response → red/timeout/etc.
   if (error?.message && !error?.response) {
     return `Error de conexión: ${error.message}`;
   }
 
+  // Cualquier objeto sin response
   if (typeof error === "object" && !error?.response) {
     const keys = Object.keys(error);
     if (keys.length > 0) {
       const firstKey = keys[0];
-      const firstError = Array.isArray(error[firstKey])
-        ? error[firstKey][0]
-        : error[firstKey];
-      return firstError;
+      const firstError = Array.isArray((error as any)[firstKey])
+        ? (error as any)[firstKey][0]
+        : (error as any)[firstKey];
+      return String(firstError);
     }
   }
 
   return fallback;
 }
 
-export function handleApiError(error: any, context = ""): never {
-  let status = error?.response?.status ?? error.status ?? 0;
-  let code = isApiError(error)
+export function handleApiError(
+  error: any,
+  options: HandleApiErrorOptions = ""
+): ApiError {
+  const opts =
+    typeof options === "string" ? { context: options } : (options || {});
+  const resolveName = (f: string) => getFieldDisplayName(f, opts.fieldNames);
+
+  const status = error?.response?.status ?? error.status ?? 0;
+  const code = isApiError(error)
     ? error.code
     : inferCodeFromStatus(status);
 
-  let message = extractErrorMessage(error, `No se pudo completar la ${context}`);
-  let fieldErrors: FieldErrors | undefined;
+  const message = extractErrorMessage(
+    error,
+    `No se pudo completar la ${opts.context ?? ""}`.trim(),
+    resolveName
+  );
 
+  let fieldErrors: FieldErrors | undefined;
   if (isApiError(error) && error.errors) {
     fieldErrors = normalizeFieldErrors(error.errors);
   } else if (error?.response?.data?.errors) {
     fieldErrors = normalizeFieldErrors(error.response.data.errors);
   }
 
-  const apiError: ApiError = {
+  return {
     status,
     code,
     detail: message,
     errors: fieldErrors,
     raw: error,
   };
-
-  throw apiError;
 }

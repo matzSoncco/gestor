@@ -8,5 +8,6 @@ export async function obtenerNombreProveedor(ruc: string): Promise<string> {
   } catch (error) {
     // Si hay un contexto, pásalo para mensajes más claros
     handleApiError(error, 'consultar el RUC')
+    return '' // Devuelve un string vacío en caso de error
   }
 }

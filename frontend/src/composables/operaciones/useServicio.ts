@@ -3,14 +3,14 @@ import { useIdGenerator } from '@/composables/global/useIdGenerator';
 import type { Servicio } from '@/types/operacion';
 
 interface OperacionLike {
-  servicios: Servicio[];
+  servicio_detalle: Servicio[];
 }
 
 export function useServicio(formDataRef: Ref<OperacionLike>) {
   const { generateId } = useIdGenerator();
 
   const addServicioRow = (): void => {
-    formDataRef.value.servicios.push({
+    formDataRef.value.servicio_detalle.push({
       id: generateId(),
       descripcion_item: '',
       subtotal: 0,
@@ -21,13 +21,13 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
   };
 
   const removeServicioRow = (id: string | number): void => {
-    formDataRef.value.servicios = formDataRef.value.servicios.filter(
+    formDataRef.value.servicio_detalle = formDataRef.value.servicio_detalle.filter(
       (s) => s.id !== id
     )
   };
 
   const updateSubtotals = (): void => {
-    formDataRef.value.servicios.forEach((s) => {
+    formDataRef.value.servicio_detalle.forEach((s) => {
       s.igv = Number((s.subtotal * 0.18).toFixed(2));
       s.total = Number((s.subtotal + s.igv).toFixed(2))
     })
@@ -35,7 +35,7 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
 
   const costoTotalServicio = computed(() =>
     Number(
-      formDataRef.value.servicios.reduce(
+      formDataRef.value.servicio_detalle.reduce(
         (s, i) => s + (i.total || 0),
         0,
       ).toFixed(2),
@@ -43,7 +43,7 @@ export function useServicio(formDataRef: Ref<OperacionLike>) {
   );
 
   watch(
-    () => formDataRef.value.servicios,
+    () => formDataRef.value.servicio_detalle,
     updateSubtotals,
     { deep: true }
   );

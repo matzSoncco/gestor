@@ -7,7 +7,7 @@ import type { Mantenimiento } from '@/types/operacion';
 import { useNotify } from '@/composables/global/useNotify';
 
 interface OperacionLike {
-  mantenimientos: Mantenimiento[];
+  mantenimiento_detalle: Mantenimiento[];
 }
 
 export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
@@ -18,7 +18,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
 
   /* ---- acciones array ---- */
   const addMantenimientoRow = (): void => {
-    formDataRef.value.mantenimientos.push({
+    formDataRef.value.mantenimiento_detalle.push({
       id: generateId(),
       repuesto: '',
       cantidad: 0,
@@ -33,7 +33,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   };
 
   const removeMantenimientoRow = (id: string | number): void => {
-    formDataRef.value.mantenimientos = formDataRef.value.mantenimientos.filter(
+    formDataRef.value.mantenimiento_detalle = formDataRef.value.mantenimiento_detalle.filter(
       (m) => m.id !== id
     )
   }
@@ -68,7 +68,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   }, 300)
 
   const selectItem = (item: SugerenciaItem, index: number): void => {
-    formDataRef.value.mantenimientos[index].repuesto = item.value
+    formDataRef.value.mantenimiento_detalle[index].repuesto = item.value
     sugerencias.value[index] = []
     inputActivo.value = null
   }
@@ -82,7 +82,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
 
   /* ---- subtotales y total ---- */
   const updateSubtotals = (): void => {
-    formDataRef.value.mantenimientos.forEach((m) => {
+    formDataRef.value.mantenimiento_detalle.forEach((m) => {
       const cantidad = Number(m.cantidad) || 0;
       const precio = Number(m.costo_unitario) || 0;
 
@@ -94,7 +94,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
 
   const costoTotalMantenimiento = computed(() =>
     Number(
-      formDataRef.value.mantenimientos.reduce(
+      formDataRef.value.mantenimiento_detalle.reduce(
         (s, i) => s + (i.total ?? 0),
         0
       ).toFixed(2)
@@ -102,7 +102,7 @@ export function useMantenimiento(formDataRef: Ref<OperacionLike>) {
   )
 
   watch(
-    () => formDataRef.value.mantenimientos,
+    () => formDataRef.value.mantenimiento_detalle,
     updateSubtotals,
     { deep: true },
   );

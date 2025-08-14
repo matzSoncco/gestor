@@ -4,18 +4,24 @@ import { useMantenimiento } from '@/composables/operaciones/useMantenimiento';
 import { useServicio } from '@/composables/operaciones/useServicio';
 import { useFormActions } from '@/composables/global/useFormActions';
 import { useNotify } from '@/composables/global/useNotify';
-import { stripTempIds } from '@/utils/payload';
 import { validateRequired } from '@/utils/validateRequired';
 import { useOperacionStore } from '@/stores/operacionStore';
 import { usePagination } from '../global/usePagination';
 import { handleApiError } from '@/utils/apiErrorHandler';
-import type { ApiError, FieldErrors } from '@/types/errors'
+import {
+  FIELD_NAMES_BASE,
+  FIELD_NAMES_COMBUSTIBLE,
+  FIELD_NAMES_MANTENIMIENTO,
+  FIELD_NAMES_SERVICIO,
+  mergeFieldNames,
+} from "@/types/fieldNames";
 
 import {
   fetchOperaciones,
   createOperacion,
   updateOperacion,
   deleteOperacion,
+  mapOperacionRequest,
 } from '@/api/operaciones';
 
 import {
@@ -27,12 +33,6 @@ import {
 } from '@/types/operacion';
 
 /* ------------ Tipo auxiliar DTO sin campos temporales ------------ */
-type OperacionDTO = Omit<Operacion, 'combustibles' | 'mantenimientos' | 'servicios' | 'costo_total'> & {
-  combustible_detalle: Omit<Combustible, 'id'>[];
-  mantenimiento_detalle: Omit<Mantenimiento, 'id'>[];
-  servicio_detalle: Omit<Servicio, 'id'>[];
-};
-
 type OperacionFiltros = {
   numero_documento: string;
   fecha_inicio: string | null;
@@ -61,51 +61,45 @@ function validateOperacion(operacion: Partial<Operacion>): string | null {
   }
 
   if (operacion.tipo_operacion === 'combustible' && 
-      (!operacion.combustibles || operacion.combustibles.length === 0)) {
+      (!operacion.combustible_detalle || operacion.combustible_detalle.length === 0)) {
     return 'Debe agregar al menos un registro de combustible';
   }
 
   if (operacion.tipo_operacion === 'mantenimiento' && 
-      (!operacion.mantenimientos || operacion.mantenimientos.length === 0)) {
+      (!operacion.mantenimiento_detalle || operacion.mantenimiento_detalle.length === 0)) {
     return 'Debe agregar al menos un registro de mantenimiento';
   }
 
   if (operacion.tipo_operacion === 'servicio' && 
-      (!operacion.servicios || operacion.servicios.length === 0)) {
+      (!operacion.servicio_detalle || operacion.servicio_detalle.length === 0)) {
     return 'Debe agregar al menos un registro de servicio';
   }
 
   return null;
 }
 
-function buildOperacionPayload(operacion: Partial<Operacion>): OperacionDTO {
-  const defaults = makeOperacionDefaults();
-  const merged: Operacion = { ...defaults, ...operacion };
-
-  const dto: OperacionDTO = {
-    ...merged,
-    combustible_detalle: stripTempIds(merged.combustibles || []),
-    mantenimiento_detalle: stripTempIds(merged.mantenimientos || []),
-    servicio_detalle: stripTempIds(merged.servicios || []),
-  };
-
-  // Eliminamos arrays originales y costo_total
-  delete (dto as any).combustibles;
-  delete (dto as any).mantenimientos;
-  delete (dto as any).servicios;
-  delete (dto as any).costo_total;
-
-  return dto;
-};
-
 export function useOperaciones() {
   const operacionStore = useOperacionStore()
   const defaults = makeOperacionDefaults();
-  const formErrors = ref<FieldErrors>({});
+  const formErrors = ref<Record<string, string[]>>({});
   const clearErrors = () => {
     formErrors.value = {};
   };
   const { success, error, info, warning } = useNotify();
+
+  const currentFieldNames = computed(() => {
+    const tipo = formData.value.tipo_operacion; // 'combustible' | 'mantenimiento' | 'servicio'
+    switch (tipo) {
+      case "combustible":
+        return mergeFieldNames(FIELD_NAMES_BASE, FIELD_NAMES_COMBUSTIBLE);
+      case "mantenimiento":
+        return mergeFieldNames(FIELD_NAMES_BASE, FIELD_NAMES_MANTENIMIENTO);
+      case "servicio":
+        return mergeFieldNames(FIELD_NAMES_BASE, FIELD_NAMES_SERVICIO);
+      default:
+        return FIELD_NAMES_BASE;
+    }
+  });
 
   /* -------- estado base -------- */
   const isResetting = ref(false);
@@ -192,79 +186,79 @@ export function useOperaciones() {
 
   /* CRUD */
   const createOperacionAction = async (payload: Partial<Operacion>) => {
-    // 1️⃣ Validación local
-    const msg = validateOperacion(payload)
+    // 1) Validación local
+    const msg = validateOperacion(payload);
     if (msg) {
-      error(msg)
-      throw new Error(msg)
+      error(msg);
+      throw new Error(msg);
     }
 
-    // 2️⃣ Actualizar subtotales según el tipo
+    // 2) Subtotales según tipo
     switch (formData.value.tipo_operacion) {
-      case 'servicio':
-      case 'combustible':
-        servicioComposable.updateSubtotals()
-        break
-      case 'mantenimiento':
-        mantenimientoComposable.updateSubtotals()
-        break
+      case "servicio":
+      case "combustible":
+        servicioComposable.updateSubtotals();
+        break;
+      case "mantenimiento":
+        mantenimientoComposable.updateSubtotals();
+        break;
     }
 
-    // 3️⃣ Construir DTO
-    const dto = buildOperacionPayload(payload)
+    // 3) DTO con fecha en formato correcto
+    const dto = mapOperacionRequest(payload as Operacion);
+    console.log("📤 Enviando DTO al backend:", JSON.stringify(dto, null, 2));
+
 
     try {
-      const data = await createOperacion(dto)
+      const data = await createOperacion(dto);
 
-      // 4️⃣ Actualizar estado local
-      operaciones.value = [data, ...operaciones.value]
-      operacionStore.agregarOperacion(data)
+      // 4) Estado local
+      operaciones.value = [data, ...operaciones.value];
+      operacionStore.agregarOperacion(data);
 
-      success('Operación registrada correctamente')
-      return data
+      success("Operación registrada correctamente");
+      return data;
     } catch (err) {
-      try {
-        // Esto lanza un error parseado
-        handleApiError(err, 'No se pudo registrar la operación')
-      } catch (apiErr) {
-        const typedError = apiErr as ApiError & { fieldErrors?: Record<string, string[]> }
+      // ✅ Normalización centralizada con nombres por tipo
+      const apiErr = handleApiError(err, {
+        context: "operación",
+        fieldNames: currentFieldNames.value,
+      });
 
-        // Mostrar mensaje principal
-        error(typedError.detail || 'Ocurrió un error')
+      // Mensaje principal
+      error(apiErr.detail || "Ocurrió un error");
 
-        // Si hay errores por campo
-        if (typedError.errors) {
-          formErrors.value = typedError.errors;
-          
-          // Opcional: mostrar un warning adicional si hay múltiples errores
-          if (Object.keys(typedError.errors).length > 1) {
-              warning('Se encontraron errores en varios campos. Revísalos y corrige la información.');
-          }
-        } else {
-          // En caso de que no haya errores de campo, asegúrate de limpiarlos
-          clearErrors();
+      // Errores por campo → pintar en el formulario
+      if (apiErr.errors) {
+        formErrors.value = apiErr.errors;
+
+        const keys = Object.keys(apiErr.errors);
+        if (keys.length > 1) {
+          warning("Se encontraron errores en varios campos. Revísalos y corrige la información.");
         }
 
-        // Ejemplo de manejo por código
-        switch (typedError.code) {
-          case 'UNAUTHENTICATED':
-            warning('Tu sesión ha expirado.')
-            break
-          case 'FORBIDDEN':
-            error('No tienes permisos para crear operaciones.')
-            break
-          case 'NETWORK_ERROR':
-            error('Sin conexión a internet.')
-            break
-          case 'SERVER_ERROR':
-            error('Error temporal del servidor.')
-            break
-        }
-
-        throw typedError
+        // (Opcional) Focus/scroll al primer campo con error
+        // focusFirstError(keys[0]);
+      } else {
+        clearErrors();
       }
+
+      // Manejo por código
+      switch (apiErr.code) {
+        case "UNAUTHENTICATED":
+          warning("Tu sesión ha expirado.");
+          break;
+        case "FORBIDDEN":
+          error("No tienes permisos para crear operaciones.");
+          break;
+        case "SERVER_ERROR":
+          error("Error temporal del servidor.");
+          break;
+      }
+
+      throw apiErr;
     }
-  }
+  };
 
   const updateOperacionAction = async (id: number, payload: Partial<Operacion>) => {
     const msg = validateOperacion(payload);
@@ -273,7 +267,8 @@ export function useOperaciones() {
       throw new Error(msg);
     }
 
-    const dto = buildOperacionPayload(payload);
+    // 3) DTO con fecha en formato correcto
+    const dto = mapOperacionRequest(payload as Operacion);
 
     try {
       const data = await updateOperacion(id, dto);
@@ -281,8 +276,8 @@ export function useOperaciones() {
       success('Operación actualizada exitosamente');
       return data;
     } catch (err) {
-      const message = getApiErrorMessage(err, 'No se pudo actualizar la operación');
-      error(message);
+      const message = handleApiError(err, 'No se pudo actualizar la operación');
+      error(typeof message === 'string' ? message : (message?.toString?.() || 'Ocurrió un error'));
       throw err;
     }
   }
@@ -333,23 +328,23 @@ export function useOperaciones() {
 
       // Limpiar detalles no correspondientes al nuevo tipo
       if (nuevoTipo !== 'combustible') {
-        limpiarDetalle('combustibles', 'Registros de combustible descartados');
+        limpiarDetalle('combustible_detalle', 'Registros de combustible descartados');
       }
       if (nuevoTipo !== 'mantenimiento') {
-        limpiarDetalle('mantenimientos', 'Registros de mantenimiento descartados');
+        limpiarDetalle('mantenimiento_detalle', 'Registros de mantenimiento descartados');
       }
       if (nuevoTipo !== 'servicio') {
-        limpiarDetalle('servicios', 'Registros de servicio descartados');
+        limpiarDetalle('servicio_detalle', 'Registros de servicio descartados');
       }
 
       // Agregar fila inicial para el nuevo tipo si no existe
-      if (nuevoTipo === 'combustible' && formData.value.combustibles.length === 0) {
+      if (nuevoTipo === 'combustible' && formData.value.combustible_detalle.length === 0) {
         combustibleComposable.addCombustibleRow();
       }
-      if (nuevoTipo === 'mantenimiento' && formData.value.mantenimientos.length === 0) {
+      if (nuevoTipo === 'mantenimiento' && formData.value.mantenimiento_detalle.length === 0) {
         mantenimientoComposable.addMantenimientoRow();
       }
-      if (nuevoTipo === 'servicio' && formData.value.servicios.length === 0) {
+      if (nuevoTipo === 'servicio' && formData.value.servicio_detalle.length === 0) {
         servicioComposable.addServicioRow();
       }
     },
