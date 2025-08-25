@@ -1,4 +1,5 @@
 import api from '@/services/authService'
+import axios from 'axios';
 
 export type LoginResponse = 
   | { success: true; access: string; refresh: string }
@@ -14,7 +15,15 @@ export async function login(username: string, password: string): Promise<LoginRe
       refresh: data.refresh
     } as const // ← Esto ayuda a TypeScript
   } catch (error) {
-    console.error('Error al iniciar sesión', error)
+    if (axios.isAxiosError(error)) {
+      console.error("Error al iniciar sesión", {
+        status: error.response?.status,
+        url: error.config?.url,
+        message: error.message
+      })
+    } else {
+      console.error("Error desconocido al iniciar sesión", error)
+    }
     return { success: false, error } as const
   }
 }

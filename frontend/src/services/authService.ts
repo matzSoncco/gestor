@@ -19,22 +19,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (import.meta.env.DEV) {
-      console.group("🔴 Axios Error");
-      console.log("Status:", error.response?.status ?? 0);
-      console.log("Data:", error.response?.data);
-      console.log("URL:", error.config?.url);
-      console.groupEnd();
+    if (error.config?.data) {
+      delete (error.config as any).data; // 🔥 elimina el body sensible
     }
-
-    const status = error.response?.status ?? 0;
-    const code = (error.response?.data as any)?.code;
-
-    if (status === 401 || code === "UNAUTHENTICATED") {
-      const auth = useAuthStore();
-      auth.logout();
-    }
-
     return Promise.reject(error);
   }
 );
