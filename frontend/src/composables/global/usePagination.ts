@@ -8,7 +8,7 @@ interface PaginationOptions {
   params?: Ref<Record<string, any>>
 }
 
-export function usePagination<T>({ fetcher, page = 1, pageSize = 6, immediate = true, params = ref({}) }: PaginationOptions) {
+export function usePagination<T>({ fetcher, page = 1, pageSize = 10, immediate = true, params = ref({}) }: PaginationOptions) {
   const items = ref<T[]>([])
   const total = ref(0)
   const loading = ref(false)
