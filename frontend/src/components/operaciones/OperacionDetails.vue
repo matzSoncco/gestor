@@ -199,7 +199,7 @@
                       </svg>
                     </div>
                     <div class="min-w-0 flex-1">
-                      <h4 class="font-semibold text-gray-800 mb-1 truncate">{{ m.repuesto }}</h4>
+                      <h4 class="font-semibold text-gray-800 mb-1 truncate">{{ m.repuesto.descripcion }}</h4>
                       <div class="flex items-center space-x-2 text-sm text-gray-600">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>

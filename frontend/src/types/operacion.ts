@@ -7,6 +7,11 @@ export interface OperacionResponse {
   results: Operacion[]
 }
 
+interface Repuesto {  
+  id: string;
+  descripcion: string;
+}
+
 export interface Combustible {
   id: string;
   cantidad_galones: number;
@@ -20,7 +25,7 @@ export interface Combustible {
 
 export interface Mantenimiento {
   id: string;
-  repuesto: string;
+  repuesto: Repuesto;
   cantidad: number;
   costo_unitario: number;
   subtotal: number;
