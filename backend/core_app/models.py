@@ -63,6 +63,7 @@ class Vehiculo(models.Model):
         ],
         help_text="6 caracteres, letras en mayúscula y dígitos."
     )
+    created_at = models.DateTimeField(auto_now_add=True)
     anio = models.PositiveIntegerField(
         default=2000,
         validators=[MinValueValidator(1900), MaxValueValidator(2100)],
@@ -138,7 +139,7 @@ class Vehiculo(models.Model):
     class Meta:
         verbose_name = "Vehículo"
         verbose_name_plural = "Vehículos"
-        ordering = ['placa']
+        ordering = ['-created_at'] #ordenar por fecha de creación, del más reciente al más antiguo
 
     def __str__(self):
         return f"{self.placa} ({self.marca} {self.modelo})"
@@ -187,9 +188,10 @@ class Operaciones(models.Model):
     fecha = models.DateField(auto_now_add=False, default=None, null=True, blank=True)
     descripcion = models.TextField(blank=True, null=True)
     costo_total = models.DecimalField(null=False, default=Decimal('0.00'), editable=False, decimal_places=2, max_digits=10)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['-fecha']
+        ordering = ['-created_at']
         verbose_name = 'Operación'
         verbose_name_plural = 'Operaciones'
     
@@ -198,19 +200,10 @@ class Operaciones(models.Model):
         return f"{self.get_tipo_operacion_display()} - {fecha_str}"
     
     def save(self, *args, **kwargs):
-        # Llama al save original para asegurar que el objeto tiene un PK
-        # Esto es esencial para que las relaciones ".all()" funcionen
-        # correctamente cuando se crean detalles junto con la operación padre.
-        super().save(*args, **kwargs) # Este save persistirá la instancia con el costo_total que tenía (ej. 0.00)
+        super().save(*args, **kwargs)
 
-        # Ahora, si el objeto tiene un PK (ya está en la DB), podemos calcular el total
-        if self.pk: # Esto asegura que no intentamos acceder a relaciones de un objeto no guardado
+        if self.pk:
             total_subtotal = Decimal('0.00')
-
-            # Usar aggregate para sumar eficientemente los subtotales de los detalles
-            # Asegúrate de que los `related_name` en tus ForeignKey de los modelos de detalle
-            # (Combustible, Mantenimiento, Servicio) coincidan con lo que usas aquí.
-            # E.g., en Combustible: operacion = models.ForeignKey(Operaciones, ..., related_name='combustible_detalle')
 
             if hasattr(self, 'combustible_detalle'):
                 combustible_sum = self.combustible_detalle.aggregate(total_sum=Sum('subtotal'))['total_sum']
@@ -222,7 +215,7 @@ class Operaciones(models.Model):
                 if mantenimiento_sum is not None:
                     total_subtotal += mantenimiento_sum
 
-            if hasattr(self, 'servicio_detalle'): # **Confirmar este related_name con tu modelo Servicio**
+            if hasattr(self, 'servicio_detalle'):
                 servicio_sum = self.servicio_detalle.aggregate(total_sum=Sum('subtotal'))['total_sum']
                 if servicio_sum is not None:
                     total_subtotal += servicio_sum
@@ -231,12 +224,8 @@ class Operaciones(models.Model):
             igv_calculado = (total_subtotal * Decimal('0.18')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             costo_total_calculado = (total_subtotal + igv_calculado).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-            # Si el costo total ha cambiado, guarda la instancia nuevamente con el nuevo valor.
-            # Esto es importante para evitar bucles infinitos si este save() se dispara
-            # por una señal post_save de un detalle (aunque aquí estamos en el save del padre).
             if self.costo_total != costo_total_calculado:
                 self.costo_total = costo_total_calculado
-                # Usa update_fields para solo guardar el campo modificado
                 super().save(update_fields=['costo_total'], *args, **kwargs)
 
 
@@ -268,7 +257,6 @@ class Servicio(models.Model):
         return (self.subtotal + self.igv).quantize(Decimal('0.01'))
     
     def save(self, *args, **kwargs):
-        #print("💾 Guardando servicio con subtotal:", self.subtotal)
         if self.subtotal is None:
             self.subtotal = Decimal('0.00')
         super().save(*args, **kwargs)

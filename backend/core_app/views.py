@@ -68,7 +68,7 @@ class VehiculoViewSet(ModelViewSet):
         if placa:
             queryset = queryset.filter(placa__icontains=placa)
 
-        return queryset.order_by('-placa')
+        return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
         # Asociar automáticamente a la empresa del usuario autenticado
@@ -186,7 +186,7 @@ class OperacionesViewSet(ModelViewSet):
         if fecha_fin:
             queryset = queryset.filter(fecha__lte=fecha_fin)
 
-        return queryset.order_by('-fecha')
+        return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
         # Asociar automáticamente a la empresa del usuario autenticado

@@ -188,9 +188,10 @@ class VehiculoSerializer(serializers.ModelSerializer):
             'marca_modelo',
             'necesita_mantenimiento',
             'siguiente_hito_mantenimiento',
-            'proximo_hito_mantenimiento'
+            'proximo_hito_mantenimiento',
+            'created_at',
         ]
-        read_only_fields = ['id', 'marca_modelo', 'empresa', 'necesita_mantenimiento', 'siguiente_hito_mantenimiento', 'proximo_hito_mantenimiento']
+        read_only_fields = ['id', 'marca_modelo', 'empresa', 'necesita_mantenimiento', 'siguiente_hito_mantenimiento', 'proximo_hito_mantenimiento', 'created_at']
 
     def get_marca_modelo(self, obj):
         return f"{obj.marca} {obj.modelo}"
@@ -205,9 +206,9 @@ class OperacionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'numero_documento', 'ruc_proveedor', 'nombre_proveedor',
             'tipo_operacion', 'fecha', 'descripcion', 'costo_total',
-            'servicio_detalle', 'mantenimiento_detalle', 'combustible_detalle',
+            'servicio_detalle', 'mantenimiento_detalle', 'combustible_detalle', 'created_at'
         ]
-        read_only_fields = ['costo_total']
+        read_only_fields = ['costo_total', 'created_at']
 
     def validate_ruc_proveedor(self, value):
         if not value.isdigit() or len(value) != 11:
