@@ -1,29 +1,30 @@
-import api from '@/services/authService'
-import axios from 'axios';
+// src/api/login.ts
+import api from '@/services/authService';
+import axios, { AxiosError } from 'axios';
 
-export type LoginResponse = 
+export type LoginResponse =
   | { success: true; access: string; refresh: string }
-  | { success: false; error: unknown }
+  | { success: false; error: string };
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
   try {
-    const { data } = await api.post('/token/', { username, password })
-    
-    return { 
-      success: true, 
+    const { data } = await api.post('/token/', { username, password });
+    return {
+      success: true,
       access: data.access,
-      refresh: data.refresh
-    } as const // ← Esto ayuda a TypeScript
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error al iniciar sesión", {
-        status: error.response?.status,
-        url: error.config?.url,
-        message: error.message
-      })
-    } else {
-      console.error("Error desconocido al iniciar sesión", error)
+      refresh: data.refresh,
+    };
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      if (err.code === 'ECONNABORTED' || !err.response) {
+        return { success: false, error: 'El servidor está despertando o sin conexión. Inténtalo de nuevo en unos segundos.' };
+      }
+      if (err.response?.status === 401) {
+        return { success: false, error: 'Credenciales incorrectas. Verifica usuario y contraseña.' };
+      }
+      //otros errores 5xx / 4xx
+      return { success: false, error: 'Error inesperado del servidor. Intenta nuevamente más tarde.' };
     }
-    return { success: false, error } as const
+    return { success: false, error: 'Error desconocido. Revisa tu conexión.' };
   }
 }
