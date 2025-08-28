@@ -109,7 +109,7 @@ export function useVehiculos() {
     params
   } = usePagination<Vehiculo>({
     fetcher: fetchVehiculos,
-    pageSize: 6
+    pageSize: 10
   })
 
   const syncStoreWithPagination  = () => { //cambio de nombre a una más descriptiva

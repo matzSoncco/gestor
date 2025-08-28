@@ -167,7 +167,7 @@ export function useOperaciones() {
     params
   } = usePagination<Operacion>({
     fetcher: fetchOperaciones,
-    pageSize: 6,
+    pageSize: 10,
   })
 
   const syncStoreWithPagination = () => {
