@@ -105,9 +105,9 @@ ipython_config.py
 # Environments
 .env.*.local
 .env.local
-.env.development.local
+.env.development
 .env.test.local
-.env.production.local
+.env.production
 
 # Node.js / Vue.js
 # Logs
@@ -179,3 +179,9 @@ ehthumbs_vista.db
 
 # Rider
 .idea.rider*/
+
+# archivo de configuracion de Eslint
+*.config.js
+
+# Arhcivos txt de pruebas generados
+*.txt
